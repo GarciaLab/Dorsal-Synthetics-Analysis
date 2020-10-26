@@ -110,6 +110,7 @@ for s = approvedSchnitzes
         compiledProject(n).particleFluo95= [];
         compiledProject(n).particleTimeOn = [];
         compiledProject(n).particleAccumulatedFluo = [];
+        compiledProject(n).particleFluoError = [];
         
     end
 end

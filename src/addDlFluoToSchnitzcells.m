@@ -12,7 +12,7 @@ schnitzcells = getSchnitzcells(liveExperiment);
 schnitzcellsOld = schnitzcells;
 ncFrames = [zeros(1, 8), liveExperiment.anaphaseFrames'];
 FrameInfo = getFrameInfo(liveExperiment);
-FrameNCs = [FrameInfo.nc];
+%FrameNCs = [FrameInfo.nc];
 imSize = [FrameInfo(1).LinesPerFrame, FrameInfo(1).PixelsPerLine];
 resultsFolder = liveExperiment.resultsFolder;
 
@@ -26,10 +26,10 @@ for s = 1:length(schnitzcells)
     firstFrame = schnitzcells(s).frames; firstFrame = firstFrame(1);
     lastFrame = schnitzcells(s).frames; lastFrame = lastFrame(end);
     
-    if firstFrame < length(FrameNCs) && length(schnitzcells(s).frames)>1
-        assert(FrameNCs(firstFrame+1)==FrameNCs(lastFrame),'schnitz spanning nuclear cycles found');
-        % if this assert fails fix the call to breakUpSchnitzesAtMitoses
-    end
+%     if firstFrame < length(FrameNCs) && length(schnitzcells(s).frames)>1
+%         assert(FrameNCs(firstFrame+1)==FrameNCs(lastFrame),'schnitz spanning nuclear cycles found');
+%         % if this assert fails fix the call to breakUpSchnitzesAtMitoses
+%     end
     
     dif = double(schnitzcells(s).frames(midFrame)) - ncFrames;
     cycle = find(dif>0, 1, 'last' );
@@ -120,7 +120,7 @@ end
 nc12Schnitz = [schnitzcells.cycle] == 12;
 fluoFeatureNc12Schnitz = [schnitzcells(nc12Schnitz).FluoFeature];
 usefulNc12Schnitz = sum(~isnan(fluoFeatureNc12Schnitz));
-assert(usefulNc12Schnitz > 14,'very few good nuclei in this dataset,')
+assert(usefulNc12Schnitz >= 11,['very few good nuclei in ' Prefix])
 
 
 

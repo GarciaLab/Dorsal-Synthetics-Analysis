@@ -244,63 +244,103 @@ percentError = FluoRNAPError/FluoRNAP;
 
 %% Compare results with spot intensities
 clearvars -except FluoRNAP FluoRNAPError
-
-
 close all;
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])%, 'dorsalResultsDatabase')
 a = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
 
-% % all fluorescences, one histogram per enhancer
-% fig = figure;
-% ax = axes(fig);
-% maxBin = max([a.dorsalFluoBin]);
-% for bin = 1:maxBin
-%     b = a([a.dorsalFluoBin]==bin);
-%     fluos = [b.particleFluo3Slice];
-%     fluos(fluos <= 0) = [];
-%     fluos(isnan(fluos)) = [];
-%  if ~isempty(fluos)
-%     histogram(log(fluos), 'Normalization', 'pdf', 'facealpha', .5)
-%     pd = fitdist(log(fluos)','Normal');
-%     x_values = 0:.1:10;
-%     y = pdf(pd,x_values);
-%     plot(ax, x_values,y,'-','LineWidth',.5)
-%     hold on
-%  end
-% end
-% title('log spot fluorescence divided by Dl bin. Normal fit')
-% ylabel('pdf')
-% 
 
-% all spots combined, the minimum fluorescence per trace
-fig2 = figure;
-hold on
-%ax2 = axes(fig2);
+%% all spots combined, the minimum fluorescence per trace
 b = a;
 fluos = [];
+fluoError = [];
+NucIdx = [];
 for k = 1:length(b)
-    fluos = [fluos, min(b(k).particleFluo3Slice)];
+    thisFluoTrace = b(k).particleFluo3Slice;
+    thisTraceDimmest = nanmean(thisFluoTrace(thisFluoTrace>0));
+%     thisTraceSorted = sort(thisFluoTrace);
+%     thisTraceDimmest = thisTraceSorted(1:min(4,length(thisTraceSorted))); 
+%     thisTraceDimmest(thisTraceDimmest<0) = [];
+    if ~isempty(thisTraceDimmest)
+        if ~isnan(thisTraceDimmest)
+            fluos = [fluos mean(thisTraceDimmest)];
+            fluoError = [fluoError b(k).particleFluoError];
+            NucIdx = [NucIdx k];
+        end
+    end
 end  
-% get rid of negative values and nans
-fluos(fluos <= 0) = [];
-fluos(isnan(fluos)) = [];
-fluos = log(fluos);
-%if ~isempty(fluos)
-    histogram(fluos, 'Normalization', 'pdf', 'facealpha', .5)
-%     hold on;
-%     pd = fitdist(fluos','Lognormal');
-%     x_values = .1:.1:400;
-%     y = pdf(pd,x_values);
-%     plot(ax2, x_values,y,'-','LineWidth',.5)
-%end
-plot(log([FluoRNAP FluoRNAP]),[0 1.5],'ko-')
-plot(log([FluoRNAP-FluoRNAPError FluoRNAP-FluoRNAPError]),[0 1.5],'r.-')
-plot(log([FluoRNAP+FluoRNAPError FluoRNAP+FluoRNAPError]),[0 1.5],'r.-')
+
+fluos3 = log(fluos);
+absFluos = log(fluos./FluoRNAP);
+% multiply error by sqrt(3) because we're using 3 slice fluo values
+absFluoError3 = log((fluoError./FluoRNAP)*sqrt(3));
+fluoError3 = log((fluoError*sqrt(3)));
+
+figure
+histogram(fluos3, 'Normalization', 'probability', 'facealpha', .5)
+hold on
+histogram(fluoError3, 'Normalization', 'probability', 'facealpha', .5)
+legend('weak spots','fluo error x3')
 title('min spot fluorescence. Lognormal fit')
-ylabel('pdf')
+ylabel('probability')
+xlabel('log(fluo)(AU)')
+xlim([1 7])
 hold off
-% 
+
+figure
+% plot the histograms in RNAP scale
+histogram(absFluos, 'Normalization', 'probability', 'facealpha', .5)
+hold on
+histogram(absFluoError3, 'Normalization', 'probability', 'facealpha', .5)
+ylabel('probability')
+xlabel('log(RNAP)')
+legend('weak spots','fluo error x3')
+hold off
+xlim(log([exp(1)/FluoRNAP exp(7)/FluoRNAP]))
+
+
+
+figure
+scatter(log(fluos),log(fluoError))
+xlabel('spot fluo')
+ylabel('fluo error')
+
+
+%%
+
+allTogether = [fluos;fluoError;NucIdx]';
+allTogetherSorted = sortrows(allTogether,2);
+
+nData = 455;
+dimmestNucleiIdx = allTogetherSorted(1:nData,3);
+fluos2 = [];
+fluos3=[];
+errors = [];
+
+for n = 1:length(dimmestNucleiIdx)
+    idx = dimmestNucleiIdx(n)
+    trace = b(idx).particleFluo3Slice;
+    traceDimmestFrames = sort(trace);
+    traceDimmestFrames = traceDimmestFrames(1:min(3,length(trace)));
+    traceError = b(idx).particleFluoError;
+    
+    fluos2 = [fluos2 traceDimmestFrames];
+    fluos3 = [fluos3 nanmean(traceDimmestFrames)];
+    errors = [errors traceError];
+end
+
+figure
+hold on
+histogram(fluos2,'Normalization', 'pdf', 'facealpha', .5)
+histogram(errors(errors>0)*sqrt(3),'Normalization', 'pdf', 'facealpha', .5)
+hold off
+legend('fluo','error')
+
+figure
+scatter(fluos3,errors*sqrt(3))
+xlabel('spot fluo')
+ylabel('error')
+
 % %
 % fig3 = figure;
 % ax3 = axes(fig3);
