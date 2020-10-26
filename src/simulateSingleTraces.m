@@ -61,7 +61,52 @@ end
 
 function [timeElapsed, fluos, singleFluosTrunc] = simulateTrace(params, displaySingle)
     
-          
+%             %experimental parameters
+%             app.params.TIME_PER_FRAME = 10; %s
+%             app.timeperframesEditField.Value = app.params.TIME_PER_FRAME;
+% 
+%             app.params.NOISE_SCALE_EXP = 0; %au
+%             app.scopenoiseauEditField.Value = app.params.NOISE_SCALE_EXP;
+% 
+%             app.params.MEAN_POL_LOADING_RATE = 8; %pol/min
+%             app.loadingrateauminEditField.Value = app.params.MEAN_POL_LOADING_RATE;
+%             
+%             app.params.MEAN_POL_OFFLOADING_RATE = 8; %pol/min
+%             
+%             app.params.MEAN_BACKGROUND = 0; %au
+%             app.offsetauEditField.Value = app.params.MEAN_BACKGROUND;
+% 
+%             app.params.DETECTION_LIMIT = 0; %au
+%             app.params.DETECTION_LIMIT = app.detectionthresholdauEditField.Value;
+%             
+%             app.params.MCP_INTENSITY = .2; %au / frame / mcp-gfp
+%             app.params.FLUO_CALIBRATION = 25; %au / polymerase
+%             app.calibrationfactorEditField.Value = app.params.FLUO_CALIBRATION;
+%             
+%            
+%             
+%             %biological parameters
+%             app.params.REPORTER_LENGTH = 3; %kb. this is ~lacZ
+%             app.params.N_LOOPS = 23; %v7
+%             app.params.LOOP_SIZE = .0583; %kb. ms2v1, v5 or v7
+%             app.params.GENE_LENGTH = app.params.REPORTER_LENGTH + app.params.LOOP_SIZE*app.params.N_LOOPS;
+%             
+%             app.params.ELON_RATE = 2.5; %kb/min
+%             app.ElongationratekbpminEditField.Value = app.params.ELON_RATE;
+%             
+%             app.params.LOOP_RATE = 47; %loops / min. (.783 loops/s)
+%             app.params.T_INIT = 3; %min
+%             app.params.T_FIN = 8; %min
+%             app.params.INTERPHASE = 10; %min
+%             app.params.POL_FOOTPRINT = .04; %kbp
+%             app.params.N_POLS = round(app.params.GENE_LENGTH / app.params.POL_FOOTPRINT);
+%             
+%             app.params.NOISE_SCALE_BIO = 0; %au
+%             app.loadingnoiseauEditField.Value=app.params.NOISE_SCALE_BIO;
+%             
+%             app.params.FRACTION_ACTIVE = .4;
+%             app.fractionactiveEditField.Value=app.params.FRACTION_ACTIVE;
+
     %calibrations and conversions
     timePerFrame = params.TIME_PER_FRAME/60; %min
     t_elon = params.GENE_LENGTH/params.ELON_RATE; %min

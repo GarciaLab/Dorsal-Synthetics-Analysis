@@ -1,6 +1,6 @@
 close all;
 
-d = logspace(-3, 4); %aus
+d = logspace(1, 4); %aus
 t = linspace(0, 10)'; %mins
 kd = 500;
 cs = logspace(-1, 2, 10);
@@ -14,13 +14,13 @@ figure;
 t_surf = tiledlayout('flow');
 
 
-f1 = figure; ax1 = axes(f1);
 f2 = figure; ax2 = axes(f2);
 f3 = figure; ax3 = axes(f3);
 f4 = figure; ax4 = axes(f4);
 f5 = figure; ax5 = axes(f5);
-f6 = figure; ax6 = axes(f6);
 f7 = figure; ax7 = axes(f7);
+f8 = figure; ax8 = axes(f8);
+
 
 dmrnadt = [];
 paccessible  = [];
@@ -31,6 +31,7 @@ cdfg = [];
 temp8 = [];
 cdfg2 = [];
 ton3 = [];
+ton4 = [];
 for c = cs
     n = n + 1;
     %five irreversible steps
@@ -50,14 +51,7 @@ temp= (-1/24).*d.*exp(-c.*d.*t).*(d+kd).^(-1).*R.*(24+(-24).* ...
    fon(n, :) = squeeze(paccessible(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
    
  
-   temp4 =nSteps./(c.*d);
-   ton(n, :) = temp4;
   
-  temp5 = (1/24).*exp(-c.*d.*t).*t.^(-1).*(24+c.*d.*t.*(24+c.*d.* ...
-  t.*(12+c.*d.*t.*(4+c.*d.*t))));
-     
-   cdfg(n, :, :) = temp5;
-   ton2(n, :) = squeeze(cdfg(n, t_nc13, :));
    
   
    
@@ -85,22 +79,26 @@ temp7 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*(24.* ...
 paccessible2(n, :, :) = temp7;   
 fon2(n, :) = squeeze(paccessible2(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
  
-temp8 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*t.^( ...
-  -1).*(24.*(d+kd).^4+24.*c.*d.*(d+kd).^3.*t+12.*c.^2.*d.^2.*(d+kd) ...
-  .^2.*t.^2+4.*c.^3.*d.^3.*(d+kd).*t.^3+c.^4.*d.^4.*t.^4);
 
- cdfg2(n, :, :) = temp8;
- ton3(n, :) = squeeze(cdfg2(n, t_nc13, :));
    
 
+
+temp10 = 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*c.*d.^4+ ...
+  150.*c.^2.*d.^4+500.*c.^3.*d.^4+1250.*c.^4.*d.^4+12.*d.^3.*kd+90.* ...
+  c.*d.^3.*kd+300.*c.^2.*d.^3.*kd+500.*c.^3.*d.^3.*kd+18.*d.^2.* ...
+  kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
+  c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
+  kd).^4).^(-1));
+
+ ton4(n, :) = temp10;
+
+ 
 nexttile(t_surf)
 surf(D, T, squeeze(dmrnadt(n, :, :)));
 xlim([0, 1E4]);
 title(num2str(c));
 
 
-plot(ax1, d, ton2(n,:));
-hold(ax1, 'on');
 
 plot(ax2, d, fon(n, :))
 hold(ax2, 'on')
@@ -117,26 +115,15 @@ hold(ax4, 'on')
 plot(ax5, d, fon2(n, :))
 hold(ax5, 'on')
 
-plot(ax6, d, ton3(n,:));
-hold(ax6, 'on');
+
+
+plot(ax8, d, ton4(n, :))
+hold(ax8, 'on')
 
 
 end
 
-title(ax1, 'predicted T_{on} (min)')
-xlim(ax1, [0, 3500]);
-leg1 = legend(ax1, num2str(round(cs', 2, 'significant')));
-title(leg1, 'c')
-xlabel(ax1,'[Dorsal] (au)')
-ylabel(ax1,'mean turn on time (min)')
 
-
-title(ax6, 'predicted T_{on} (min)')
-xlim(ax6, [0, 3500]);
-leg6 = legend(ax6, num2str(round(cs', 2, 'significant')));
-title(leg6, 'c')
-xlabel(ax6,'[Dorsal] (au)')
-ylabel(ax6,'mean turn on time (min)')
 
 
 
@@ -178,20 +165,22 @@ c = 5;
 kd = logspace(0, 4, 100);
 d = 1000;
 n = 0;
-temp8 = [];
-cdfg2 = [];
-ton3 = [];
+temp10 = [];
+ton4 = [];
 for k = kd
     n = n + 1;
-    temp8 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*t.^( ...
-      -1).*(24.*(d+kd).^4+24.*c.*d.*(d+kd).^3.*t+12.*c.^2.*d.^2.*(d+kd) ...
-      .^2.*t.^2+4.*c.^3.*d.^3.*(d+kd).*t.^3+c.^4.*d.^4.*t.^4);
+   temp10 = 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*c.*d.^4+ ...
+  150.*c.^2.*d.^4+500.*c.^3.*d.^4+1250.*c.^4.*d.^4+12.*d.^3.*kd+90.* ...
+  c.*d.^3.*kd+300.*c.^2.*d.^3.*kd+500.*c.^3.*d.^3.*kd+18.*d.^2.* ...
+  kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
+  c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
+  kd).^4).^(-1));
 
-     cdfg2(n, :, :) = temp8;
-     ton3(n, :) = squeeze(cdfg2(n, t_nc13, :));
+ ton4(n, :) = temp10;
      
-    plot(ax7, kd, ton3(n,:));
-    hold(ax7, 'on');
+plot(ax7, kd, ton4(n,:));
+hold(ax7, 'on');
+
 end
 
 title(ax7, 'predicted T_{on} (min)')
@@ -201,3 +190,10 @@ xlim(ax7, [0, 3500]);
 xlabel(ax7,'KD (au)')
 ylabel(ax7,'mean turn on time (min)')
 
+
+title(ax8, 'predicted T_{on} (min)')
+xlim(ax8, [0, 3500]);
+leg8 = legend(ax8, num2str(round(cs', 2, 'significant')));
+title(leg8, 'c')
+xlabel(ax8,'[Dl] (au)')
+ylabel(ax8,'mean turn on time (min)')

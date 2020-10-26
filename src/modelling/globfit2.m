@@ -1,4 +1,4 @@
-function [b, mse] = globfit2(varargin)
+function [b, MSE] = globfit2(varargin)
 % Set up data so that Y is a function of T with a specific functional form,
 % but there are multiple groups and one parameter varies across groups.
 
@@ -22,20 +22,17 @@ end
 if strcmpi(expmnt, 'affinities')
     enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
 elseif strcmpi(expmnt, 'phases')
-    enhancers = {'1Dg-8D', '1Dg-5','1Dg11'};
+    enhancers = {'1Dg11', '1Dg-5', '1Dg-8D'};
+    scores = [0, -5, -8]';
 end
 
 
 
 %we're going to restrict the range of the fits specifically for each
 %enhancer. nan values means no restriction
-xrange = nan(length(enhancers), 2);
-xrange(1,:)  = [1000, 2250];  %1Dg
-if strcmpi(expmnt, 'affinities')
-    xrange(2, :) = [500, 1750]; %upper limit for %1DgS
-    xrange(3, 1) = 500; %lower limit for 1DgW
-    xrange(4, 2) = 1500; %upper limit for %1DgAW
-end
+%we're going to restrict the range of the fits specifically for each
+%enhancer. nan values means no restriction
+xrange = getXRange(enhancers, expmnt);
 
 nSets = length(enhancers);
 xo = {};
@@ -56,13 +53,24 @@ for k = 1:nSets
     end
     [xs{k}, ys{k}]= processVecs(xo{k}, yo{k}, xrange(k, :));
     dsid = [dsid; k*ones(size(xs{k}))];
+    
+    if isnan(xrange(k, 1))
+        xrange(k, 1) = min(xo{k});
+    end
+    if isnan(xrange(k, 2))
+        xrange(k, 2) = max(xo{k});
+    end
+    
+    assert(~isempty(xs{k}));
+
     T = [T; xs{k}];
     Y = [Y; ys{k}];
 end
 
-if displayFigures
-    gscatter(T,Y,dsid)
-end
+% if displayFigures
+%     scatterFig = figure;
+%     gscatter(T,Y,dsid)
+% end
 
 
 
@@ -95,16 +103,26 @@ elseif expmnt == "phases" && md=="simpleweak" && metric=="fluo"
     mdl = @(p, x) subfun_simplebinding_weak_fluo_std_phases(p, x);
 end
 
-[b,~,res,~,~,~, Jacobian] = lsqcurvefit(mdlo,p0,X,Y, lb, ub, optimoptions);
+[b,~,res,~,~,~, J] = lsqcurvefit(mdlo,p0,X,Y, lb, ub, optimoptions);
 
 
-CI = nlparci(b,res,'jacobian',Jacobian);
-mse = mean(res.^2);
+CI = nlparci(b,res,'jacobian',J);
+MSE = mean(res.^2);
+
+CovB = inv(J'*J).*MSE;
+
+covfig = figure;
+cv = @(x, y) sqrt(abs(x)) ./ sqrt((y'*y));
+imagesc(cv(CovB, b));
+colorbar;
+ylabel('parameter 1')
+xlabel('parameter 2')
+title('Covariance matrix of the parameters');
 
 if displayFigures
     xx = (0:1:max(X(:,1)))';
     xxx = repmat(xx, nSets, 1);
-    [Ypred,delta] = nlpredci(mdl,xxx,b,res,'Jacobian',full(Jacobian));
+    [Ypred,delta] = nlpredci(mdl,xxx,b,res,'Jacobian',full(J));
     yl = Ypred - delta;
     yu = Ypred + delta;
     
