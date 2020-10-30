@@ -1,4 +1,7 @@
 function checkSchnitzAssignmentToParticles(Prefix)
+% goes over compiledParticles and checks that the schnitz assigned to each
+% particle is the right one
+
 
 % [~,~,DropboxFolder,~, PreProcPath,...
 %     ~, ~, ~, ~, ~,~] = readMovieDatabase(Prefix);
@@ -51,13 +54,13 @@ for p = 1:nc12Idx
     closestNucleusEver = mode(closestNucleusPerFrame);
     if ~isnan(closestNucleusEver)
         if CompiledParticlesStruct(p).schnitz ~= closestNucleusEver
-            disp(['original assigned schnitz is not the right one' Prefix])
+            disp(['original assigned schnitz is not the right one!' Prefix])
             CompiledParticlesStruct(p).schnitz = closestNucleusEver;
         end   
     end
 end
 
-disp('congrats! schnitzes were correctly assigned to particles')
+%disp('congrats! schnitzes were correctly assigned to particles')
 
 clear closestNucleusEver closestNucleusPerFrame idx dist minDistance distanceToNucleiThisFrame schnitzYPos schnitzXPos particleYPosThisFrame particleXPosThisFrame frame f n particleNCs nc12Idx
 

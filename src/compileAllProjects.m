@@ -33,7 +33,9 @@ hasAllPushed = [thisProject.hasSpots, thisProject.hasParticles,...
     thisProject.anaphaseFramesAnnotated];
 
 % assert( all(hasAllPushed) );
-% 
+
+% SA I created this function that checks that the schnitz field in
+% CompiledParticles contains the right schnitz.
 for k = 1:length(prefixes)
     checkSchnitzAssignmentToParticles(prefixes{k})
 end

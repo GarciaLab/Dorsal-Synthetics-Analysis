@@ -68,7 +68,8 @@ for e = 1:length(allData)
     
     
     schnitzcells = addDlFluoToSchnitzcells(Prefixes{e}); 
-      
+    
+    % SA: this only checks that the sizes match I think
     checkSchnitzcellsCompiledParticlesConsistency(...
     schnitzcells,...
     CompiledParticles)
