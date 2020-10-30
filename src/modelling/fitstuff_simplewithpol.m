@@ -1,10 +1,9 @@
 %% Fraction active
 close all;
 
-% enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
-enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3'};
+enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
 
-scores = [6.23, 5.81, 5.39, 5.13, 4.80, 4.73]';
+scores = [6.23, 5.81, 5.39, 5.13, 4.80, 4.73, 4.29]';
 
 %we're going to restrict the range of the fits specifically for each
 %enhancer. nan values means no restriction

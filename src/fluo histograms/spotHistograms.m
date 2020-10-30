@@ -1,12 +1,12 @@
 close all;
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
-% 
-% a = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
-%     [combinedCompiledProjects_allEnhancers.cycle]==12);
 
-a = combinedCompiledProjects_allEnhancers(...
+a = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
     [combinedCompiledProjects_allEnhancers.cycle]==12);
+% 
+% a = combinedCompiledProjects_allEnhancers(...
+%     [combinedCompiledProjects_allEnhancers.cycle]==12);
 
 % b = a(cellfun(@any, {a.particleFrames}))
 
@@ -47,8 +47,7 @@ fluos(isnan(fluos)) = [];
  if ~isempty(fluos)
     histogram(ax2, fluos, 'Normalization', 'pdf', 'facealpha', .5)
     hold on;
-   pd = fitdist(fluos','Lognormal');
-%      pd = fitdist(fluos','Gamma');
+    pd = fitdist(fluos','Lognormal');
     x_values = .1:.1:400;
     y = pdf(pd,x_values);
     plot(ax2, x_values,y,'-','LineWidth',.5)

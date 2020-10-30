@@ -296,7 +296,6 @@ if displayFigures
         title(titleCell);
     end
     
-%     try
         figure;
         if expmnt == "phaff"
             
@@ -327,7 +326,6 @@ if displayFigures
                 xlim([-10, 2])
             end
             
-%         end
     end
     
     

@@ -48,9 +48,9 @@ figure;
 tiledlayout('flow');
 
 nexttile;
-pallette = parula(length(dl));
+palette = parula(length(dl));
 for k = 1:length(dl)
-    plot(t0(k, :), dmrnadts(k, :), 'Color', pallette(k,:));
+    plot(t0(k, :), dmrnadts(k, :), 'Color', palette(k,:));
     hold on
 end
 xlabel('time (min)')
@@ -62,10 +62,10 @@ set(cbh,'YTickLabel',dl_au)
 ylabel(cbh, '[Dl] (au)');
 
 nexttile;
-pallette = parula(size(dmrnadts, 2));
+palette = parula(size(dmrnadts, 2));
 t00 = t0(1, :);
 for k = 1:size(dmrnadts, 2)
-    plot(dl_au, dmrnadts(:, k), 'Color', pallette(k,:));
+    plot(dl_au, dmrnadts(:, k), 'Color', palette(k,:));
     hold on
 end
 xlabel('[Dl] (au)')
@@ -77,10 +77,10 @@ ylabel(c, 'time (min)');
 
 
 nexttile;
-pallette = parula(size(mrnas, 2));
+palette = parula(size(mrnas, 2));
 t00 = t0(1, :);
 for k = 1:size(mrnas, 2)
-    plot(dl_au, mrnas(:, k),'Color', pallette(k,:));
+    plot(dl_au, mrnas(:, k),'Color', palette(k,:));
     hold on
 end
 xlabel('[Dl] (au)')
