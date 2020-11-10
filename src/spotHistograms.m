@@ -35,28 +35,45 @@ end
 
 
 %%
+RNAPFluo = 8.837; %fluorescence AUs of a single RNAP according to our P2P calibration
+
 fig2 = figure;
 ax2 = axes(fig2);
 b = a;
 fluos = [];
+
 for k = 1:length(b)
     fluos = [fluos, min(b(k).particleFluo3Slice)];
 end  
+
 fluos(fluos <= 0) = [];
 fluos(isnan(fluos)) = [];
- if ~isempty(fluos)
+if ~isempty(fluos)
     histogram(ax2, fluos, 'Normalization', 'pdf', 'facealpha', .5)
     hold on;
-   pd = fitdist(fluos','Lognormal');
-%      pd = fitdist(fluos','Gamma');
+    %   pd = fitdist(fluos','Lognormal');
+      pd = fitdist(fluos','Gamma');
     x_values = .1:.1:400;
     y = pdf(pd,x_values);
     plot(ax2, x_values,y,'-','LineWidth',.5)
- end
- coeffText = getDistributionText(pd);
-
-title(['min spot fluorescence. Lognormal fit';coeffText'])
+    plot([mean(fluos) mean(fluos)],[0 0.015],'k-')
+end
+coeffText = getDistributionText(pd);
+title(['min spot fluorescence. Lognormal fit. Mean = ' num2str(mean(fluos));coeffText'])
 ylabel('pdf')
+xlim([-10 350])
+hold off
+
+figure
+hold on
+AbsFluos = fluos./RNAPFluo;
+histogram(AbsFluos, 'Normalization', 'pdf', 'facealpha', .5)
+plot([mean(AbsFluos) mean(AbsFluos)],[0 0.15],'k-')
+xlim([-10 350]./RNAPFluo)
+hold off
+title(['Mean = ' num2str(mean(AbsFluos))])
+
+
 
 %%
 

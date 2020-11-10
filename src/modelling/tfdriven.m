@@ -211,43 +211,51 @@ b = load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat');
 Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
 PatserScores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 AllTurnOnData = struct('Embryos',[]);
+Nbins = 19; %number of Dorsal concentration bins
+NNuclei = 25; %maximum number of nuclei in nc12
 
 %gather the data
-for e = 1:length(Datasets)
-    EnhancerStruct = AllStruct(contains({AllStruct.dataSet}, Datasets{e}));
-    EnhancerPrefixes = unique({EnhancerStruct.prefix});   
-    EnhancerEmbryos = struct('embryoTurnOnTimes',[]);   
+for e = 1:length(Datasets) %loop over enhancers
+    EnhancerStruct = AllStruct(contains({AllStruct.dataSet}, Datasets{e})); %make a substruct with just this enhancer
+    EnhancerPrefixes = unique({EnhancerStruct.prefix}); %get the name of the prefixes of this enhancer
+    EnhancerEmbryos = struct('embryoTurnOnTimes',[]); %make a struct to store data, 'embryoTurnOnTimes' contains results for a single movie
    for p = 1:length(EnhancerPrefixes)
-        PrefixTurnOnTimes = nan(19,20); % array of dorsal bins x nuclei containing turn on times
+        PrefixTurnOnTimes = nan(Nbins,NNuclei); % nan array of dorsal bins x nuclei to populate with turn on times
+        % make a substruct containing only the nuclei belonging to this prefix and containing Dl bin info
         PrefixStruct = EnhancerStruct(strcmpi({EnhancerStruct.prefix},EnhancerPrefixes{p}) &...
        ~isnan([EnhancerStruct.dorsalFluoBin]));
+        % get the indices of the nuclei containing a particle
         onNucleiIdx = find(arrayfun(@(PrefixStruct)~isempty(PrefixStruct.particleTimeOn),PrefixStruct));
+        % make a substruct containing only on nuclei of this prefix of this enhancer
         PrefixOnNucleiStruct = PrefixStruct(onNucleiIdx);
-        for n = 1:length(PrefixOnNucleiStruct)
+        for n = 1:length(PrefixOnNucleiStruct) %loop over nuclei to gather Dl bin and turn on time and add to PrefixTurnOnTimes 
             PrefixTurnOnTimes(PrefixOnNucleiStruct(n).dorsalFluoBin,n) = PrefixOnNucleiStruct(n).particleTimeOn;
         end
+        % add the PrefixTurnOnTimes matrix to this enhancer struct
         EnhancerEmbryos(p).embryoTurnOnTimes = PrefixTurnOnTimes;
-   end   
+   end
+   % add this enhancer struct to the struct containing all data
    AllTurnOnData(e).Embryos= EnhancerEmbryos;   
 end
 
 % plot stuff
 figure
 hold on
-for enh = 1:length(Datasets)
-    
-    Embryos = AllTurnOnData(enh).Embryos;
+TurnOnTimePerKd = nan(enh,Nbins);
+for enh = 1:length(Datasets)   
+    EnhancerEmbryos = AllTurnOnData(enh).Embryos;
     AllsingleEmbryoMeans = [];
-    for emb = 1:length(Embryos)
-        singleEmbryoTurnOns = Embryos(emb).embryoTurnOnTimes;
-        singleEmbryoMean = nanmean(singleEmbryoTurnOns,2);
-        AllsingleEmbryoMeans(emb,:) = singleEmbryoMean;
+    for emb = 1:length(EnhancerEmbryos)
+        embryoTurnOnTimes = EnhancerEmbryos(emb).embryoTurnOnTimes;
+        singleEmbryoMean = nanmean(embryoTurnOnTimes,2); %mean turn on across nuclei in the same Dl bin
+        AllsingleEmbryoMeans(emb,:) = singleEmbryoMean; % make an array containing the means of each embryo of this enhancer
     end
     NEmbryos = sum(~isnan(AllsingleEmbryoMeans));
     mean = nanmean(AllsingleEmbryoMeans);
     SEM = nanstd(AllsingleEmbryoMeans,1)./NEmbryos;
     mean(mean>10) = nan;
     errorbar([0:250:4500],mean,SEM,'LineWidth',2,'CapSize',0)
+    TurnOnTimePerKd(enh,:) = mean;
     meanTurnOnTimePerKd(enh) = nanmean(mean);
     SEMturnOnTimePerKd(enh) = nanstd(mean)./sum(~isnan(mean));
 end
@@ -258,28 +266,16 @@ ylabel('mean turn on time')
 ylim([0 10])
 
 figure
+hold on
+plot(PatserScores,TurnOnTimePerKd,'ro')
 errorbar(PatserScores,meanTurnOnTimePerKd,SEMturnOnTimePerKd,'ko','MarkerFaceColor','k','CapSize',0)
 %ylim([0 10])
 xlabel('patser score')
 ylabel('mean turn on time across [Dl]')
 set(gca, 'XDir','reverse')
+hold off
 
 
-%     
-%     
-%     AllEmbryosCombined = []
-%     for emb = 1:length(Embryos)
-%         AllEmbryosCombined = [AllEmbryosCombined,Embryos.embryoTurnOnTimes];
-%     end
-%     
-%     Nnuclei = sum(~isnan(AllEmbryosCombined),2);
-%     meanTurnOn = nanmean(AllEmbryosCombined,2);
-%     SETurnOn = nanstd(AllEmbryosCombined,2)./Nnuclei;
-%     errorbar(meanTurnOn,SETurnOn)
-%     ylim([0 10])
-
-        
-        
         
    
    
