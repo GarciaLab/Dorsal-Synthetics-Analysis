@@ -1,12 +1,27 @@
+function tfdriven()
 close all;
 
-d = logspace(1, 4); %aus
+nPlots = 10;
+dmax = 5000;
+d = logspace(1, log10(dmax)); %aus
 t = linspace(0, 10)'; %mins
 kd = 500;
-cs = logspace(-1, 2, 10);
-R = 1;
+kds = logspace(2, 4, nPlots);
+cs = logspace(-1, 2, nPlots);
+R = 500;
 nSteps = 5;
 t_nc13 = 10;
+cmap = colormap(viridis(nPlots));
+
+
+%%
+%functions
+tonfun  = @(d, c, kd) 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*c.*d.^4+ ...
+    150.*c.^2.*d.^4+500.*c.^3.*d.^4+1250.*c.^4.*d.^4+12.*d.^3.*kd+90.* ...
+    c.*d.^3.*kd+300.*c.^2.*d.^3.*kd+500.*c.^3.*d.^3.*kd+18.*d.^2.* ...
+    kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
+    c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
+    kd).^4).^(-1));
 
 [D, T] = meshgrid(d,t);
 
@@ -18,8 +33,6 @@ f2 = figure; ax2 = axes(f2);
 f3 = figure; ax3 = axes(f3);
 f4 = figure; ax4 = axes(f4);
 f5 = figure; ax5 = axes(f5);
-f7 = figure; ax7 = axes(f7);
-f8 = figure; ax8 = axes(f8);
 
 
 dmrnadt = [];
@@ -79,20 +92,6 @@ temp7 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*(24.* ...
 paccessible2(n, :, :) = temp7;   
 fon2(n, :) = squeeze(paccessible2(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
  
-
-   
-
-
-temp10 = 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*c.*d.^4+ ...
-  150.*c.^2.*d.^4+500.*c.^3.*d.^4+1250.*c.^4.*d.^4+12.*d.^3.*kd+90.* ...
-  c.*d.^3.*kd+300.*c.^2.*d.^3.*kd+500.*c.^3.*d.^3.*kd+18.*d.^2.* ...
-  kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
-  c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
-  kd).^4).^(-1));
-
- ton4(n, :) = temp10;
-
- 
 nexttile(t_surf)
 surf(D, T, squeeze(dmrnadt(n, :, :)));
 xlim([0, 1E4]);
@@ -108,19 +107,12 @@ plot(ax3, d, mrna(n, :))
 hold(ax3, 'on')
 
 
-plot(ax4, d, mrna2(n, :))
+plot(ax4, d, mrna2(n, :), 'LineWidth', 2, 'Color', cmap(n, :))
 hold(ax4, 'on')
 
 
-plot(ax5, d, fon2(n, :))
+plot(ax5, d, fon2(n, :),  'LineWidth', 2, 'Color', cmap(n, :))
 hold(ax5, 'on')
-
-
-
-plot(ax8, d, ton4(n, :))
-hold(ax8, 'on')
-
-
 end
 
 
@@ -136,13 +128,6 @@ xlabel(ax2,'[Dorsal] (au)')
 ylabel(ax2,'fraction active')
 
 
-title(ax5, 'predicted fraction active')
-xlim(ax5, [0, 3500]);
-ylim(ax5,[0, 1]);
-leg5 = legend(ax5, num2str(round(cs', 2, 'significant')));
-title(leg5, 'c')
-xlabel(ax5,'[Dorsal] (au)')
-ylabel(ax5,'fraction active')
 
 
 title(ax3, 'predicted accumulated mRNA')
@@ -153,47 +138,46 @@ xlabel(ax3,'[Dorsal] (au)')
 ylabel(ax3,'normalized accumulated mRNA')
 
 
-title(ax4, 'predicted accumulated mRNA')
-xlim(ax4, [0, 3500]);
+title(ax4, 'predicted accumulated mRNA.  pi \alpha occupancy')
+xlim(ax4, [10, dmax]);
 leg4 = legend(ax4, num2str(round(cs', 2, 'significant')));
 title(leg4, 'c')
 xlabel(ax4,'[Dorsal] (au)')
-ylabel(ax4,'normalized accumulated mRNA')
+ylabel(ax4,'accumulated mRNA (au)')
+set(ax4, 'XScale', 'log')
 
 
-c = 5;
-kd = logspace(0, 4, 100);
-d = 1000;
-n = 0;
-temp10 = [];
+title(ax5, 'predicted fraction active. pi \alpha occupancy')
+xlim(ax5, [10, dmax]);
+ylim(ax5,[0, 1]);
+% leg5 = legend(ax5, num2str(round(cs', 2, 'significant')));
+% title(leg5, 'c')
+xlabel(ax5,'[Dorsal] (au)')
+ylabel(ax5,'fraction active')
+set(ax5, 'XScale', 'log')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+
+
+figure;
+c = 10;
+
 ton4 = [];
-for k = kd
-    n = n + 1;
-   temp10 = 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*c.*d.^4+ ...
-  150.*c.^2.*d.^4+500.*c.^3.*d.^4+1250.*c.^4.*d.^4+12.*d.^3.*kd+90.* ...
-  c.*d.^3.*kd+300.*c.^2.*d.^3.*kd+500.*c.^3.*d.^3.*kd+18.*d.^2.* ...
-  kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
-  c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
-  kd).^4).^(-1));
-
- ton4(n, :) = temp10;
-     
-plot(ax7, kd, ton4(n,:));
-hold(ax7, 'on');
-
+for k = 1:length(kds)
+    ton4(k, :) = tonfun(d, c, kds(k));
+ plot(d, ton4(k, :), 'LineWidth', 2, 'Color', cmap(k, :))
+hold on;
 end
 
-title(ax7, 'predicted T_{on} (min)')
-xlim(ax7, [0, 3500]);
-% leg7 = legend(ax7, num2str(round(cs', 2, 'significant')));
-% title(leg7, 'c')
-xlabel(ax7,'KD (au)')
-ylabel(ax7,'mean turn on time (min)')
 
+title('predicted T_{on} (min)')
+xlim([10, dmax]);
+set(gca, 'XScale', 'log')
+ylim([0, 10]);
+leg = legend(num2str(round(kds', 2, 'significant')));
+title(leg, 'K_D')
+xlabel('[Dl] (au)')
+ylabel('mean turn on time (min)')
 
-title(ax8, 'predicted T_{on} (min)')
-xlim(ax8, [0, 3500]);
-leg8 = legend(ax8, num2str(round(cs', 2, 'significant')));
-title(leg8, 'c')
-xlabel(ax8,'[Dl] (au)')
-ylabel(ax8,'mean turn on time (min)')
+end

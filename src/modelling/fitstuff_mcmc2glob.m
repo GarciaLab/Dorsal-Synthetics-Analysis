@@ -191,8 +191,9 @@ for i = 1:length(k0)
         targetflag = 0;
     end
     
-    params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
-    
+%     params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
+      params{1, i} = {names(i),k0(i), lb(i), ub(i), k0(i), k0(i)/10, targetflag, localflag};
+
 end
 
 
@@ -216,6 +217,15 @@ mdl = @(x, p) simpleweak(x, p, simpleWeakOptions);
 %     model.ssfun = @(params, data) sum( (data.ydata(:,2)-mdl(data.X(:,1), params)).^2 );
 
 model.modelfun   = mdl;  %use mcmcrun generated ssfun 
+
+% priorfun0 = @(th,mu,sig) exp(-(1/2).*sum(((th-mu)./sig).^2));
+
+% riorfun0 = @(th,mu,sig) exp(-(1/2).*((th-mu)./sig).^2);
+
+% priorfun = @(th,mu,sig) sum(((th-mu)./sig).^2); %mu and sig are constants. theta is plugged in at each mcmc step
+
+% model.priorfun = prior;
+% priorfun(par,pri_mu,pri_sig) 
 
 if lsq
     model.sigma2 = mse;
