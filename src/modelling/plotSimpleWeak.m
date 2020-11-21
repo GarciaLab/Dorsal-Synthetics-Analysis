@@ -10,7 +10,7 @@ R = 500;
 KD = 500;
 w = 3;
 
-nPlots = 10;
+nPlots = 7;
 cmap = colormap(viridis(nPlots));
 
 figure; tiledlayout('flow')

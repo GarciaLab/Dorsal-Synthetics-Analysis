@@ -2,18 +2,18 @@ functions {
     real simpleweak(real x, real KD, real w, real R) {
         return R*(((x ./ KD) .* w) ./ (1+ (x  ./ KD) + ((x ./ KD) .* w)));
     }
-    vector simpleweakvec(real[] x, vector KDs, real w, real R) {
+    vector simpleweakvec(real[] x, int[] dsid, vector KDs, real w, real R) {
         int nx = num_elements(x);
-        int n = 1;
+    //    int n = 1;
         vector[nx] out;
-        int dsid[nx];
-        dsid[1] = 1;
-        for (i in 2:nx){
-          if (x[i] < x[i-1]){
-            n = n + 1;
-          }
-          dsid[i] = n;
-        }
+    //    int dsid[nx];
+    //    dsid[1] = 1;
+    //    for (i in 2:nx){
+    //      if (x[i] < x[i-1]){
+    //        n = n + 1;
+    //      }
+    //      dsid[i] = n;
+    //    }
     for (i in 1:nx) {
       int dsidi = dsid[i];
       out[i] = R *(((x[i] ./ KDs[dsidi]) * w) ./ (1+ (x[i]  ./ KDs[dsidi]) + ((x[i] ./ KDs[dsidi]) * w)));
@@ -24,9 +24,9 @@ functions {
 data {
 int<lower=0> N; // observation counter
 int<lower=0> K; //param counter
-int<lower=0> J; //data set counter
 real x[N];
 real Y[N];
+int dsid[N];
 //params: w, kd1, kd2, kd3, kd4, kd5, kd6, kd7, R
 real p0[K];
 real lb[K];
@@ -45,8 +45,6 @@ real<lower=lb[K], upper=ub[K]>R;
 real<lower=0> sigma;
 }
 model {
-real m[N];
-//vector[7] KDs = [KD1, KD2, KD3, KD4, KD5, KD6, KD7];
 vector[7] KDs;
 KDs[1] = KD1;
 KDs[2]=KD2;
@@ -66,10 +64,7 @@ KD6 ~ normal(p0[7], p0[7]);
 KD7 ~ normal(p0[8], p0[8]); 
 R ~ normal(p0[K], p0[K]); 
 // likelihood
-//for (i in 1:N){} 
-//m[i] = simpleweak(x[i], KD, w)
-//}
-Y ~ normal(simpleweakvec(x, KDs, w, R), sigma); 
+Y ~ normal(simpleweakvec(x, dsid, KDs, w, R), sigma); 
 }
 
 generated quantities{ 
@@ -83,7 +78,7 @@ KDs[4]=KD4;
 KDs[5]=KD5;
 KDs[6]=KD6;
 KDs[7]=KD7;
-Y_mean = simpleweakvec(x, KDs, w, R);
+Y_mean = simpleweakvec(x,dsid, KDs, w, R);
 
 for(i in 1:N){ 
 // Posterior parameter distribution of the mean 
