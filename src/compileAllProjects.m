@@ -26,16 +26,18 @@ prefixes = thisProject.includedExperimentNames;
 compiledProjects = cell(1, length(prefixes));
 % 
 % 
+if true
 for k = 1:length(prefixes)
 %     prefixes{k}
 %     clear LiveExperiment
 %     TrackNuclei(prefixes{k},'retrack', 'nWorkers', 1);
 %     integrateSchnitzFluo(prefixes{k});
 %     TrackmRNADynamics(prefixes{k});
-    fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 20)
+    fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
         'yToManualAlignmentPrompt');
     alignCompiledParticlesByAnaphase(prefixes{k});
+end
 end
 
 %% Validate experiments included in the analysis
