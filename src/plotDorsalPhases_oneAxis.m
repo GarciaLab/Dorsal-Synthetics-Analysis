@@ -9,6 +9,8 @@ dataTypes_2x_affinity = {'1Dg11_2xDl', '1DgW_2x_Leica',...
     '1DgVW_FFF', ...
     '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1DgSVW_2xDl', '1DgSVW2_2xDl'};
 
+phaseCell = {'1Dg-20(11)','1Dg-8D', '1Dg-5','1Dg11'};
+
  [~, resultsFolder] = getDorsalFolders;
     load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'dorsalResultsDatabase')
     
@@ -39,7 +41,7 @@ g=gramm('x',x,...
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([], dorsalResultsDatabase.enhancer)
 
-g.set_order_options('column', {'1Dg-8D', '1Dg-5','1Dg11'})
+g.set_order_options('column', phaseCell)
 
 g.geom_line()
 g.set_names('x','Dorsal Concentration (au)', 'y', 'fraction active',  'row', '', 'column', '');
@@ -103,7 +105,7 @@ g=gramm('x',x,...
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([], dorsalResultsDatabase.enhancer)
 
-g.set_order_options('column', {'1Dg-8D', '1Dg-5','1Dg11'})
+g.set_order_options('column', phaseCell)
 
 
 g.geom_line()
@@ -165,7 +167,7 @@ g=gramm('x',x,...
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([], dorsalResultsDatabase.enhancer)
 
-g.set_order_options('column', {'1Dg-8D', '1Dg-5','1Dg11'})
+g.set_order_options('column', phaseCell)
 
 
 g.geom_line()
@@ -226,7 +228,7 @@ g=gramm('x',x,...
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([], dorsalResultsDatabase.enhancer)
 
-g.set_order_options('column', {'1Dg-8D', '1Dg-5','1Dg11'})
+g.set_order_options('column',phaseCell)
 
 
 g.geom_line()
@@ -246,13 +248,12 @@ box(ax, 'on')
 %%
 % 
 
-names =  {'1Dg-8D', '1Dg-5','1Dg11'}
-scores = [-8, -5, 0]';
+scores = [-20,-8, -5, 0]';
 
 dorsalResultsDatabase.patserScore = nan(length(dorsalResultsDatabase.enhancer), 1);
-for k = 1:length(names)
+for k = 1:length(phaseCell)
     for j = 1:length(dorsalResultsDatabase.enhancer)
-        if strcmpi(dorsalResultsDatabase.enhancer{j}, names{k})
+        if strcmpi(dorsalResultsDatabase.enhancer{j}, phaseCell{k})
             dorsalResultsDatabase.patserScore(j) = scores(k);
         end
     end
