@@ -6,6 +6,8 @@ AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_
 % b = load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat');
 
 Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
+Datasets = {'2Dgc_FFF','1Dg11'};
+
 PatserScores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 % Nbins = 19; %number of Dorsal concentration bins
 % NNuclei = 25; %maximum number of nuclei in nc12
@@ -50,7 +52,7 @@ for e = 1:length(Datasets)
 %     CumDist = cumsum(OutputmRNA);
     CumDist2 = cumsum(OutputmRNA2);
     %CumDist = CumDist./CumDist(end);
-    CumDist2 = CumDist2./CumDist2(end);
+    %CumDist2 = CumDist2./CumDist2(end);
 
     plot(DorsalFluos2,CumDist2,'-','LineWidth',2)
 end
