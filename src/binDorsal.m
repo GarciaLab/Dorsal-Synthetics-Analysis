@@ -87,7 +87,7 @@ for e = 1:length(Prefixes)
         nc12Schnitz = [schnitzcells.cycle] == 12;
         fluobinNc12Schnitz = [schnitzcells(nc12Schnitz).dorsalFluoBin];
         usefulNc12Schnitz = sum(~isnan(fluobinNc12Schnitz));
-        assert(usefulNc12Schnitz > 11,['very few nuclei were assigned a fluobin in this dataset:' Prefixes{e}])
+        assert(usefulNc12Schnitz > 11,['very few nuclei were assigned a fluobin in this dataset:' Prefixes{e} ', take a look at it'])
         
         
         
