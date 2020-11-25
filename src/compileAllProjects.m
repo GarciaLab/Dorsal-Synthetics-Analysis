@@ -3,7 +3,7 @@ function dorsalResults = compileAllProjects(DataType)
 
 dataTypes = {'1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
     '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl',...
-    '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl','2Dgc_FFF_2x','TwiPEv5(7)_2xDl'};
+    '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl'};
 
 thisProject = LiveProject(DataType) %#ok<NOPRT>
 
