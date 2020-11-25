@@ -77,9 +77,12 @@ for s = approvedSchnitzes
         compiledProject(n).particleFluoError = CompiledParticles(p).FluoError;
 
         if isfield(CompiledParticles, 'Fluo3DRaw')
-            compiledProject(n).particleFluo3D = CompiledParticles(p).Fluo3DRaw;
+            compiledProject(n).particleFluo3DRaw = CompiledParticles(p).Fluo3DRaw;
+            compiledProject(n).particleFluo3D = CompiledParticles(p).Fluo3DGauss;
+
         else
-            compiledProject(n).particleFluo3D = nan(1, length(CompiledParticles(p).Frame));
+            compiledProject(n).particleFluo3D = nan(1, length(CompiledParticles(p).Frame));            compiledProject(n).particleFluo3D = nan(1, length(CompiledParticles(p).Frame));
+            compiledProject(n).particleFluo3DRaw = nan(1, length(CompiledParticles(p).Frame));
             warning("missing gauss 3D intensities for " + Prefix);
         end
         
@@ -106,6 +109,7 @@ for s = approvedSchnitzes
         compiledProject(n).particleFluo3Slice = [];
         compiledProject(n).particleOffset = [];
         compiledProject(n).particleFluo3D = [];
+        compiledProject(n).particleFluo3DRaw = [];
         compiledProject(n).particleDuration = [];
         compiledProject(n).particleFluo95= [];
         compiledProject(n).particleTimeOn = [];

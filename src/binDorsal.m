@@ -1,14 +1,20 @@
-function binDorsal(DataType, cpFlag)
+function binDorsal(DataType, cpFlag, varargin)
 
 if nargin < 2
     cpFlag = false;
 end
 
+dolog = false;
 
 if ~cpFlag
     [allData, Prefixes, resultsFolder] = LoadMS2Sets(DataType, 'noCompiledNuclei');
 else
     [~, resultsFolder, Prefixes] = getDorsalPrefixes(DataType);
+end
+for j = 1:length(varargin)
+    if strcmpi(varargin{j}, 'dolog')
+        dolog = true;
+    end
 end
 
 %SA: this doesn't get used
@@ -18,6 +24,9 @@ nBins = 20;
 
 dlfluobins = mind:round(maxd/mind):maxd; %this is appropriate for taking instantaneous dorsal at ~50% through nc12 on the sp8
 dlfluobins = 0:250:4500;
+if dolog
+    dlfluobins = logspace(0, 3.6, 20);
+end
 % dlfluobins = [0:20:500, 501:250:3000];
 % dlfluobins = [0:10:249,250:50:499,500:250:4000];
 % dlfluobins = logspace(0, 3.6, 20);

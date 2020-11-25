@@ -1,7 +1,9 @@
 function [xin, yin, y_error] = processVecs(x, y, xrange, y_error)
 
-x(isnan(y)) = [];
-y(isnan(y)) = [];
+if size(y, 2) == 1
+    x(isnan(y)) = [];
+    y(isnan(y)) = [];
+end
 
 if nargin > 3
     y_error(isnan(y)) = [];

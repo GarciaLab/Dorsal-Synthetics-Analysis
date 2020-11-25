@@ -1,10 +1,13 @@
 close all;
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
-% 
+% % 
 % a = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
 %     [combinedCompiledProjects_allEnhancers.cycle]==12);
 
+% a = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
+%     [combinedCompiledProjects_allEnhancers.cycle]==12 &  [combinedCompiledProjects_allEnhancers.dorsalFluoBin]==11);
+% 
 a = combinedCompiledProjects_allEnhancers(...
     [combinedCompiledProjects_allEnhancers.cycle]==12);
 
@@ -110,22 +113,27 @@ fluos = [];
 for k = 1:length(b)
     fluos = [fluos, max(b(k).particleFluo3Slice)];
 end  
-fluos(fluos <= 0) = [];
+% fluos(fluos <= 0) = [];
 fluos(isnan(fluos)) = [];
- fluos = fluos./max(fluos(:));
+fluos = fluos + 100;
+%  fluos = fluos./max(fluos(:));
  if ~isempty(fluos)
     histogram(ax4, fluos, 'Normalization', 'pdf', 'facealpha', .5)
     hold on;
     pd = fitdist(fluos','Lognormal');
-    x_values = .01:.01:1;
+    x_values = .01:.01:3000;
     y = pdf(pd,x_values);
-    plot(ax4, x_values,y,'-','LineWidth',.5)
+    plot(ax4, x_values,y,'-','LineWidth',1.5)
  end
  coeffText = getDistributionText(pd);
 
 title(['max spot fluorescence. Lognormal fit';coeffText'])
 ylabel('pdf')
+xlabel('max fluo + 100 (au)')
 
+% mu = log(mean(fluos)) - 
+% varx = var(fluos)  
+% sigma2 = log( (1/2) + (1/2)*exp(  -2*mu*sqrt(  exp(4*mu) + 4*varx*exp(2*mu)  )  ) );
 
 %%
 fig5= figure;
@@ -151,4 +159,124 @@ fluos(isnan(fluos)) = [];
 title(['mean spot fluorescence. Lognormal fit';coeffText'])
 ylabel('pdf')
 
+
+%%
+figure;
+b = a;
+fluos = [];
+for k = 1:length(b)
+    fluos = [fluos, max(b(k).particleFluo3Slice)];
+end  
+% fluos(fluos <= 0) = [];
+fluos(isnan(fluos)) = [];
+fluos = log(fluos+100);
+%  fluos = fluos./max(fluos(:));
+ if ~isempty(fluos)
+    h = histogram(fluos, 'Normalization', 'pdf', 'facealpha', .5)
+    hold on;
+    pd = fitdist(fluos','Normal');
+    L = log(54 + 100); %54 aus from Simon's figure. 
+    [norm_trunc, phat, phat_ci]  = fitdist_ntrunc(fluos', [L, Inf]);
+    x_values = .01:.01:9;
+    y = pdf(pd,x_values);
+    plot(x_values,y,'-','LineWidth',1)
+    plot(x_values,norm_trunc(x_values , phat(1), phat(2)),'-','LineWidth',2)
+ end
+ coeffText = getDistributionText(pd);
+
+title(['log(max spot fluorescence + 100). Normal fit';coeffText'])
+legend('data', 'normal', 'truncated normal')
+ylabel('pdf')
+
+
+%%
+figure;
+b = a;
+fluos = [];
+for k = 1:length(b)
+    fluos = [fluos, max(b(k).particleFluo3Slice)];
+end  
+% fluos(fluos <= 0) = [];
+fluos(isnan(fluos)) = [];
+fluos = log(fluos+100);
+[f,xi] = ksdensity(fluos); %estimate kernel density for help finding mode of the distribution
+[~, mi] = max(f); %here's the index of the mode
+pk = xi(mi); %and here's the fluo value of the mode
+pk = 5.6;
+fluosWhole = fluos;
+fluos(fluos < pk) = [];
+%  fluos = fluos./max(fluos(:));
+ if ~isempty(fluos)
+    yyaxis left;
+%     h = histogram(fluos, 'Normalization', 'pdf', 'facealpha', .5);
+    hold on;
+    pd = fitdist(fluos','HalfNormal', 'mu', pk);
+    L = log(54 + 100); %54 aus from Simon's figure. 
+%     [norm_trunc, phat, phat_ci]  = fitdist_ntrunc(fluos', [L, Inf]);
+    x_values = .01:.01:9;
+    y = pdf(pd,x_values);
+    plot(x_values,y,'-','LineWidth',2)
+    ylim([0, max(y)]);
+    yyaxis right;
+    h2 = histogram(fluosWhole, 'Normalization', 'pdf', 'facealpha', .5);
+    ylim([0, max(h2.Values)]);
+    yyaxis left;
+    n = makedist('Normal', 'mu', pd.mu, 'sigma', pd.sigma);
+    plot(x_values, pdf(n, x_values),'-','LineWidth',2)
+
+
+
+%     plot(x_values,norm_trunc(x_values , phat(1), phat(2)),'-','LineWidth',2)
+ end
+ coeffText = getDistributionText(pd);
+
+title(['log(max spot fluorescence + 100). Normal fit';coeffText'])
+legend('data', 'normal', 'truncated normal')
+ylabel('pdf')
+
+
+%%
+figure;
+b = a;
+fluos = [];
+pk = 5.5;
+for k = 1:length(b)
+    fluos = [fluos, max(b(k).particleFluo3Slice)];
+end  
+% fluos(fluos <= 0) = [];
+fluos(isnan(fluos)) = [];
+fluos = log(fluos+100);
+%  fluos = fluos./max(fluos(:));
+ if ~isempty(fluos)
+    h = histogram(fluos, 'Normalization', 'pdf', 'facealpha', .5);
+    hold on;
+    yy = h.Values;
+%     x = h.BinEdges(2:end); 
+    x = mean([h.BinEdges(1:end-1);h.BinEdges(2:end)]);
+    yyhalf = yy(x>pk);
+    xhalf = x(x > pk);
+%     figure; bar(xhalf, yyhalf);
+    yyhalfbigger = [fliplr(yyhalf), yyhalf];
+    xhalfbigger = xhalf;
+    for k = 1:length(yyhalf)
+        xhalfbigger = [xhalf(1)-(k*h.BinWidth),xhalfbigger];
+    end
+    bar(xhalfbigger, yyhalfbigger, 'facealpha', .5);
+    [mu, sigma] = fitnormal(xhalfbigger, yyhalfbigger);
+%     yyhalfbigger = [fliplr(yyhalf), yyhalf];
+%     pd = fitdist(fluos','Normal');
+    pd = makedist('Normal', 'mu', mu, 'sigma', sigma);
+    L = log(54 + 100); %54 aus from Simon's figure. 
+%     [norm_trunc, phat, phat_ci]  = fitdist_ntrunc(fluos', [L, Inf]);
+    x_values = .01:.01:9;
+    y = pdf(pd,x_values);
+    plot(x_values,y,'-','LineWidth',1)
+%     plot(x_values,norm_trunc(x_values , phat(1), phat(2)),'-','LineWidth',2)
+    xline(L, 'LineWidth', 2);
+ end
+ coeffText = getDistributionText(pd);
+
+title(['log(max spot fluorescence + 100). Normal fit';coeffText'])
+legend('half data', 'reflected data', 'normal fit to reflected')
+ylabel('pdf')
 

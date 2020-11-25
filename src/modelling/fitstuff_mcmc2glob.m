@@ -4,11 +4,11 @@ function [results,chain,s2chain]  = fitstuff_mcmc2glob(varargin)
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'dorsalResultsDatabase')
 
 expmnt = "affinities"; %affinities, phases or phaff
-md = "simpleweak"; %simpleweak, tfdriven, artifact, fourstate,...
+md = "simpleweak"; %simpleweak, simpleweakdimer, repression, tfdriven, artifact, fourstate
 metric = "fraction"; %fraction, fluo
 lsq = false;
-noOff = false;
-nSimu = 1E4;
+noOff = true;
+nSimu = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
 minKD = 200;
 maxKD = 1E4;
 minw = 1E-2; %1E-2
@@ -24,6 +24,8 @@ fixedw = NaN;
 enhancerSubset = {};
 scoreSubset = [];
 positionSubset = [];
+useBatches = true; %fit all the data across embryos and not just means 
+noAverage = false;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -36,6 +38,10 @@ end
 if expmnt == "phaff"
     lsq = false;
     noOff = true;
+end
+
+if noAverage
+    useBatches = false;
 end
 
 enhancers_1dg = {'1Dg11'};
@@ -71,18 +77,27 @@ ys = {};
 dsid = [];
 T = [];
 Y = [];
+T_batch = [];
+Y_batch = [];
+dsid_batch = [];
 for k = 1:nSets
     cond = strcmpi(dorsalResultsDatabase.mother,'2x') & strcmpi(dorsalResultsDatabase.enhancer, enhancers{k});
     xo{k} = dorsalResultsDatabase.dorsalFluoBins(cond);
     if metric == "fraction"
         yo{k} = dorsalResultsDatabase.meanFracFluoEmbryo(cond);
+        yo_batch{k} = dorsalResultsDatabase.fracFluoEmbryo(cond, :);
     elseif metric == "fluo"
         yo{k} = dorsalResultsDatabase.meanAllMaxFluoEmbryo(cond);
+        yo_batch{k} = dorsalResultsDatabase.allMaxFluoEmbryo(cond, :);
     end
+    
+     xo_batch{k} = repmat(xo{k}, [1, size(yo_batch{k}, 2)]);
+    [xs_batch{k}, ys_batch{k}]= processVecs(xo_batch{k}, yo_batch{k}, xrange(k, :));
     
     [xs{k}, ys{k}]= processVecs(xo{k}, yo{k}, xrange(k, :));
     dsid = [dsid; k*ones(size(xs{k}))];
-    
+    dsid_batch = [dsid_batch; k*ones(size(xo{k}))];
+
     if isnan(xrange(k, 1))
         xrange(k, 1) = min(xo{k});
     end
@@ -94,11 +109,27 @@ for k = 1:nSets
     
     T = [T; xs{k}];
     Y = [Y; ys{k}];
+    T_batch = [T_batch; xo{k}];
+    Y_batch = [Y_batch; ys_batch{k}];
 end
 
-data.ydata = [T, Y];
-data.dsid = dsid;
-data.X =  [T dsid];
+if ~noAverage
+    data.ydata = [T, Y];
+    data.dsid = dsid;
+    data.X =  [T dsid];
+end
+
+data_batch = {};
+for k = 1:size(Y_batch, 2)
+    data_batch{k}.ydata = [T_batch Y_batch(:, k)];
+    data_batch{k}.X =  [T_batch dsid_batch];
+    data_batch{k}.dsid = dsid_batch;
+end
+
+if useBatches
+    disp('Doing batched fits');
+    data = data_batch;
+end
 
 %%
 
@@ -119,13 +150,13 @@ else
 end
 
 
-if noOff && metric=="fluo"
+if noOff
     %ignore the offset in the initial parameters and bounds
-    p0 = p0(1:end-1);
-    lb = lb(1:end-1);
-    ub = ub(1:end-1);
-    k0 = k0(1:end-1);
-    names = names(1:end-1);
+    p0(names=="offset") = [];
+    lb(names=="offset") = [];
+    ub(names=="offset") = [];
+    k0(names=="offset") = [];
+    names(names=="offset") = [];
 end
 
 % put the initial parameters and bounds in a form that the mcmc function
@@ -160,17 +191,41 @@ for i = 1:length(k0)
         targetflag = 0;
     end
     
-    params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
-    
+%     params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
+      params{1, i} = {names(i),k0(i), lb(i), ub(i), k0(i), k0(i)/10, targetflag, localflag};
+
 end
 
 
 model = struct;
 
-%%ssfun computes residuals for the mcmc function. mdl is used for computing
-%%function values when plotting
-mdl = getFitFuns(expmnt, md, metric, noOff);
-model.ssfun = @(params, data) sum( (data.ydata(:,2)-mdl(data.X(:,1), params)).^2 );
+simpleWeakOptions = struct('noOff', noOff, 'fraction', metric=="fraction",...
+    'dimer', contains(md, "dimer"), 'expmnt', expmnt);
+
+if noAverage
+    load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'combinedCompiledProjects_allEnhancers')
+    ccp = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
+        [combinedCompiledProjects_allEnhancers.cycle]==12);
+    ccp = ccp(cellfun(@any, {ccp.particleFrames}));
+    data.ydata = [ [ccp.dorsalFluoFeature]' , cellfun(@max, {ccp.particleFluo3Slice})'];
+    simpleWeakOptions.onedsid = true;
+end
+
+mdl = @(x, p) simpleweak(x, p, simpleWeakOptions);
+
+%leaving this here in case it'll be useful in the future
+%     model.ssfun = @(params, data) sum( (data.ydata(:,2)-mdl(data.X(:,1), params)).^2 );
+
+model.modelfun   = mdl;  %use mcmcrun generated ssfun 
+
+% priorfun0 = @(th,mu,sig) exp(-(1/2).*sum(((th-mu)./sig).^2));
+
+% riorfun0 = @(th,mu,sig) exp(-(1/2).*((th-mu)./sig).^2);
+
+% priorfun = @(th,mu,sig) sum(((th-mu)./sig).^2); %mu and sig are constants. theta is plugged in at each mcmc step
+
+% model.priorfun = prior;
+% priorfun(par,pri_mu,pri_sig) 
 
 if lsq
     model.sigma2 = mse;
@@ -224,17 +279,24 @@ if displayFigures
     til = tiledlayout(1, nSets);
     dsid2 = [];
     
-    xx = (0:10:max(data.X(:,1)))';
+    xx = (0:10:max(T))';
     
     for k = 1:nSets
         dsid2 = [dsid2; k*ones(length(xx), 1)];
     end
     X2 = [repmat(xx, nSets, 1), dsid2];
     
+     if results.nbatch ~= 1
+        for k = 1:results.nbatch
+          data_mcmcpred{k} =   repmat(xx, nSets, 1);
+        end
+    else
+        data_mcmcpred = repmat(xx, nSets, 1);
+    end
     
     
     %get the prediction intervals for the parameters and function vals
-    out = mcmcpred(results,chain,[],repmat(xx, nSets, 1), mdl);
+    out = mcmcpred(results,chain,[],data_mcmcpred, mdl);
     
     % mcmcpredplot(out);
     nn = (size(out.predlims{1}{1},1) + 1) / 2;

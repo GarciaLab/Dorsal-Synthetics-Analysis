@@ -142,7 +142,7 @@ for nc = 1
     
     filteredWeightedMean = @(x) ((nansum(x.*nschnitzFluoEmbryo{nc},embryoDim))./nSchnitzBinTotal{nc}).*binFilter{nc};
     filteredWeightedSE = @(y) nanstd(bootstrp(nSamples, @(x) filteredWeightedMean(x), y,...
-        'Weights',nSchnitzBinTotalWithZeros{nc})', embryoDim);
+        'Weights',nSchnitzBinTotalWithZeros{nc})', 0, embryoDim);
     
     %     filteredWeightedMean = @(x) nanmean(x,2).*binFilter{nc}';
     %      filteredWeightedSE = @(y) nanstd(bootstrp(nSamples, @(x) filteredWeightedMean(x), y), 0, 1);
@@ -163,6 +163,11 @@ for nc = 1
     dorsalResults{nc}.meanAllMaxFluoEmbryo = filteredWeightedMean(dorsalResults{nc}.allMaxFluoEmbryo);
     dorsalResults{nc}.seAllMaxFluoEmbryo = filteredWeightedSE(dorsalResults{nc}.allMaxFluoEmbryo);
     
+    %dlfluobins coming in uses the left endpoint as the numerical value for the bin. let's use the
+    %midpoint of the bin instead.
+    if dlfluobins(1) == 0
+        dlfluobins = dlfluobins + dlfluobins(1)/2;
+    end
     dorsalResults{nc}.dorsalFluoBins  = dlfluobins;
     dorsalResults{nc}.DataType = DataType;
     
