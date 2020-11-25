@@ -5,12 +5,13 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])%, 'dorsalResultsData
 AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
 % b = load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat');
 
-Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
+%Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
+Datasets = {'1Dg11','TwiPE'}
 PatserScores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 % Nbins = 19; %number of Dorsal concentration bins
 % NNuclei = 25; %maximum number of nuclei in nc12
 
-%% sort the struct according to nucleus fluorescence
+% sort the struct according to nucleus fluorescence
 AllNC12Table = struct2table(AllNC12Struct); % convert the struct to a table
 sortedT = sortrows(AllNC12Table, 'dorsalFluoFeature'); % sort the table by dorsal fluo
 sortedStruct = table2struct(sortedT); % change it back to struct array 

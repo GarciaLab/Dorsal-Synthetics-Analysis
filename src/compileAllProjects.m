@@ -29,7 +29,7 @@ prefixes = thisProject.includedExperimentNames;
 compiledProjects = cell(1, length(prefixes));
 % 
 % 
-if true
+if false
 for k = 1:length(prefixes)
 %     prefixes{k}
 %     clear LiveExperiment
