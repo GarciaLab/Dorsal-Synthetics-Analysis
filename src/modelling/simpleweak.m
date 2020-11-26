@@ -1,6 +1,9 @@
 function yfit = simpleweak(x, params, options)
 %simplebinding in the weak promoter limit.
 
+if ~isfield(options, 'onedsid')
+    options.onedsid = false;
+end
 if ~isfield(options, 'noOff')
     options.noOff = false;
 end
@@ -16,18 +19,26 @@ end
 
 
 if isstruct(x)
-    data = x;
-    x = data.X(:, 1);
+    if isfield(x, 'X')
+        data = x;
+        x = data.X(:, 1);
+    elseif isfield(x, 'ydata')
+        x = x.ydata(:, 1);
+    end
 end
 
-dsid = zeros(length(x), 1);
-n = 1;
-dsid(1) = 1;
-for k = 2:length(x)
-    if x(k) < x(k-1)
-        n = n + 1;
+if ~options.onedsid
+    dsid = zeros(length(x), 1);
+    n = 1;
+    dsid(1) = 1;
+    for k = 2:length(x)
+        if x(k) < x(k-1)
+            n = n + 1;
+        end
+        dsid(k) = n;
     end
-    dsid(k) = n;
+else
+    dsid = ones(length(x), 1);
 end
 
 params = params(:)'; %need a row vec

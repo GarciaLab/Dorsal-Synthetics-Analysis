@@ -1,4 +1,7 @@
 function checkSchnitzAssignmentToParticles(Prefix)
+% goes over compiledParticles and checks that the schnitz assigned to each
+% particle is the right one
+
 
 % [~,~,DropboxFolder,~, PreProcPath,...
 %     ~, ~, ~, ~, ~,~] = readMovieDatabase(Prefix);
@@ -7,22 +10,26 @@ function checkSchnitzAssignmentToParticles(Prefix)
 liveExperiment = LiveExperiment(Prefix);
 resultsFolder = liveExperiment.resultsFolder;
 
-load([resultsFolder,'CompiledParticles.mat'],'CompiledParticles');
+load([resultsFolder,'CompiledParticles.mat']);
 load([resultsFolder, 'FrameInfo.mat']);
 load([resultsFolder, Prefix, '_lin.mat'])
 
-CompiledParticles = CompiledParticles{1};
+channel = 1;
+CompiledParticlesStruct = CompiledParticles{channel};
 
 %%
-particleNCs = [CompiledParticles.nc];
-nc12Idx = [1:length(CompiledParticles)] .* (particleNCs==12);
+particleNCs = [CompiledParticlesStruct.nc];
+nc12Idx = [1:length(CompiledParticlesStruct)] .* (particleNCs==12);
 
 minDistance = 50; %pixels of distance between a spot and a nucleus centroid to be matched
+
+if ~isempty(CompiledParticles)
+    
 for p = 1:nc12Idx
     
-    particleXPosPerFrame = CompiledParticles(p).xPos;
-    particleYPosPerFrame = CompiledParticles(p).yPos;
-    particleFrames = CompiledParticles(p).Frame;
+    particleXPosPerFrame = CompiledParticlesStruct(p).xPos;
+    particleYPosPerFrame = CompiledParticlesStruct(p).yPos;
+    particleFrames = CompiledParticlesStruct(p).Frame;
     closestNucleusPerFrame = nan(1,length(particleFrames));
     
     for f = 1:length(particleFrames)
@@ -37,9 +44,9 @@ for p = 1:nc12Idx
             schnitzFrames = schnitzcells(n).frames;
             if ismember(frame,schnitzFrames)
                 schnitzXPos = schnitzcells(n).cenx;
-                schnitzXPos = schnitzXPos(schnitzFrames==frame);
+                schnitzXPos = double(schnitzXPos(schnitzFrames==frame));
                 schnitzYPos = schnitzcells(n).ceny;
-                schnitzYPos = schnitzYPos(schnitzFrames==frame);
+                schnitzYPos = double(schnitzYPos(schnitzFrames==frame));
                 distanceToNucleiThisFrame(n) = sqrt((particleXPosThisFrame-schnitzXPos)^2+(particleYPosThisFrame-schnitzYPos)^2);
             end
         end
@@ -50,14 +57,23 @@ for p = 1:nc12Idx
     end
     closestNucleusEver = mode(closestNucleusPerFrame);
     if ~isnan(closestNucleusEver)
-        assert(CompiledParticles(p).schnitz == closestNucleusEver,'assigned schnitz is not the right one')
+        if CompiledParticlesStruct(p).schnitz ~= closestNucleusEver
+            disp(['original assigned schnitz is not the right one!' Prefix])
+            CompiledParticlesStruct(p).schnitz = closestNucleusEver;
+        end   
     end
 end
+end
 
-display('congrats! schnitzes were correctly assigned to particles')
+
+%disp('congrats! schnitzes were correctly assigned to particles')
+
+clear closestNucleusEver closestNucleusPerFrame idx dist minDistance distanceToNucleiThisFrame schnitzYPos schnitzXPos particleYPosThisFrame particleXPosThisFrame frame f n particleNCs nc12Idx
+
+save([resultsFolder,'CompiledParticles.mat']);
+
 %%
 
             
 
 end
-

@@ -2,7 +2,7 @@ function [fractive, take3PactiveNTrials] = pactiveSim(varargin)
 
 pactive = .6;
 pdetect = .5;
-N = 10000;
+N = 20;
 nTrials = 5;
 
 %options must be specified as name, value pairs. unpredictable errors will
@@ -34,5 +34,20 @@ fractive = Nactive./N;
 NAnyTrial = sum(anyTrial);
 trialSum = sum(trial, 2);
 avN_trials = mean(trialSum);
-take3NactiveNTrials = -NAnyTrial ./ ((1 - (avN_trials./NAnyTrial)).^nTrials - 1);
+if nTrials == 2
+    take3NactiveNTrials = -avN_trials.^2 ./ (NAnyTrial - 2*avN_trials);
+else
+    syms Nact
+    take3NactiveNTrials = vpasolve(1-(NAnyTrial/Nact)==(1-(avN_trials/Nact))^nTrials,Nact, [0, Inf]);
+    if length(take3NactiveNTrials) == 2
+        take3NactiveNTrials = take3NactiveNTrials(2);
+    elseif length(take3NactiveNTrials) > 2
+        error('what')
+    end
+end
+% take3NactiveNTrials = -NAnyTrial ./ ((1 - (avN_trials./NAnyTrial)).^nTrials - 1);
 take3PactiveNTrials = take3NactiveNTrials ./ N;
+
+if isempty(take3PactiveNTrials)
+    take3PactiveNTrials = nan;
+end

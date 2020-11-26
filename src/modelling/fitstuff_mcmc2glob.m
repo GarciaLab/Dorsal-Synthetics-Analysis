@@ -25,6 +25,7 @@ enhancerSubset = {};
 scoreSubset = [];
 positionSubset = [];
 useBatches = true; %fit all the data across embryos and not just means 
+noAverage = false;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -37,6 +38,10 @@ end
 if expmnt == "phaff"
     lsq = false;
     noOff = true;
+end
+
+if noAverage
+    useBatches = false;
 end
 
 enhancers_1dg = {'1Dg11'};
@@ -108,9 +113,11 @@ for k = 1:nSets
     Y_batch = [Y_batch; ys_batch{k}];
 end
 
-data.ydata = [T, Y];
-data.dsid = dsid;
-data.X =  [T dsid];
+if ~noAverage
+    data.ydata = [T, Y];
+    data.dsid = dsid;
+    data.X =  [T dsid];
+end
 
 data_batch = {};
 for k = 1:size(Y_batch, 2)
@@ -184,8 +191,9 @@ for i = 1:length(k0)
         targetflag = 0;
     end
     
-    params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
-    
+%     params{1, i} = {names(i),k0(i), lb(i), ub(i), pri_mu, pri_sig, targetflag, localflag};
+      params{1, i} = {names(i),k0(i), lb(i), ub(i), k0(i), k0(i)/10, targetflag, localflag};
+
 end
 
 
@@ -193,12 +201,31 @@ model = struct;
 
 simpleWeakOptions = struct('noOff', noOff, 'fraction', metric=="fraction",...
     'dimer', contains(md, "dimer"), 'expmnt', expmnt);
+
+if noAverage
+    load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'combinedCompiledProjects_allEnhancers')
+    ccp = combinedCompiledProjects_allEnhancers(strcmpi({combinedCompiledProjects_allEnhancers.dataSet}, '1Dg11_2xDl' )  &...
+        [combinedCompiledProjects_allEnhancers.cycle]==12);
+    ccp = ccp(cellfun(@any, {ccp.particleFrames}));
+    data.ydata = [ [ccp.dorsalFluoFeature]' , cellfun(@max, {ccp.particleFluo3Slice})'];
+    simpleWeakOptions.onedsid = true;
+end
+
 mdl = @(x, p) simpleweak(x, p, simpleWeakOptions);
 
 %leaving this here in case it'll be useful in the future
 %     model.ssfun = @(params, data) sum( (data.ydata(:,2)-mdl(data.X(:,1), params)).^2 );
 
 model.modelfun   = mdl;  %use mcmcrun generated ssfun 
+
+% priorfun0 = @(th,mu,sig) exp(-(1/2).*sum(((th-mu)./sig).^2));
+
+% riorfun0 = @(th,mu,sig) exp(-(1/2).*((th-mu)./sig).^2);
+
+% priorfun = @(th,mu,sig) sum(((th-mu)./sig).^2); %mu and sig are constants. theta is plugged in at each mcmc step
+
+% model.priorfun = prior;
+% priorfun(par,pri_mu,pri_sig) 
 
 if lsq
     model.sigma2 = mse;

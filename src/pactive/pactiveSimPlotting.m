@@ -1,7 +1,6 @@
 pdets = [.01:.01:1];
 nTrials = 2;
 for k = 1:length(pdets)
-    k
     [fractive(k), take3pactive(k)] = pactiveSim('pdetect', pdets(k), 'nTrials', nTrials);
 end
 figure; 
@@ -12,9 +11,12 @@ plot(pdets, fractive, pdets, take3pactive);
 xlabel('true p detect')
 ylabel('pactive')
 legend('true fraction active', 'inferred p active');
-ylim([0, 1])
+% ylim([0, 1])
+ylim([min(take3pactive), max(take3pactive)])
 nexttile
-plot(pdets, 1 - take3pactive ./ fractive);
+y = 1 - take3pactive ./ fractive;
+plot(pdets, y);
+ylim([min(y), max(y)])
 xlabel('true p detect')
 ylabel('error from estimate')
 

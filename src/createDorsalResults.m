@@ -163,6 +163,11 @@ for nc = 1
     dorsalResults{nc}.meanAllMaxFluoEmbryo = filteredWeightedMean(dorsalResults{nc}.allMaxFluoEmbryo);
     dorsalResults{nc}.seAllMaxFluoEmbryo = filteredWeightedSE(dorsalResults{nc}.allMaxFluoEmbryo);
     
+    %dlfluobins coming in uses the left endpoint as the numerical value for the bin. let's use the
+    %midpoint of the bin instead.
+    if dlfluobins(1) == 0
+        dlfluobins = dlfluobins + dlfluobins(1)/2;
+    end
     dorsalResults{nc}.dorsalFluoBins  = dlfluobins;
     dorsalResults{nc}.DataType = DataType;
     
