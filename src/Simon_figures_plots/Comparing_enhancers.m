@@ -12,7 +12,7 @@ accum2x = dorsalResultsDatabase.meanallmrnasEmbryo(cond1);
 seaccum2x = dorsalResultsDatabase.seallmrnasEmbryo(cond1);
 
 cond2 = [dorsalResultsDatabase.DataType]=="1Dg-5_FFF" & [dorsalResultsDatabase.nc]==12;
-dlfluobinsfff = dorsalResultsDatabase.dorsalFluoBins(cond2)
+dlfluobinsfff = dorsalResultsDatabase.dorsalFluoBins(cond2);
 fracFFF = dorsalResultsDatabase.meanFracFluoEmbryo(cond2);
 sefracFFF = dorsalResultsDatabase.seFracFluoEmbryo(cond2);
 maxFFF = dorsalResultsDatabase.meanAllMaxFluoEmbryo(cond2);
@@ -35,7 +35,7 @@ ylabel('fraction')
 ylim([0 1])
 hold off
 legend('2X','FFF')
-title('1DgVW')
+title('1Dg-5')
 
 
 figure
@@ -47,7 +47,7 @@ ylabel('max fluo')
 ylim([0 400])
 hold off
 legend('2X','FFF')
-title('1DgVW')
+title('1Dg-5')
 
 
 figure
@@ -59,4 +59,4 @@ ylabel('accumulated mRNA')
 ylim([0 1200])
 hold off
 legend('2X','FFF')
-title('1DgVW')
+title('1Dg-5')
