@@ -29,7 +29,7 @@ prefixes = thisProject.includedExperimentNames;
 compiledProjects = cell(1, length(prefixes));
 % 
 % 
-if false
+if true
 for k = 1:length(prefixes)
 %     prefixes{k}
 %     clear LiveExperiment
@@ -38,9 +38,6 @@ for k = 1:length(prefixes)
 % %     TrackmRNADynamics(prefixes{k});
 %     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
 %         'yToManualAlignmentPrompt');
-%     alignCompiledParticlesByAnaphase(prefixes{k});
-%     integrateSchnitzFluo(prefixes{k});
-%     TrackmRNADynamics(prefixes{k});
     fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
         'yToManualAlignmentPrompt');

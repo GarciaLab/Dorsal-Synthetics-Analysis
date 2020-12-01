@@ -3,7 +3,8 @@
 clear all
 dorsalResultsDatabase = createDorsalResultsDatabase;
 dlfluobins = dorsalResultsDatabase.dorsalFluoBins; dlfluobins = dlfluobins(1:19);
-cond1 = [dorsalResultsDatabase.DataType]=="1Dg-5_2xDl" & [dorsalResultsDatabase.nc]==12;
+%cond1 = [dorsalResultsDatabase.DataType]=="1Dg11" & [dorsalResultsDatabase.nc]==12;
+cond1 = contains([dorsalResultsDatabase.DataType],'1Dg11') & [dorsalResultsDatabase.nc]==12;
 frac2x = dorsalResultsDatabase.meanFracFluoEmbryo(cond1);
 sefrac2x = dorsalResultsDatabase.seFracFluoEmbryo(cond1);
 max2x = dorsalResultsDatabase.meanAllMaxFluoEmbryo(cond1);
@@ -11,7 +12,7 @@ semax2x = dorsalResultsDatabase.seAllMaxFluoEmbryo(cond1);
 accum2x = dorsalResultsDatabase.meanallmrnasEmbryo(cond1);
 seaccum2x = dorsalResultsDatabase.seallmrnasEmbryo(cond1);
 
-cond2 = [dorsalResultsDatabase.DataType]=="1Dg-5_FFF" & [dorsalResultsDatabase.nc]==12;
+cond2 = [dorsalResultsDatabase.DataType]=="1Dg11_2xDl" & [dorsalResultsDatabase.nc]==12;
 dlfluobinsfff = dorsalResultsDatabase.dorsalFluoBins(cond2);
 fracFFF = dorsalResultsDatabase.meanFracFluoEmbryo(cond2);
 sefracFFF = dorsalResultsDatabase.seFracFluoEmbryo(cond2);
@@ -34,8 +35,8 @@ errorbar(dlfluobins+10,fracFFF,sefracFFF,'bo-','CapSize',0,'MarkerFaceColor','b'
 ylabel('fraction')
 ylim([0 1])
 hold off
-legend('2X','FFF')
-title('1Dg-5')
+legend('2X and FFF combined','FFF')
+title('1Dg')
 
 
 figure
@@ -46,8 +47,8 @@ errorbar(dlfluobins+10,maxFFF,semaxFFF,'bo-','CapSize',0,'MarkerFaceColor','b')
 ylabel('max fluo')
 ylim([0 400])
 hold off
-legend('2X','FFF')
-title('1Dg-5')
+legend('2X and FFF combined','FFF')
+title('1Dg')
 
 
 figure
@@ -58,5 +59,5 @@ errorbar(dlfluobins+10,accumFFF,seaccumFFF,'bo-','CapSize',0,'MarkerFaceColor','
 ylabel('accumulated mRNA')
 ylim([0 1200])
 hold off
-legend('2X','FFF')
-title('1Dg-5')
+legend('2X and FFF combined','FFF')
+title('1Dg')
