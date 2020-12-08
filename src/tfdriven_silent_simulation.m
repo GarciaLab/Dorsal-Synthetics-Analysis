@@ -15,7 +15,7 @@ pi1s = logspace(-2, 1, nPlots);
 
 R = 500;
 % c = .002;
-c = 20;
+c = 40;
 
 t_cycle = 10; %min
 
