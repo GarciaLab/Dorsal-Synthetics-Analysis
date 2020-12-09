@@ -19,7 +19,7 @@ c = 40;
 t_cycle = 10; %min
 
 nSteps = 10;
-nSims = 1E5;
+nSims = 1E6;
 nOffStates = 5;
 onstate = nOffStates+1;
 silentstate = onstate+1;

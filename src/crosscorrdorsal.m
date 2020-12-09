@@ -22,3 +22,17 @@ end
 
 plot(dlfluobins, fluo95);
 errorbar(dlfluobins, fluo95, fluo95_se);
+
+b = a(cellfun(@any, {a.particleFrames}));
+
+for k = 1:length(b)
+    nuclearTime = b(k).nuclearTimeSinceAnaphase;
+    particleTime = b(k).particleTimeSinceAnaphase;
+    f0 = find(particleTime(1)==nuclearTime);
+    fend = find(particleTime(end)==nuclearTime);
+    dlfluo = [b(k).dorsalFluoTimeTrace];
+    dlfluo = dlfluo(f0:fend);
+    particleFluo = [b(k).particleFluo3Slice];
+    [c,lags]  = xcorr(dlfluo,particleFluo, 'normalized');
+    plot(lags, c)
+end
