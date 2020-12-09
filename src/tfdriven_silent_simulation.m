@@ -1,7 +1,6 @@
 
 close all force;
 
-cmap = colormap(viridis(nPlots));
 
 dmax = 5000;
 nPlots = 10;
@@ -20,7 +19,7 @@ c = 40;
 t_cycle = 10; %min
 
 nSteps = 10;
-nSims = 1E4;
+nSims = 1E5;
 nOffStates = 5;
 onstate = nOffStates+1;
 silentstate = onstate+1;
@@ -31,15 +30,21 @@ pi1 = .1; %min
 dls = 700; %au
 mfpts = nan(length(dls), length(kds), length(pi1s));
 
-for k = 1:length(pi1s)
-    for i = 1:length(dls)
-        for j = 1:length(kds)
-            pi0 = c.*occupancy(dls(i), kds(j)); %min-1
-            pi1 = pi1s(k); %min-1
+cmap = colormap(viridis(nPlots));
 
-            fpt_on_observed = averagePaths(nSims, nSteps, pi0, pi1, onstate, silentstate, t_cycle);
+cs = 2;
 
-            mfpts(i, j, k) = mean(fpt_on_observed);
+for m = 1:length(cs)
+    for k = 1:length(pi1s)
+        for i = 1:length(dls)
+            for j = 1:length(kds)
+                pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
+                pi1 = pi1s(k); %min-1
+
+                fpt_on_observed = averagePaths(nSims, nSteps, pi0, pi1, onstate, silentstate, t_cycle);
+
+                mfpts(i, j, k, m) = mean(fpt_on_observed);
+            end
         end
     end
 end
@@ -47,15 +52,21 @@ end
 
 
 figure;
-for k = 1:length(pi1s)
-%     plot(kds, mfpts(40, :, 1));
-    plot(kds, mfpts(1, :, k), 'LineWidth', 2, 'Color', cmap(k, :));
-    hold on
+tiledlayout('flow')
+for j = 1:length(cs)
+    nexttile;
+    for k = 1:length(pi1s)
+    %     plot(kds, mfpts(40, :, 1));
+        plot(kds, mfpts(1, :, k, j), 'LineWidth', 2, 'Color', cmap(k, :));
+        hold on
+    end
+    xlabel('K_D (au)')
+    ylabel('mean time to turn on (min)')
+%     leg =legend(num2str(round2(pi1s')));
+%     title(leg, '\pi_1');
+%     set(gca, 'XScale', 'log')
+    title(['c = ', num2str(cs(j))])
 end
-xlabel('K_D (au)')
-ylabel('mean time to turn on (min)')
-leg =legend(num2str(round2(pi1s')));
-title(leg, '\pi_1');
 
 figure;
 plot(pi1s, mfpts(:, 5));
