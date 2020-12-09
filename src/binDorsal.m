@@ -21,9 +21,11 @@ end
 mind = 1;
 maxd = 1500;
 nBins = 20;
+binWidth = 250; %this was the default
+binWidth = 125;
 
 dlfluobins = mind:round(maxd/mind):maxd; %this is appropriate for taking instantaneous dorsal at ~50% through nc12 on the sp8
-dlfluobins = 0:250:4500;
+dlfluobins = 0:binWidth:4500;
 if dolog
     dlfluobins = logspace(0, 3.6, 20);
 end
