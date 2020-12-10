@@ -1,10 +1,11 @@
+function Comparing_enhancers
 
 %% grab results
 clear all
 dorsalResultsDatabase = createDorsalResultsDatabase;
 dlfluobins = dorsalResultsDatabase.dorsalFluoBins; dlfluobins = dlfluobins(1:19);
 %cond1 = [dorsalResultsDatabase.DataType]=="1Dg11" & [dorsalResultsDatabase.nc]==12;
-cond1 = contains([dorsalResultsDatabase.DataType],'1Dg11') & [dorsalResultsDatabase.nc]==12;
+cond1 = contains([dorsalResultsDatabase.DataType],'1Dg11____') & [dorsalResultsDatabase.nc]==12;
 frac2x = dorsalResultsDatabase.meanFracFluoEmbryo(cond1);
 sefrac2x = dorsalResultsDatabase.seFracFluoEmbryo(cond1);
 max2x = dorsalResultsDatabase.meanAllMaxFluoEmbryo(cond1);
@@ -29,7 +30,7 @@ close all
 
 figure
 hold on
-errorbar(dlfluobins-10,frac2x,sefrac2x,'ro-','CapSize',0,'MarkerFaceColor','r')
+%errorbar(dlfluobins-10,frac2x,sefrac2x,'ro-','CapSize',0,'MarkerFaceColor','r')
 errorbar(dlfluobins+10,fracFFF,sefracFFF,'bo-','CapSize',0,'MarkerFaceColor','b')
 %errorbar(dlfluobins,results.meanFracFluoEmbryo,results.seFracFluoEmbryo,'r-','CapSize',0)
 ylabel('fraction')
@@ -41,7 +42,7 @@ title('1Dg')
 
 figure
 hold on
-errorbar(dlfluobins-10,max2x,semax2x,'ro-','CapSize',0,'MarkerFaceColor','r')
+%errorbar(dlfluobins-10,max2x,semax2x,'ro-','CapSize',0,'MarkerFaceColor','r')
 errorbar(dlfluobins+10,maxFFF,semaxFFF,'bo-','CapSize',0,'MarkerFaceColor','b')
 %errorbar(dlfluobins,results.meanAllMaxFluoEmbryo,results.seAllMaxFluoEmbryo,'r-','CapSize',0)
 ylabel('max fluo')
@@ -53,7 +54,7 @@ title('1Dg')
 
 figure
 hold on
-errorbar(dlfluobins-10,accum2x,seaccum2x,'ro-','CapSize',0,'MarkerFaceColor','r')
+%errorbar(dlfluobins-10,accum2x,seaccum2x,'ro-','CapSize',0,'MarkerFaceColor','r')
 errorbar(dlfluobins+10,accumFFF,seaccumFFF,'bo-','CapSize',0,'MarkerFaceColor','b')
 %errorbar(dlfluobins,results.meanallmrnasEmbryo,results.seallmrnasEmbryo,'r-','CapSize',0)
 ylabel('accumulated mRNA')
@@ -61,3 +62,7 @@ ylim([0 1200])
 hold off
 legend('2X and FFF combined','FFF')
 title('1Dg')
+
+
+
+end

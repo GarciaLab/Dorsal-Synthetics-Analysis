@@ -149,6 +149,7 @@ for c = cs
 %     hold(ax5, 'on')
 %     
 %     % time on
+
 %     plot(ax8, d, ton4(n, :))
 %     xlabel(ax8,'Dorsal concentration (AU)')
 %     ylabel(ax8,'time on')
@@ -383,7 +384,7 @@ end
 % plot stuff
 figure
 hold on
-TurnOnTimePerKd = nan(enh,Nbins);
+TurnOnTimePerKd = nan(length(Datasets),Nbins);
 for enh = 1:length(Datasets)   
     EnhancerEmbryos = AllTurnOnData(enh).Embryos;
     AllsingleEmbryoMeans = [];
@@ -406,10 +407,12 @@ legend(Datasets)
 xlabel('Dorsal concentration')
 ylabel('mean turn on time')
 ylim([0 10])
+set(gca,'XScale','log')
+
 
 figure
 hold on
-plot(PatserScores,TurnOnTimePerKd,'ro')
+plot(PatserScores,TurnOnTimePerKd,'o','MarkerFaceColor','r','MarkerEdgeColor','none')
 errorbar(PatserScores,meanTurnOnTimePerKd,SEMturnOnTimePerKd,'ko','MarkerFaceColor','k','CapSize',0)
 %ylim([0 10])
 xlabel('patser score')
