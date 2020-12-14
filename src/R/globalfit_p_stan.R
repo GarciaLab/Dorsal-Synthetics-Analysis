@@ -1,12 +1,10 @@
-noAv = TRUE
 
-if (noAv) {
   datTemp <-
     read.csv(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\dat\\datNoAv.csv")
-} else{
-  datTemp <-
+
+  datTempAve <-
     read.csv(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\dat\\dat.csv")
-}
+
 
 paramsTemp <-
   read.csv(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\dat\\params.csv")
@@ -22,6 +20,7 @@ nSets = 7
 
 
 kdub = 1E4
+kdub = 1E5;
 
 kdp0 = 2E3
 
@@ -130,36 +129,41 @@ df$dfnames = dfnames
 
 predicted_df$dfnames = dfnames
 
+df$names_f = factor(df$dfnames, levels=namesList)
+# 
+# dfave = <- data.frame(
+#   x = datTempAve$dsid,
+#   dsid = datTempAve$dsid,
+# )
+# dlfluobins <- seq(125, 4500, by=250)
+dlfluobins <- seq(0, 4500, by=250)
 
 windows()
 
 df %>%
-  ggplot(aes(x = x, y = Y, group = dfnames)) +
-  # geom_point() +
-  theme(
-    legend.position = "bottom",
-    panel.spacing = unit(0, "lines"),
-    strip.text.x = element_text(size = 8, family = "ArialMT"),
-    plot.title = element_text(size = 13, family = "ArialMT"),
-    text = element_text(family = "ArialMT")
-  ) +
+ # ggplot() +
+ ggplot(aes(x = x, y = Y, group = dfnames)) +
+#geom_point(data = datTempAve,
+#            aes(x = x, y = Y, group = Var4)) +
+# facet_wrap( ~ Var4, nrow=1)+
   xlab("[Dorsal] (au)") +
   ylab("max fluorescence (au)") +
-  facet_wrap( ~ dfnames) +
+  # facet_wrap( ~ dfnames,nrow=1) +
   geom_line(data = predicted_df,
             aes(x = x, y = Y_mean_mean, group = dfnames)) +
-  geom_line(
-    data = predicted_df,
-    aes(x = x, y = Y_pred_cred_lower, group = dfnames),
-    linetype = "dashed",
-    color = "red"
-  ) +
-  geom_line(
-    data = predicted_df,
-    aes(x = x, y = Y_pred_cred_upper, group = dfnames),
-    linetype = "dashed",
-    color = "red"
-  ) +
+  facet_wrap( ~names_f, nrow=1)+
+    # geom_line(
+  #   data = predicted_df,
+  #   aes(x = x, y = Y_pred_cred_lower, group = dfnames),
+  #   linetype = "dashed",
+  #   color = "red"
+  # ) +
+  # geom_line(
+  #   data = predicted_df,
+  #   aes(x = x, y = Y_pred_cred_upper, group = dfnames),
+  #   linetype = "dashed",
+  #   color = "red"
+  # ) +
   geom_ribbon(
     data = predicted_df,
     aes(ymin = Y_mean_cred_lower, ymax = Y_mean_cred_upper, group = dfnames),
@@ -171,7 +175,7 @@ df %>%
 
 ggsave('C:\\Users\\owner\\Dropbox\\DorsalSyntheticsDropbox\\manuscript\\ggplot.pdf')
 
-
+write.csv(predicted_df, 'C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\dat\\predicted_df.csv')
 library(bayesplot)
 posteriormat <- as.matrix(fit)
 posteriorarr <- as.array(fit)
@@ -179,68 +183,70 @@ posteriorarr <- as.array(fit)
 windows()
 
 mcmc_pairs(posteriorarr,
-           pars = c("w", "R", "KD1", "p", "sigma"))
+           pars = c("w", "R", "KD1","KD7","p", "sigma"),
+           off_diag_fun = "hex",
+           )
 
 
 
-
-plot(
-  dat$Y ~ dat$x,
-  xlab = "x",
-  ylab = "Y",
-  main = "simple weak fraction active",
-  col = "green",
-  bg = "green"
-)
-lines(dat$x, Y_mean_mean)
-points(dat$x, Y_pred_mean, pch = 19)
-lines(dat$x, Y_mean_cred[1, ], col = 4)
-lines(dat$x, Y_mean_cred[2, ], col = 4)
-lines(dat$x, Y_pred_cred[1, ], col = 2)
-lines(dat$x, Y_pred_cred[2, ], col = 2)
-legend(
-  x = "bottomright",
-  bty = "n",
-  lwd = 2,
-  lty = c(NA, NA, 1, 1, 1),
-  legend = c(
-    "observation",
-    "prediction",
-    "mean prediction",
-    "90% mean cred. interval",
-    "90% pred. cred. interval"
-  ),
-  col = c(1, 1, 1, 4, 2),
-  pch = c(1, 19, NA, NA, NA)
-)
-#
-# library(bayesplot)
-# library(tidyverse)
-#
-# fit%>%
-#   mcmc_trace()
-#
-# fit %>%
-#   rhat() %>%
-#   mcmc_rhat() +
-#   yaxis_text()
-
-np <- nuts_params(fit)
-color_scheme_set("red")
-mcmc_intervals(posteriormat,
-               pars = parNames)
-windows()
 # 
-# (p <- mcmc_pairs(
-#   posteriorarr,
-#   pars = parNames
-# ))
-
-
-
-
-mcmc_scatter(posteriorarr, pars = c("KD7", "R"))
-mcmc_scatter(posteriorarr, pars = c("w", "p"))
+# plot(
+#   dat$Y ~ dat$x,
+#   xlab = "x",
+#   ylab = "Y",
+#   main = "simple weak fraction active",
+#   col = "green",
+#   bg = "green"
+# )
+# lines(dat$x, Y_mean_mean)
+# points(dat$x, Y_pred_mean, pch = 19)
+# lines(dat$x, Y_mean_cred[1, ], col = 4)
+# lines(dat$x, Y_mean_cred[2, ], col = 4)
+# lines(dat$x, Y_pred_cred[1, ], col = 2)
+# lines(dat$x, Y_pred_cred[2, ], col = 2)
+# legend(
+#   x = "bottomright",
+#   bty = "n",
+#   lwd = 2,
+#   lty = c(NA, NA, 1, 1, 1),
+#   legend = c(
+#     "observation",
+#     "prediction",
+#     "mean prediction",
+#     "90% mean cred. interval",
+#     "90% pred. cred. interval"
+#   ),
+#   col = c(1, 1, 1, 4, 2),
+#   pch = c(1, 19, NA, NA, NA)
+# )
+# #
+# # library(bayesplot)
+# # library(tidyverse)
+# #
+# # fit%>%
+# #   mcmc_trace()
+# #
+# # fit %>%
+# #   rhat() %>%
+# #   mcmc_rhat() +
+# #   yaxis_text()
+# 
+# np <- nuts_params(fit)
+# color_scheme_set("red")
+# mcmc_intervals(posteriormat,
+#                pars = parNames)
+# windows()
+# # 
+# # (p <- mcmc_pairs(
+# #   posteriorarr,
+# #   pars = parNames
+# # ))
+# 
+# 
+# 
+# 
+# mcmc_scatter(posteriorarr, pars = c("KD7", "R"))
+# mcmc_scatter(posteriorarr, pars = c("w", "p"))
 
 
 windows()
@@ -280,3 +286,28 @@ mcmc_trace(posteriorarr,
 
 # mcmc_areas(posterior,
 #            prob = 0.8) + plot_title
+
+kdlist = extract(fit, c("KD1","KD2","KD3","KD4","KD5","KD6","KD7"));
+kds = c(mean(kdlist$KD1),
+        mean(kdlist$KD2),
+        mean(kdlist$KD3),
+        mean(kdlist$KD4),
+        mean(kdlist$KD5),
+        mean(kdlist$KD6),
+        mean(kdlist$KD7))
+scores = c(6.23, 5.81, 5.39, 5.13, 4.80, 4.73, 4.29)
+kdes= c(sd(kdlist$KD1),
+        sd(kdlist$KD2),
+        sd(kdlist$KD3),
+        sd(kdlist$KD4),
+        sd(kdlist$KD5),
+        sd(kdlist$KD6),
+        sd(kdlist$KD7))
+
+windows()
+plot(scores, kds, type="l")
+# Add error bars
+arrows(x0=scores, y0=kds-kdes, x1=scores, y1=kds+kdes, code=3, angle=90, length=0.1)
+
+
+
