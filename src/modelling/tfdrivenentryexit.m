@@ -9,7 +9,7 @@ dls = logspace(1, log10(dmax)); %aus
 t = linspace(0, 10)'; %mins
 kd = 500;
 kds = logspace(2, 4, nPlots);
-cs = logspace(-1, 2, nPlots);
+cs = logspace(1, 3, nPlots);
 pi1s = logspace(-2, 1, nPlots);
 pi2s = logspace(-2, 1, nPlots);
 
@@ -36,8 +36,10 @@ mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 
 % cmap = colormap(viridis(nPlots));
 cmap = colormap(parula(nPlots));
-cs = 10;
+% cs = 10;
 % pi1s = [1, .1];
+pi2s = 1;
+pi1 = 1/3;
 
 for n = 1:length(pi2s)
     for m = 1:length(cs)
@@ -65,7 +67,7 @@ for j = 1:length(cs)
     nexttile;
     for k = 1:length(pi1s)
         %     plot(kds, mfpts(40, :, 1));
-        plot(kds, mfpts(1, :, k, j, 8), 'LineWidth', 2, 'Color', cmap(k, :));
+        plot(kds, mfpts(1, :, k, j, 1), 'LineWidth', 2, 'Color', cmap(k, :));
         hold on
     end
     xlabel('K_D (au)')
@@ -74,7 +76,32 @@ for j = 1:length(cs)
     %     title(leg, '\pi_1');
     %     set(gca, 'XScale', 'log')
     title(['c = ', num2str(cs(j))])
+    
 end
+
+
+%%
+figure;
+% tiledlayout('flow')
+for j = 1:length(cs)
+    %     nexttile;
+    %     for k = 1:length(pi1s)
+    %     plot(kds, mfpts(40, :, 1));
+    plot(kds, mfpts(1, :, 6, j, 1), 'LineWidth', 2, 'Color', cmap(j, :));
+    hold on
+    %     end
+    xlabel('K_D (au)')
+    ylabel('mean time to turn on (min)')
+    %     leg =legend(num2str(round2(pi1s')));
+    %     title(leg, '\pi_1');
+    %     set(gca, 'XScale', 'log')
+    %     title(['c = ', num2str(cs(j))])
+    
+end
+leg =legend(num2str(round2(cs')));
+title(leg, 'c (min-1)');
+title({'pientry=1', 'pisilent=.3', 'Dl=700'})
+%%
 %
 % figure;
 % plot(pi1s, mfpts(:, 5));
@@ -87,87 +114,79 @@ end
 % xlabel('[Dl] (au)')
 % ylabel('mean time to turn on (min)')
 
-function [states, times] = makePath(nSteps, pi0, pi1, pi2, onstate, silentstate,firstoffstate, rs)
+function [states, times] = makePath(nSteps, onstate, silentstate,firstoffstate, tau_on, tau_exit, ind, states, times)
 
-% times = 0;
-% states = 1;
-state = 1;
 
-states = nan(1, 12);
-% states = [];
-states(1) = 1;
-times = nan(1, 12);
-% times = [];
-times(1) = 0;
-% r_on = exprnd(pi0^-1, [1, nSteps]); %min
-% r_exit = exprnd(pi1^-1, [1, nSteps]); %min
-% r_entry = exprnd(pi2^-1, [1, 5]); %min
-r_on = rs(1, :);
-r_exit = rs(2, :);
-r_entry = rs(3, :);
-
-n = 1;
-for step = 1:4
-    n = n + 1;
-    state = state + 1;
-    tau = r_entry(step);
-    states(n) = state;
-    times(n) = times(n-1) + tau;
-%     states = [states,state];
-%     times = [times,times(end) + tau];
-end
-
-[~, ind] = min([r_on; r_exit]);
-
+n = 6;
 for step = 1:nSteps
     n = n + 1;
-%         [~, ind] = min([r_on(step), r_exit(step)]);
-        if ind(step) == 1 && state < onstate
-            state =  state + 1;
-            tau = r_on(step);
-            states(n) = state;
-            times(n) = times(n-1) + tau;
-%             states = [states,state];
-%             times = [times,times(end) + tau];
-        elseif ind(step) == 2 || state == onstate || state == silentstate
-            state = silentstate;
-            tau = r_exit(step);
-            states(n) = state;
-            times(n) = times(n-1) + tau;
-            break;
-        end
-        
+    if ind(step) == 1 && states(n-1) < onstate
+        states(n) = states(n-1) + 1;
+        times(n) = times(n-1) + tau_on(step);
+    elseif ind(step) == 2 || states(n-1) == onstate
+        states(n) = silentstate;
+        times(n) = times(n-1) + tau_exit(step);
+        return;
+    end
 end
 
 end
 
 
+function fpt_on_observed = averagePaths(nSims, nSteps, pi0, pi1,pi2, onstate, silentstate, t_cycle, firstoffstate)
+
+nSteps = 7;
 
 % fpt_on = [];
 fpt_on = nan(1, nSims);
 %     fpt_on_observed = [];
 %     duration = [];
-rs = [exprnd(pi0^-1, [1, nSteps, nSims]) %on
-      exprnd(pi1^-1, [1, nSteps, nSims]) %entry
-      exprnd(pi2^-1, [1, nSteps, nSims])]; %exit
-      
+taus = [exprnd(pi0^-1, [1, nSteps, nSims]) %on
+    exprnd(pi1^-1, [1, nSteps, nSims]) %exit
+    ];
+
+tau_on = squeeze(taus(1, :, :));
+tau_exit = squeeze(taus(2, :, :));
+
+tau_entry = exprnd(pi2^-1, [5, nSims]);
+
+[~, ind] = min([taus(1,:, :); taus(2,:, :)]);
+
+ind = squeeze(ind);
+
+initStates = [repmat([1, 2, 3, 4, 5, 6], 1, 1), zeros(1,6)];
+initTimes = [zeros(nSims, 1), cumsum(tau_entry)', zeros(nSims,6)];
+
+
 for k = 1:nSims
-       
     
     
-    [states, times] = makePath(nSteps, pi0, pi1, pi2,onstate, silentstate, firstoffstate, rs(:, :, k));
-    
-    % plot(time, states);
-    % xlim([0, 10]);
-    ton =  times(find(states==onstate, 1 ));
-%     fpt_on = [fpt_on, ton];
-    if ~isempty(ton)
-        fpt_on(k) = ton;
+    if initTimes(k, 6) < t_cycle
+        
+        [states, times] = makePath(nSteps,onstate, silentstate, firstoffstate, tau_on(:, k), tau_exit(:, k), ind(:, k), initStates, initTimes(k,:));
+        
+        % plot(time, states);
+        % xlim([0, 10]);
+        %     ton =  times(find(states==onstate, 1 ));
+        ton = times(states==onstate);
+        %     fpt_on = [fpt_on, ton];
+        if ~isempty(ton)
+            fpt_on(k) = ton;
+        end
+        
     end
     
 end
 
+
+
 fpt_on_observed = fpt_on(fpt_on < t_cycle);
+
+% if ~isempty(fpt_on_observed)
+%     
+%     1
+% end
+
 %     duration = t_cycle-fpt_on_observed;
 
 %     histogram(fpt_on_observed, 'Normalization', 'pdf');
