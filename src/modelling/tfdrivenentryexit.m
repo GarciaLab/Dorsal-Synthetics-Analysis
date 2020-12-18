@@ -18,7 +18,7 @@ c = 2;
 
 t_cycle = 10; %min
 
-nSteps = 5;
+nSteps = 6;
 nSims = 1E5;
 nOffStates = 5;
 nEntryStates = 5;
@@ -93,11 +93,11 @@ function [states, times] = makePath(nSteps, pi0, pi1, pi2, onstate, silentstate,
 % states = 1;
 state = 1;
 
-% states = nan(1, nSteps);
-states = [];
+states = nan(1, 12);
+% states = [];
 states(1) = 1;
-% times = nan(1, nSteps);
-times = [];
+times = nan(1, 12);
+% times = [];
 times(1) = 0;
 % r_on = exprnd(pi0^-1, [1, nSteps]); %min
 % r_exit = exprnd(pi1^-1, [1, nSteps]); %min
@@ -106,29 +106,34 @@ r_on = rs(1, :);
 r_exit = rs(2, :);
 r_entry = rs(3, :);
 
+n = 1;
 for step = 1:4
+    n = n + 1;
     state = state + 1;
     tau = r_entry(step);
-%     states(step+1) = state;
-%     times(step+1) = times(step) + tau;
-    states = [states,state];
-    times = [times,times(end) + tau];
+    states(n) = state;
+    times(n) = times(n-1) + tau;
+%     states = [states,state];
+%     times = [times,times(end) + tau];
 end
 
+[~, ind] = min([r_on; r_exit]);
+
 for step = 1:nSteps
-    
-   
-        [~, ind] = min([r_on(step), r_exit(step)]);
-        if ind == 1 && state < onstate
+    n = n + 1;
+%         [~, ind] = min([r_on(step), r_exit(step)]);
+        if ind(step) == 1 && state < onstate
             state =  state + 1;
             tau = r_on(step);
-            states = [states,state];
-            times = [times,times(end) + tau];
-        elseif ind == 2 || state == onstate || state == silentstate
+            states(n) = state;
+            times(n) = times(n-1) + tau;
+%             states = [states,state];
+%             times = [times,times(end) + tau];
+        elseif ind(step) == 2 || state == onstate || state == silentstate
             state = silentstate;
             tau = r_exit(step);
-            states = [states,state];
-            times = [times,times(end) + tau];
+            states(n) = state;
+            times(n) = times(n-1) + tau;
             break;
         end
         
