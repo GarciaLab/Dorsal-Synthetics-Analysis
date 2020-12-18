@@ -19,7 +19,7 @@ c = 2;
 t_cycle = 10; %min
 
 nSteps = 6;
-nSims = 1E5;
+nSims = 1E3;
 nOffStates = 5;
 nEntryStates = 5;
 firstoffstate = nEntryStates+1;
@@ -36,7 +36,7 @@ mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 
 % cmap = colormap(viridis(nPlots));
 cmap = colormap(parula(nPlots));
-% cs = 2;
+cs = 10;
 % pi1s = [1, .1];
 
 for n = 1:length(pi2s)
@@ -141,9 +141,10 @@ end
 
 end
 
-function fpt_on_observed = averagePaths(nSims, nSteps, pi0, pi1,pi2, onstate, silentstate, t_cycle, firstoffstate)
 
-fpt_on = [];
+
+% fpt_on = [];
+fpt_on = nan(1, nSims);
 %     fpt_on_observed = [];
 %     duration = [];
 rs = [exprnd(pi0^-1, [1, nSteps, nSims]) %on
@@ -159,7 +160,10 @@ for k = 1:nSims
     % plot(time, states);
     % xlim([0, 10]);
     ton =  times(find(states==onstate, 1 ));
-    fpt_on = [fpt_on, ton];
+%     fpt_on = [fpt_on, ton];
+    if ~isempty(ton)
+        fpt_on(k) = ton;
+    end
     
 end
 
