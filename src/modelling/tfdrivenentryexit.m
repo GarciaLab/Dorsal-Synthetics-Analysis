@@ -180,6 +180,72 @@ end
 
 
 
+
+
+
+
+
+
+
+%%
+
+
+dmax = 5000;
+nPlots = 10;
+dl = 500;
+t = linspace(0, 10)'; %mins
+dls = logspace(1, log10(dmax)); %aus
+kd = 500;
+kds = logspace(2, 4, nPlots);
+cs = logspace(1, 3, nPlots);
+pi1s = logspace(-2, 1, nPlots);
+pi2s = logspace(-2, 1, nPlots);
+
+R = 500;
+c = 2;
+
+t_cycle = 10; %min
+
+nSteps = 6;
+nSims = 1E3;
+nOffStates = 5;
+nEntryStates = 5;
+firstoffstate = nEntryStates+1;
+onstate = nEntryStates + nOffStates+1;
+silentstate = onstate+1;
+nStates = nEntryStates + nOffStates + 1 + 1;
+occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
+pi0 = 1; %min
+pi1 = 1; %min
+pi2 = 10; %min
+
+
+% cmap = colormap(viridis(nPlots));
+cmap = colormap(parula(nPlots));
+
+
+mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
+
+for n = 1:length(pi2s)
+    for m = 1:length(cs)
+        for k = 1:length(pi1s)
+            for i = 1:length(dls)
+                for j = 1:length(kds)
+                    pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
+                    pi1 = pi1s(k); %min-1
+                    pi2 = pi2s(n);
+                    
+                    [fpt_on_observed, factive_temp] = averagePaths(nSims, nSteps, pi0, pi1, pi2,onstate, silentstate, t_cycle, firstoffstate);
+                    
+                    mfpts(i, j, k, m, n) = mean(fpt_on_observed);
+                    factive(i,j,k,m,n) = factive_temp;
+                end
+            end
+        end
+    end
+end
+
+
 figure;
 tiledlayout('flow')
 
@@ -201,4 +267,8 @@ end
 
 
 
+figure
+scatter(factive(:,:,:,:,:), mfpts(:,:,:,:,:))
+xlabel('factive')
+ylabel('mean turn on (min)')
 
