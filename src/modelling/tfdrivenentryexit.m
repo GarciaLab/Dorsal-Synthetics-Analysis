@@ -152,7 +152,7 @@ pi2 = 10; %min
 cmap = colormap(parula(nPlots));
 % cs = 10;
 % pi1s = [1, .1];
-cs = 100;
+% cs = 100;
 kds = 1000;
 pi2s = 1;
 pi1s = 1/3;
@@ -181,26 +181,23 @@ end
 
 
 figure;
-yyaxis left
-% tiledlayout('flow')
-% for j = 1:length(cs)
-%     nexttile;
-%     for k = 1:length(pi1s)
-        plot(dls, factive(:,1,1,1,1), 'LineWidth', 2)
-        ylabel('factive)')
-       yyaxis right
-        plot(dls, mfpts(:,1,1,1,1), 'LineWidth', 2)
-%         hold on
-ylabel('t on (min)')
-%     end
+tiledlayout('flow')
+
+for m = 1:length(cs)
+    nexttile;
+    
+    yyaxis left
+    plot(dls, factive(:,1,1,m,1), 'LineWidth', 2)
+    ylabel('factive)')
+    
+    yyaxis right
+    plot(dls, mfpts(:,1,1,m,1), 'LineWidth', 2)
+    ylabel('t on (min)')
+    
     xlabel('dl (au)')
+    title(['c = ', num2str(cs(m))])
     
-    %     leg =legend(num2str(round2(pi1s')));
-    %     title(leg, '\pi_1');
-    %     set(gca, 'XScale', 'log')
-%     title(['c = ', num2str(cs(j))])
-    
-% end
+end
 
 
 
