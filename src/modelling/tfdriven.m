@@ -156,7 +156,7 @@ for c = cs
    
   
    
- mrna(n,:) = trapz(t, temp, 1);
+% mrna(n,:) = trapz(t, temp, 1);
  
  temp6 = (1/24).*d.*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-1).* ...
   R.*((-24)+24.*exp(1).^(c.*d.*(d+kd).^(-1).*t)+c.*d.*(d+kd).^(-4).* ...
@@ -180,10 +180,10 @@ temp7 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*(24.* ...
 paccessible2(n, :, :) = temp7;   
 fon2(n, :) = squeeze(paccessible2(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
  
-nexttile(t_surf)
-surf(D, T, squeeze(dmrnadt(n, :, :)));
-xlim([0, 1E4]);
-title(num2str(c));
+%nexttile(t_surf)
+% surf(D, T, squeeze(dmrnadt(n, :, :)));
+% xlim([0, 1E4]);
+% title(num2str(c));
 
 
 
@@ -191,8 +191,8 @@ plot(ax2, d, fon(n, :))
 hold(ax2, 'on')
 
 
-plot(ax3, d, mrna(n, :))
-hold(ax3, 'on')
+% plot(ax3, d, mrna(n, :))
+% hold(ax3, 'on')
 
 
 plot(ax4, d, mrna2(n, :), 'LineWidth', 2, 'Color', cmap(n, :))
@@ -258,12 +258,12 @@ for k = 1:length(kds)
 hold on;
 end
 
-title(ax7, 'predicted \langle T_{on} \rangleT_{on} (min)')
-xlim(ax7, [0, 3500]);
-% leg7 = legend(ax7, num2str(round(cs', 2, 'significant')));
-% title(leg7, 'c')
-xlabel(ax7,'KD (au)')
-ylabel(ax7,'mean turn on time (min)')
+% title(ax7, 'predicted \langle T_{on} \rangleT_{on} (min)')
+% xlim(ax7, [0, 3500]);
+% % leg7 = legend(ax7, num2str(round(cs', 2, 'significant')));
+% % title(leg7, 'c')
+% xlabel(ax7,'KD (au)')
+% ylabel(ax7,'mean turn on time (min)')
 
 
 title('predicted T_{on} (min)')
@@ -275,12 +275,12 @@ title(leg, 'K_D')
 xlabel('[Dl] (au)')
 ylabel('mean turn on time (min)')
 
-title(ax8, 'predicted T_{on} (min)')
-xlim(ax8, [0, 3500]);
-leg8 = legend(ax8, num2str(round(cs', 2, 'significant')));
-title(leg8, 'c')
-xlabel(ax8,'[Dl] (au)')
-ylabel(ax8,'mean turn on time (min)')
+% title(ax8, 'predicted T_{on} (min)')
+% xlim(ax8, [0, 3500]);
+% leg8 = legend(ax8, num2str(round(cs', 2, 'significant')));
+% title(leg8, 'c')
+% xlabel(ax8,'[Dl] (au)')
+% ylabel(ax8,'mean turn on time (min)')
 
 %% Compare with data
 
@@ -289,7 +289,7 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])%, 'dorsalResultsData
 AllStruct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
 b = load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat');
 
-Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
+Datasets = {'1Dg11'}%, '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
 PatserScores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 AllTurnOnData = struct('Embryos',[]);
 Nbins = 19; %number of Dorsal concentration bins
@@ -325,7 +325,7 @@ hold on
 TurnOnTimePerKd = nan(length(Datasets),Nbins);
 for enh = 1:length(Datasets)   
     EnhancerEmbryos = AllTurnOnData(enh).Embryos;
-    AllsingleEmbryoMeans = [];
+    AllsingleEmbryoMeans = nan(1,19);
     for emb = 1:length(EnhancerEmbryos)
         embryoTurnOnTimes = EnhancerEmbryos(emb).embryoTurnOnTimes;
         singleEmbryoMean = nanmean(embryoTurnOnTimes,2); %mean turn on across nuclei in the same Dl bin
@@ -335,7 +335,7 @@ for enh = 1:length(Datasets)
     mean = nanmean(AllsingleEmbryoMeans);
     SEM = nanstd(AllsingleEmbryoMeans,1)./NEmbryos;
     mean(mean>10) = nan;
-    errorbar([0:250:4500],mean,SEM,'LineWidth',2,'CapSize',0)
+    errorbar([0:125:3750],mean,SEM,'LineWidth',2,'CapSize',0)
     TurnOnTimePerKd(enh,:) = mean;
     meanTurnOnTimePerKd(enh) = nanmean(mean);
     SEMturnOnTimePerKd(enh) = nanstd(mean)./sum(~isnan(mean));
