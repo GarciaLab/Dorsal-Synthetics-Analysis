@@ -22,13 +22,6 @@ tonfun  = @(d, c, kd) 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*
     kd.^2+90.*c.*d.^2.*kd.^2+150.*c.^2.*d.^2.*kd.^2+12.*d.*kd.^3+30.* ...
     c.*d.*kd.^3+3.*kd.^4+(-3).*exp(1).^(10.*c.*d.*(d+kd).^(-1)).*(d+ ...
     kd).^4).^(-1));
-
-factive_exit_fun =  @(d, c, kd, p1, tcycle) (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*tcycle+(-1).*p1.* ...
-  tcycle).*((-24)+24.*exp(1).^(c.*d.*(d+kd).^(-1).*tcycle)+c.*d.*(d+ ...
-  kd).^(-4).*tcycle.*((-24).*(d+kd).^3+(-12).*c.*d.*(d+kd).^2.* ...
-  tcycle+(-4).*c.^2.*d.^2.*(d+kd).*tcycle.^2+(-1).*c.^3.*d.^3.* ...
-  tcycle.^3));
-
 %% setup parameters and stuff
 close all;
 
@@ -39,7 +32,6 @@ cs = logspace(-1, 2, 10);  % rate increase per unit dorsal
 R = 1; % rate of transcription when the dorsal site is 100% occupied
 nSteps = 5; % number of irreversible steps
 t_nc13 = 10; % duration of the transcriptional window in minutes
-p1 = 1; %min-1
 
 % [D, T] = meshgrid(d,t); %?
 % 
@@ -50,8 +42,6 @@ f2 = figure; ax2 = axes(f2);
 f3 = figure; ax3 = axes(f3);
 f4 = figure; ax4 = axes(f4);
 f5 = figure; ax5 = axes(f5);
-f6 = figure; ax6 = axes(f6);
-
 
 % initialize arrays containing the model outputs
 dmrnadt = [];
@@ -136,20 +126,19 @@ for c = cs
 %     ylabel(ax2,'fraction of active nuclei')
 %     hold(ax2, 'on')
 
-%     % accumulated mRNA
-%     plot(ax4, d, mrna2(n, :))
-%     xlabel(ax4,'Dorsal concentration (AU)')
-%     ylabel(ax4,'acumulated mRNA (AU)')
-%     hold(ax4, 'on')
-%     
-%     % fraction active
-%     plot(ax5, d, fon2(n, :))
-%     xlabel(ax5,'Dorsal concentration (AU)')
-%     ylabel(ax5,'fraction of active nuclei')
-%     hold(ax5, 'on')
-%     
-%     % time on
-
+    % accumulated mRNA
+    plot(ax4, d, mrna2(n, :))
+    xlabel(ax4,'Dorsal concentration (AU)')
+    ylabel(ax4,'acumulated mRNA (AU)')
+    hold(ax4, 'on')
+    
+    % fraction active
+    plot(ax5, d, fon2(n, :))
+    xlabel(ax5,'Dorsal concentration (AU)')
+    ylabel(ax5,'fraction of active nuclei')
+    hold(ax5, 'on')
+    
+    % time on
 %     plot(ax8, d, ton4(n, :))
 %     xlabel(ax8,'Dorsal concentration (AU)')
 %     ylabel(ax8,'time on')
@@ -167,7 +156,7 @@ for c = cs
    
   
    
-%  mrna(n,:) = trapz(t, temp, 1);
+% mrna(n,:) = trapz(t, temp, 1);
  
  temp6 = (1/24).*d.*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-1).* ...
   R.*((-24)+24.*exp(1).^(c.*d.*(d+kd).^(-1).*t)+c.*d.*(d+kd).^(-4).* ...
@@ -190,19 +179,8 @@ temp7 = (1/24).*exp(1).^((-1).*c.*d.*(d+kd).^(-1).*t).*(d+kd).^(-4).*(24.* ...
 
 paccessible2(n, :, :) = temp7;   
 fon2(n, :) = squeeze(paccessible2(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
-
-
-%exit state model prob of on state
-temp8 = (1/24).*exp(1).^((-1).*(c.*d.*(1+d.*kd.^(-1)).^(-1).*kd.^(-1)+p1) ...
-  .*t).*((-24)+24.*exp(1).^(c.*d.*(1+d.*kd.^(-1)).^(-1).*kd.^(-1).* ...
-  t)+(-24).*c.*d.*(1+d.*kd.^(-1)).^(-1).*kd.^(-1).*t+(-12).*c.^2.* ...
-  d.^2.*(1+d.*kd.^(-1)).^(-2).*kd.^(-2).*t.^2+(-4).*c.^3.*d.^3.*(1+ ...
-  d.*kd.^(-1)).^(-3).*kd.^(-3).*t.^3+(-1).*c.^4.*d.^4.*(1+d.*kd.^( ...
-  -1)).^(-4).*kd.^(-4).*t.^4);
-paccessible_exit(n,:,:) = temp8;
-fon_exit(n,:) = squeeze(paccessible_exit(n, t_nc13, :)); %odds of reaching the end of the cycle without turning on
-%  
-% nexttile(t_surf)
+ 
+%nexttile(t_surf)
 % surf(D, T, squeeze(dmrnadt(n, :, :)));
 % xlim([0, 1E4]);
 % title(num2str(c));
@@ -212,7 +190,7 @@ fon_exit(n,:) = squeeze(paccessible_exit(n, t_nc13, :)); %odds of reaching the e
 plot(ax2, d, fon(n, :))
 hold(ax2, 'on')
 
-% 
+
 % plot(ax3, d, mrna(n, :))
 % hold(ax3, 'on')
 
@@ -223,9 +201,6 @@ hold(ax4, 'on')
 
 plot(ax5, d, fon2(n, :),  'LineWidth', 2, 'Color', cmap(n, :))
 hold(ax5, 'on')
-
-plot(ax6, d, fon_exit(n, :),  'LineWidth', 2, 'Color', cmap(n, :))
-hold(ax6, 'on')
 end
 
 %%
@@ -269,41 +244,9 @@ xlabel(ax5,'[Dorsal] (au)')
 ylabel(ax5,'fraction active')
 set(ax5, 'XScale', 'log')
 
-
-title(ax6, 'predicted fraction active. exit state model. pi \alpha occupancy')
-xlim(ax6, [10, dmax]);
-ylim(ax6,[0, 1]);
-leg6 = legend(ax6, num2str(round(cs', 2, 'significant')));
-title(leg6, 'c')
-xlabel(ax6,'[Dorsal] (au)')
-ylabel(ax6,'fraction active')
-set(ax6, 'XScale', 'log')
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%
-figure;
-tcycle = 10; %min
-c = 2; %min-1
-p1 = 1; %min-1
-nPlots = 10;
-dmax = 5000; %au
-d = logspace(1, log10(dmax)); %aus
-kds = logspace(2, 4, nPlots); %au
-cmap = colormap(viridis(nPlots));
 
-for k = 1:length(kds)
-    f(k, :) = factive_exit_fun(d, c, kds(k), p1, tcycle) ;
-   plot(d, f(k, :), 'LineWidth', 2, 'Color', cmap(k, :))
-    hold on;
-end
-leg = legend(num2str(round(kds', 2, 'significant')));
-title(leg, 'K_D')
-xlabel('[Dl] (au)')
-ylabel('fraction of active nuclei')
-
-
-%%
 
 figure;
 c = 10;
@@ -315,11 +258,6 @@ for k = 1:length(kds)
 hold on;
 end
 
-
-
-
-
-% 
 % title(ax7, 'predicted \langle T_{on} \rangleT_{on} (min)')
 % xlim(ax7, [0, 3500]);
 % % leg7 = legend(ax7, num2str(round(cs', 2, 'significant')));
@@ -336,7 +274,7 @@ leg = legend(num2str(round(kds', 2, 'significant')));
 title(leg, 'K_D')
 xlabel('[Dl] (au)')
 ylabel('mean turn on time (min)')
-% 
+
 % title(ax8, 'predicted T_{on} (min)')
 % xlim(ax8, [0, 3500]);
 % leg8 = legend(ax8, num2str(round(cs', 2, 'significant')));
@@ -351,7 +289,7 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])%, 'dorsalResultsData
 AllStruct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
 b = load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat');
 
-Datasets = {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
+Datasets = {'1Dg11'}%, '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3','1DgVW'};
 PatserScores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 AllTurnOnData = struct('Embryos',[]);
 Nbins = 19; %number of Dorsal concentration bins
@@ -387,7 +325,7 @@ hold on
 TurnOnTimePerKd = nan(length(Datasets),Nbins);
 for enh = 1:length(Datasets)   
     EnhancerEmbryos = AllTurnOnData(enh).Embryos;
-    AllsingleEmbryoMeans = [];
+    AllsingleEmbryoMeans = nan(1,19);
     for emb = 1:length(EnhancerEmbryos)
         embryoTurnOnTimes = EnhancerEmbryos(emb).embryoTurnOnTimes;
         singleEmbryoMean = nanmean(embryoTurnOnTimes,2); %mean turn on across nuclei in the same Dl bin
@@ -397,7 +335,7 @@ for enh = 1:length(Datasets)
     mean = nanmean(AllsingleEmbryoMeans);
     SEM = nanstd(AllsingleEmbryoMeans,1)./NEmbryos;
     mean(mean>10) = nan;
-    errorbar([0:250:4500],mean,SEM,'LineWidth',2,'CapSize',0)
+    errorbar([0:125:3750],mean,SEM,'LineWidth',2,'CapSize',0)
     TurnOnTimePerKd(enh,:) = mean;
     meanTurnOnTimePerKd(enh) = nanmean(mean);
     SEMturnOnTimePerKd(enh) = nanstd(mean)./sum(~isnan(mean));

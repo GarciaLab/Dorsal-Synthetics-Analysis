@@ -36,11 +36,11 @@ for k = 1:length(prefixes)
 %     TrackNuclei(prefixes{k},'retrack', 'nWorkers', 1);
 % %     integrateSchnitzFluo(prefixes{k});
 % %     TrackmRNADynamics(prefixes{k});
-%     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
-%         'yToManualAlignmentPrompt');
-    fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
         'yToManualAlignmentPrompt');
+%     fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
+%     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
+%         'yToManualAlignmentPrompt');
     alignCompiledParticlesByAnaphase(prefixes{k});
 end
 end

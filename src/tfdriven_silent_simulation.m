@@ -13,18 +13,19 @@ cs = logspace(-1, 2, nPlots);
 pi1s = logspace(-2, 1, nPlots);
 
 R = 500;
-c = 2;
+% c = .002;
+c = 40;
 
 t_cycle = 10; %min
 
 nSteps = 10;
-nSims = 1E4;
+nSims = 1E6;
 nOffStates = 5;
 onstate = nOffStates+1;
 silentstate = onstate+1;
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 pi0 = 1; %min
-pi1 = 1; %min
+pi1 = .1; %min
 
 dls = 700; %au
 mfpts = nan(length(dls), length(kds), length(pi1s));
@@ -32,7 +33,6 @@ mfpts = nan(length(dls), length(kds), length(pi1s));
 cmap = colormap(viridis(nPlots));
 
 cs = 2;
-pi1s = [1, .1];
 
 for m = 1:length(cs)
     for k = 1:length(pi1s)
@@ -86,9 +86,7 @@ function [states, times] = makePath(nSteps, pi0, pi1, onstate, silentstate)
 state = 1;
 
 states = nan(1, nSteps);
-states(1) = 1;
 times = nan(1, nSteps);
-times(1) = 0;
 r0 = exprnd(pi0^-1, [1, nSteps]); %min
 r1 = exprnd(pi1^-1, [1, nSteps]); %min
 
@@ -99,14 +97,18 @@ for step = 1:nSteps
     if ind == 1 && state < onstate
         state =  state + 1;
         tau = r0(step);
-    elseif ind == 2 || state == onstate || state == silentstate
+    elseif ind == 2 || state == onstate
         state = silentstate;
         tau = r1(step);
     end
-   
-    states(step+1) = state;
     
-    times(step+1) = times(step) + tau;
+    states(step) = state;
+    
+    if step ~= 1
+         times(step) = times(step-1) + tau;
+    else
+        times(step) = 1;
+    end
     
 end
 
