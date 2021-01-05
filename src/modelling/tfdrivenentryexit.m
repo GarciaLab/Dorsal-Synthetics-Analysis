@@ -1,7 +1,6 @@
 
 close all force;
 
-
 dmax = 5000;
 nPlots = 10;
 dl = 500;
@@ -27,9 +26,9 @@ onstate = nEntryStates + nOffStates+1;
 silentstate = onstate+1;
 nStates = nEntryStates + nOffStates + 1 + 1;
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
-pi0 = 1; %min
-pi1 = 1; %min
-pi2 = 10; %min
+pi0 = 1; %min-1
+pi1 = 1; %min-1
+pi2 = 10; %min-1
 
 dls = 700; %au
 mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
@@ -41,6 +40,7 @@ cmap = colormap(parula(nPlots));
 pi2s = 1;
 pi1 = 1/3;
 
+
 for n = 1:length(pi2s)
     for m = 1:length(cs)
         for k = 1:length(pi1s)
@@ -48,10 +48,11 @@ for n = 1:length(pi2s)
                 for j = 1:length(kds)
                     pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
                     pi1 = pi1s(k); %min-1
-                    pi2 = pi2s(n);
+                    pi2 = pi2s(n); %min-1
                     
-                    [fpt_on_observed, factive_temp] = averagePaths(nSims, nSteps, pi0, pi1, pi2,onstate, silentstate, t_cycle, firstoffstate);
+                    [fpt_on_observed, factive_temp] = averagePaths_entryexit(nSims, nSteps, pi0, pi1, pi2,onstate, silentstate, t_cycle, firstoffstate);
                     
+
                     mfpts(i, j, k, m, n) = mean(fpt_on_observed);
                     factive(i,j,k,m,n) = factive_temp;
                 end
@@ -60,7 +61,7 @@ for n = 1:length(pi2s)
     end
 end
 
-
+%%
 
 figure;
 tiledlayout('flow')
@@ -378,7 +379,7 @@ figure
 scatter3(factive(:), mfpts(:), dt(:))
 hold on
 fmin = .1;
-fmax = 10;
+fmax = 1;
 tmin = 3.5;
 tmax = 7;
 deltatmin = 0;
@@ -398,41 +399,7 @@ zlabel('delta t')
 
 % save('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfentryexit_paramsearch.mat')
 
-%%
 
 load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfentryexit_paramsearch.mat')
 
-factive(isnan(mfpts)) = [];
-dt(isnan(mfpts)) = [];
-mfpts(isnan(mfpts)) = [];
-
-factive(isnan(dt)) = [];
-mfpts(isnan(dt)) = [];
-dt(isnan(dt)) = [];
-
-qx = factive(:);
-qy = mfpts(:);
-qz = dt(:);
-
-shp = alphaShape(factive(:), mfpts(:), dt(:),Inf,'HoleThreshold',1E30 );
-
-figure;
-plot(shp)
-hold on
-in = inShape(shp,qx, qy, qz);
-scatter3(qx(in),qy(in),qz(in),'r.')
-scatter3(qx(~in),qy(~in), qz(~in),'b.')
-
-xlabel('factive')
-ylabel('mean turn on (min)')
-zlabel('delta t')
-legend('convex hull', 'viable parameters', 'unphysical parameters');
-
-ax = gca;
-ax.Children(3).EdgeColor = 'none';
-ax.Children(3).FaceAlpha = .5;
-
-
-
-
-
+plotTFDrivenParams(factive, dt, mfpts)
