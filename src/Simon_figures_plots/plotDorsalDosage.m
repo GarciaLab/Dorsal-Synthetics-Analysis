@@ -3,7 +3,11 @@ function plotDorsalDosage
 %% get the prefix names
 %this is where the data is
 load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat')
-Prefixes = string({combinedCompiledProjects_allEnhancers.prefix});
+condIdx = contains({combinedCompiledProjects_allEnhancers.prefix},'noExport') & [combinedCompiledProjects_allEnhancers.cycle]==12;
+
+combinedCompiledProjects_SomeEnhancers = combinedCompiledProjects_allEnhancers(condIdx);
+
+Prefixes = string({combinedCompiledProjects_SomeEnhancers.prefix});
 UniquePrefixes = unique(Prefixes);
 
 Idx1X = zeros(1,length(UniquePrefixes));
@@ -11,8 +15,8 @@ Idx2X = zeros(1,length(UniquePrefixes));
 
 % calculate the offset from embryos without dl-Venus
 OffsetPrefixes = {'2020-10-23-dl1-MCPmCh_VenusBackground_1','2020-10-23-dl1-MCPmCh_VenusBackground_2'};
-VenusOffset = getBackgroundFluo(OffsetPrefixes);
-
+%VenusOffset = getBackgroundFluo(OffsetPrefixes);
+VenusOffset = 15; %AUs
 
 %% loop over prefixes to see what's the fluorescence of their nuclei
 MeanFluoPerPrefix = [];
@@ -43,19 +47,19 @@ for p = 1:length(UniquePrefixes)
 end
 
 MeanFluoPer1XPrefix = MeanFluoPerPrefix;
-MeanFluoPer1XPrefix(logical(Idx2X)) = nan;
+%MeanFluoPer1XPrefix(logical(Idx2X)) = nan;
 MeanFluoPer2XPrefix = MeanFluoPerPrefix;
-MeanFluoPer2XPrefix(logical(Idx1X)) = nan;
+%MeanFluoPer2XPrefix(logical(Idx1X)) = nan;
 
 
 %% find the top brightest (or dimmest) prefixes
-TopNumber = 10; %number of prefixes to plot
+TopNumber = 3; %number of prefixes to plot
 
-sortedFluos1XPrefixes = sort(MeanFluoPer1XPrefix(find(~isnan(MeanFluoPer1XPrefix))),'ascend'); %default is 'ascend'
+sortedFluos1XPrefixes = sort(MeanFluoPer1XPrefix(find(~isnan(MeanFluoPer1XPrefix))),'descend'); %default is 'ascend'
 Extreme1Xidx = find(ismember(MeanFluoPer1XPrefix, sortedFluos1XPrefixes(1:TopNumber)));
 Extreme1XPrefixes = UniquePrefixes(Extreme1Xidx);
 
-sortedFluos2XPrefixes = sort(MeanFluoPer2XPrefix(find(~isnan(MeanFluoPer2XPrefix))),'ascend'); %default is ascending
+sortedFluos2XPrefixes = sort(MeanFluoPer2XPrefix(find(~isnan(MeanFluoPer2XPrefix))),'descend'); %default is ascending
 Extreme2Xidx = find(ismember(MeanFluoPer2XPrefix, sortedFluos2XPrefixes(1:TopNumber)));
 Extreme2XPrefixes = UniquePrefixes(Extreme2Xidx);
 
@@ -66,7 +70,7 @@ AllNuclearTraces1X = nan(1,length(TimeSinceAnaphase));
 MeanAllNuclearTraces1X = nan(TopNumber,length(TimeSinceAnaphase));
 RowCounterB=1;
 figure
-colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8]};
+colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8],[.2 .8 .2],[.9 0.1 .1],[.1 0.9 .1]};
 hold on
 for p = Extreme1XPrefixes%(1,[2,6,9,10])
     RowCounterB
@@ -79,7 +83,7 @@ for p = Extreme1XPrefixes%(1,[2,6,9,10])
         if strcmpi(p,nucleusPrefix) && nucleusNC==12
            FluoTimeTrace = combinedCompiledProjects_allEnhancers(n).dorsalFluoTimeTrace - VenusOffset;
            AbsTimeTrace = combinedCompiledProjects_allEnhancers(n).nuclearTimeSinceAnaphase;
-           %plot(AbsTimeTrace,FluoTimeTrace,'Color',colors{RowCounterB});
+           plot(AbsTimeTrace,FluoTimeTrace,'Color',colors{RowCounterB});
            for t = 1:length(AbsTimeTrace)
                time = AbsTimeTrace(t);
                fluo = FluoTimeTrace(t);
@@ -104,7 +108,7 @@ AllNuclearTraces2X = nan(1,length(TimeSinceAnaphase));
 RowCounterB=1;
 MeanAllNuclearTraces2X = nan(TopNumber,length(TimeSinceAnaphase));
 figure
-colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8]};
+%colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8]};
 hold on
 for p = Extreme2XPrefixes%(1,[2,3,7,8])
     RowCounterB

@@ -1,4 +1,4 @@
-function averagesTake2(DataType,numBins,metric,ax)
+function averagesTake2(DataType,numBins,metric,fiducialTime,ax)
 % metric can be maxfluo, accumulatedfluo or fraction
 
 % load everything
@@ -14,7 +14,10 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompile
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 % bin nuclei 
-nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+%fiducialTime = 3; %minutes
+enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
+
+nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
 binValues = linspace(0,4500,numBins);
 binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
 for n = 1:length(enhancerStruct)
@@ -127,8 +130,8 @@ ylim([0 1200])
 elseif contains(lower(metric),'fraction')
 % % figure;
 % % hold on
-plot(binValues,mean_fraction_acrossNuclei_perBin,'r-','LineWidth',1.5)
-%errorbar(ax,binValues,mean_fraction_acrossEmbryos_perBin,se_fraction_acrossEmbryos_perBin,'k-','CapSize',0,'LineWidth',1.5)
+%plot(binValues,mean_fraction_acrossNuclei_perBin,'ro-','LineWidth',1.5)
+errorbar(ax,binValues,mean_fraction_acrossEmbryos_perBin,se_fraction_acrossEmbryos_perBin,'ko-','CapSize',0,'LineWidth',1.5)
 %hold off
 xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
