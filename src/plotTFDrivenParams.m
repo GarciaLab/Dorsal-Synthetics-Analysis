@@ -45,13 +45,13 @@ function plotTFDrivenParams(factive, dt, mfpts)
     qy2u = qy2;
     qz2u = qz2;
 
-    % in = inShape(shp,qx2u, qy2u, qz2u);
-    % scatter3(qx2u(in),qy2u(in),qz2u(in),'r.')
-    % scatter3(qx2u(~in),qy2u(~in), qz2u(~in),'b.')
+    in = inShape(shp,qx2u, qy2u, qz2u);
+    scatter3(qx2u(in),qy2u(in),qz2u(in),'r.')
+    scatter3(qx2u(~in),qy2u(~in), qz2u(~in),'b.')
 
-    in = inShape(shp,qx2down, qy2down, qz2down);
-    scatter3(qx2down(in),qy2down(in),qz2down(in),'r.')
-    scatter3(qx2down(~in),qy2down(~in), qz2down(~in),'b.')
+%     in = inShape(shp,qx2down, qy2down, qz2down);
+%     scatter3(qx2down(in),qy2down(in),qz2down(in),'r.')
+%     scatter3(qx2down(~in),qy2down(~in), qz2down(~in),'b.')
 
     xlabel('factive')
     ylabel('mean turn on (min)')
