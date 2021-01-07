@@ -1,5 +1,5 @@
 % load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfentryexit_paramsearch.mat')
-function plotTFDrivenParams(factive, dt, mfpts)
+function plotTFDrivenParams(factive, dt, mfpts, nPoints)
 
     factive(isnan(mfpts)) = [];
     dt(isnan(mfpts)) = [];
@@ -26,12 +26,13 @@ function plotTFDrivenParams(factive, dt, mfpts)
     qz2 = dt(:);
     shp = alphaShape(qx, qy, qz,Inf,'HoleThreshold',1E30 );
 
-    subsample = randsample(length(qx2),10);
+    if nargin>3
+        subsample = randsample(length(qx2),nPoints);
 
-    qx2down = qx2(subsample);
-    qy2down = qy2(subsample);
-    qz2down = qz2(subsample);
-
+        qx2down = qx2(subsample);
+        qy2down = qy2(subsample);
+        qz2down = qz2(subsample);
+    end
     q = [round(qx2,1) round(qy2,1) round(qz2,1)];
     qu = unique(q,'rows');
     qx2u = qu(:, 1);
@@ -44,14 +45,18 @@ function plotTFDrivenParams(factive, dt, mfpts)
     qx2u = qx2;
     qy2u = qy2;
     qz2u = qz2;
+%
+ 
 
-    in = inShape(shp,qx2u, qy2u, qz2u);
-    scatter3(qx2u(in),qy2u(in),qz2u(in),'r.')
-    scatter3(qx2u(~in),qy2u(~in), qz2u(~in),'b.')
-
-%     in = inShape(shp,qx2down, qy2down, qz2down);
-%     scatter3(qx2down(in),qy2down(in),qz2down(in),'r.')
-%     scatter3(qx2down(~in),qy2down(~in), qz2down(~in),'b.')
+    if nargin>3
+        in = inShape(shp,qx2down, qy2down, qz2down);
+        scatter3(qx2down(in),qy2down(in),qz2down(in),'r.')
+        scatter3(qx2down(~in),qy2down(~in), qz2down(~in),'b.')
+    else
+          in = inShape(shp,qx2u, qy2u, qz2u);
+        scatter3(qx2u(in),qy2u(in),qz2u(in),'r.')
+        scatter3(qx2u(~in),qy2u(~in), qz2u(~in),'b.')
+    end
 
     xlabel('factive')
     ylabel('mean turn on (min)')
