@@ -1,77 +1,86 @@
 % load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfentryexit_paramsearch.mat')
-function plotTFDrivenParams(factive, dt, mfpts, nPoints)
+function plotTFDrivenParams(factive, dt, mfpts, varargin)
 
-    factive(isnan(mfpts)) = [];
-    dt(isnan(mfpts)) = [];
-    mfpts(isnan(mfpts)) = [];
+nPoints = []; %if this is an integer, plotting will subsample using this many points. Otherwise, no subsampling
+shouldRound = false; %if true, subsample by discretizing data points and rounding nearby values
 
-    factive(isnan(dt)) = [];
-    mfpts(isnan(dt)) = [];
-    dt(isnan(dt)) = [];
-
-    fmin = .1;
-    fmax = 1;
-    tmin = 3.5;
-    tmax = 7;
-    deltatmin = 0;
-    deltatmax = 3;
-
-    box = makeBox([fmin, tmin, deltatmin], [fmax, tmax, deltatmax]);
-    qx = box(:, 1);
-    qy = box(:, 2);
-    qz = box(:, 3);
-
-    qx2 = factive(:);
-    qy2 = mfpts(:);
-    qz2 = dt(:);
-    shp = alphaShape(qx, qy, qz,Inf,'HoleThreshold',1E30 );
-
-    if nargin>3
-        subsample = randsample(length(qx2),nPoints);
-
-        qx2down = qx2(subsample);
-        qy2down = qy2(subsample);
-        qz2down = qz2(subsample);
+%options must be specified as name, value pairs. unpredictable errors will
+%occur, otherwise.
+for i = 1:2:(numel(varargin)-1)
+    if i ~= numel(varargin)
+        eval([varargin{i} '=varargin{i+1};']);
     end
-    q = [round(qx2,1) round(qy2,1) round(qz2,1)];
-    qu = unique(q,'rows');
-    qx2u = qu(:, 1);
-    qy2u = qu(:, 2);
-    qz2u = qu(:, 3);
-    figure;
-    plot(shp)
-    hold on
+end
 
-    qx2u = qx2;
-    qy2u = qy2;
-    qz2u = qz2;
-%
- 
+factive(isnan(mfpts)) = [];
+dt(isnan(mfpts)) = [];
+mfpts(isnan(mfpts)) = [];
 
-    if nargin>3
-        in = inShape(shp,qx2down, qy2down, qz2down);
-        scatter3(qx2down(in),qy2down(in),qz2down(in),'r.')
-        scatter3(qx2down(~in),qy2down(~in), qz2down(~in),'b.')
-    else
-          in = inShape(shp,qx2u, qy2u, qz2u);
-        scatter3(qx2u(in),qy2u(in),qz2u(in),'r.')
-        scatter3(qx2u(~in),qy2u(~in), qz2u(~in),'b.')
-    end
+factive(isnan(dt)) = [];
+mfpts(isnan(dt)) = [];
+dt(isnan(dt)) = [];
 
-    xlabel('factive')
-    ylabel('mean turn on (min)')
-    zlabel('delta t')
-    legend('viable region', 'viable parameters', 'unphysical parameters');
+x = factive(:);
+y = mfpts(:);
+z = dt(:);
 
-    ax = gca;
-    % ax.Children(3).EdgeColor = 'none';
-    ax.Children(3).FaceAlpha = .5;
+%% make  convex hull out of the allowable region
+fmin = .1;
+fmax = 1;
+tmin = 3.5;
+tmax = 7;
+deltatmin = 0;
+deltatmax = 3;
 
-    title('Parameter space for TF Driven model')
+box = makeBox([fmin, tmin, deltatmin], [fmax, tmax, deltatmax]);
+x_hull = box(:, 1);
+y_hull = box(:, 2);
+z_hull = box(:, 3);
 
-    axis square;
 
-    fig = gcf;
-    fig.Renderer='Painters';
+hull = alphaShape(x_hull, y_hull, z_hull,Inf,'HoleThreshold',1E30 );
+%%
+
+%% Subsample and/or round
+if ~isempty(nPoints)
+    subSample = randsample(length(x),nPoints);
+    x = x(subSample);
+    y = y(subSample);
+    z = z(subSample);
+end
+
+if shouldRound
+    r_rounded = unique([round(x,1) round(y,1) round(z,1)], 'rows');
+    x = r_rounded(:, 1);
+    y = r_rounded(:, 2);
+    z = r_rounded(:, 3);
+end
+
+%%
+figure;
+plot(hull)
+hold on
+
+in = inShape(hull,x, y, z);
+scatter3(x(in),y(in),z(in),'r.')
+scatter3(x(~in),y(~in), z(~in),'b.')
+
+xlabel('factive')
+ylabel('mean turn on (min)')
+zlabel('delta t')
+legend('viable region', 'viable parameters', 'unphysical parameters');
+
+ax = gca;
+% ax.Children(3).EdgeColor = 'none';
+ax.Children(3).FaceAlpha = .5;
+
+title('Parameter space for TF Driven model')
+
+axis square;
+
+fig = gcf;
+fig.Renderer='Painters';
+
+view(0, -90)
 
 end

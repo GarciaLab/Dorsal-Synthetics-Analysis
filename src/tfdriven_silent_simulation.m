@@ -72,16 +72,21 @@ dt = mfpts(:, 10, :, :) - mfpts(:, 4, :, :); %kds(10)=10k, kds(4)=400
 
 dt = repmat(dt, [1 length(kds) 1 1]);
 
+[~, dropboxfolder] = getDorsalFolders;
+
 if noExit
-    save('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfdriven_paramsearch.mat');
-    load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfdriven_paramsearch.mat')
+    save([dropboxfolder, 'tfdriven_paramsearch.mat']);
+    load([dropboxfolder, 'tfdriven_paramsearch.mat'])
 else
-    save('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfdrivenexit_paramsearch.mat')
-    load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfdrivenexit_paramsearch.mat')   
+    save([dropboxfolder, 'tfdrivenexit_paramsearch.mat'])
+    load([dropboxfolder, 'tfdrivenexit_paramsearch.mat'])   
 end
 
-
-plotTFDrivenParams(factive, dt, mfpts)
+try
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4)
+catch
+    plotTFDrivenParams(factive, dt, mfpts);
+end
 
 figure;
 tiledlayout('flow')

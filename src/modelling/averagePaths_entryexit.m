@@ -48,6 +48,7 @@ end
 
 fpt_on_observed = fpt_on(fpt_on < t_cycle);
 
+
 factive = length(fpt_on_observed) / nSims;
 
 % if ~isempty(fpt_on_observed)
