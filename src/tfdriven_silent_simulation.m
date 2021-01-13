@@ -1,5 +1,5 @@
 
-close all force;
+% close all force;
 
 
 dmax = 5000;
@@ -19,7 +19,7 @@ c = 40;
 t_cycle = 10; %min
 
 nSteps = 7;
-nSims = 1E5;
+nSims = 1E3;
 nOffStates = 5;
 onstate = nOffStates+1;
 silentstate = onstate+1;

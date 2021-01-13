@@ -81,6 +81,21 @@ dt = mfpts(:, 10, :, :, :) - mfpts(:, 4, :, :, :); %kd(10)=10k, kd(4)=400
 dt = repmat(dt, [1 length(kds) 1 1 1]);
 
 
+[~, dropboxfolder] = getDorsalFolders;
+
+if onlyEntry
+    save([dropboxfolder, 'tfentry_paramsearch.mat'])
+else
+    save([dropboxfolder, 'tfentryexit_paramsearch.mat'])
+end
+load([dropboxfolder, 'tfentryexit_paramsearch.mat'])
+% load([dropboxfolder, 'tfentry_paramsearch.mat'])
+
+try
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4)
+catch
+    plotTFDrivenParams(factive, dt, mfpts);
+end
 
 %%
 % 
@@ -283,19 +298,3 @@ dt = repmat(dt, [1 length(kds) 1 1 1]);
 % zlabel('delta t')
 % 
 % [in,on] = inpolygon(factivetemp(:),mfptstemp(:),[.1 .1 1 1],[3.5 7 7 3.5]);
-
-[~, dropboxfolder] = getDorsalFolders;
-
-if onlyEntry
-    save([dropboxfolder, 'tfentry_paramsearch.mat'])
-else
-    save([dropboxfolder, 'tfentryexit_paramsearch.mat'])
-end
-% % load([dropboxfolder, 'tfentryexit_paramsearch.mat'])
-% load([dropboxfolder, 'tfentry_paramsearch.mat'])
-
-try
-    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4)
-catch
-    plotTFDrivenParams(factive, dt, mfpts);
-end
