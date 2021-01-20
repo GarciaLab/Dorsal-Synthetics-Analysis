@@ -5,7 +5,7 @@ dl = 500;
 dls = logspace(1, log10(dmax)); %aus
 t = linspace(0, 10)'; %mins
 kd = 500;
-kds = logspace(2, 4, nPlots);
+kds = logspace(2, 5, nPlots);
 cs = logspace(1, 3, nPlots);
 pi1s = logspace(-2, 1, nPlots);
 pi2s = logspace(-2, 1, nPlots);
@@ -40,7 +40,7 @@ pi1 = 1/3;
 onlyEntry = false;
 if onlyEntry == true
     dls = linspace(1, dmax, 20);
-    kds = logspace(2, 4, nPlots);
+    kds = logspace(2, 5, nPlots);
     cs = logspace(1, 3, nPlots);
 %     cs = 1;
 %     pi1s = logspace(-2, 1, nPlots);
@@ -49,7 +49,7 @@ if onlyEntry == true
 %     pi2s = 100;
 else
     dls = linspace(1, dmax, 20);
-    kds = logspace(2, 4, nPlots);
+    kds = logspace(2, 5, nPlots);
     cs = logspace(1, 3, nPlots);
 %     cs = 1;
     pi1s = logspace(-2, 1, nPlots);
@@ -82,7 +82,7 @@ for n = 1:length(pi2s)
     end
 end
 
-dt = mfpts(:, 10, :, :, :) - mfpts(:, 4, :, :, :); %kd(10)=10k, kd(4)=400
+dt = mfpts(:, nearestIndex(kds, 1E4), :, :, :) - mfpts(:, nearestIndex(kds, 400), :, :, :); %kd(10)=10k, kd(4)=400
 
 dt = repmat(dt, [1 length(kds) 1 1 1]);
 
@@ -188,9 +188,10 @@ end
 %     "c = " + cs(g(4)),...
 %     "\pi_{entry} = " + pi2s(g(5))})
 %%
+y = []; z = []; w = [];
 figure;
 tiledlayout('flow')
-temp1 = sub2ind(goodMatrixIndices, find(goodMatrixIndices(:, 1) == 5)); %dls(5) ~ 1000 
+temp1 = sub2ind(goodMatrixIndices, find(goodMatrixIndices(:, 1) == nearestIndex(dls, 1E3))); 
 for j = 1:size(temp1, 1)
         g = goodMatrixIndices(temp1(j), :);
         
@@ -206,8 +207,7 @@ for j = 1:size(temp1, 1)
             
         end
         
-        if y(1) < .2 && y(end) > .8 && sum(isGood) >= 19 && y(3) < .8  %only plot curves that span the full factive range
-%         if y(1) < .2 && y(end) > .8 && y(3) < .8  %only plot curves that span the full factive range
+        if y(1) < .2 && y(end) > .6 && sum(isGood) >= 19 && y(3) < .8  %only plot curves that span the full factive range
  
             nexttile(1)
             plot(dls, y, 'LineWidth', 2)
