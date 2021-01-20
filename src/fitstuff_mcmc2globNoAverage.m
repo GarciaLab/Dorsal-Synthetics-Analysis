@@ -1,4 +1,4 @@
-function [results,chain,s2chain]  = fitstuff_mcmc2glob2(varargin)
+function [results,chain,s2chain]  = fitstuff_mcmc2globNoAverage(varargin)
 
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'dorsalResultsDatabase')

@@ -1,6 +1,4 @@
 
-% close all force;
-
 dmax = 5000;
 nPlots = 10;
 dl = 500;
@@ -39,22 +37,30 @@ cmap = colormap(parula(nPlots));
 pi2s = 1;
 pi1 = 1/3;
 
-onlyEntry = true;
+onlyEntry = false;
 if onlyEntry == true
-%     dls = linspace(1, log10(dmax)); %aus
     dls = linspace(1, dmax, 20);
     kds = logspace(2, 4, nPlots);
-%     cs = logspace(1, 3, nPlots);
-    cs = 1;
+    cs = logspace(1, 3, nPlots);
+%     cs = 1;
 %     pi1s = logspace(-2, 1, nPlots);
     pi1s = 0;
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100;
+else
+    dls = linspace(1, dmax, 20);
+    kds = logspace(2, 4, nPlots);
+    cs = logspace(1, 3, nPlots);
+%     cs = 1;
+    pi1s = logspace(-2, 1, nPlots);
+    pi2s = logspace(-2, 1, nPlots);
+%     pi2s = 100; 
 end
 
 mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 factive = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 
+%dls, kds, pi1s, cs, pi2s
 for n = 1:length(pi2s)
     for m = 1:length(cs)
         for k = 1:length(pi1s)
@@ -88,7 +94,7 @@ if onlyEntry
 else
     save([dropboxfolder, 'tfentryexit_paramsearch.mat'])
 end
-load([dropboxfolder, 'tfentryexit_paramsearch.mat'])
+% load([dropboxfolder, 'tfentryexit_paramsearch.mat'])
 % load([dropboxfolder, 'tfentry_paramsearch.mat'])
 
 try
@@ -96,6 +102,146 @@ try
 catch
     plotTFDrivenParams(factive, dt, mfpts);
 end
+
+
+figure;
+t = tiledlayout('flow');
+for k = 1:2:length(dls)
+    nexttile;
+    plotTFDrivenParams(factive(k, :, :, :, :) , dt(k, :, :, :, :), mfpts(k, :, :, :, :), 'fig', gcf);
+end
+title(t, 'Effect of [Dorsal] on parameter space');
+
+
+figure;
+t = tiledlayout('flow');
+for k = 1:1:length(cs)
+    nexttile;
+    plotTFDrivenParams(factive(:, :, :, k, :) , dt(:, :, :, k, :), mfpts(:, :, :, k, :), 'fig', gcf);
+end
+title(t, 'Effect of c on parameter space');
+
+figure;
+t = tiledlayout('flow');
+for k = 1:1:length(kds)
+    nexttile;
+    plotTFDrivenParams(factive(:, k, :, :, :) , dt(:, k, :, :, :), mfpts(:, k, :, :, :),'nPoints', 1E3, 'fig', gcf);
+end
+title(t, 'Effect of KD on parameter space');
+
+figure;
+t = tiledlayout('flow');
+for k = 1:1:length(pi1s)
+    nexttile;
+    try
+        plotTFDrivenParams(factive(:, :, k, :, :) , dt(:, :, k, :, :), mfpts(:, :, k, :, :), 'nPoints', 1E3, 'fig', gcf);
+%          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
+         title(num2str(round2(pi1s(k))))
+    end
+end
+title(t, 'Effect of pi_exit on parameter space');
+
+
+
+figure;
+t = tiledlayout('flow');
+for k = 1:1:length(pi2s)
+    nexttile;
+%     try
+        plotTFDrivenParams(factive(:, :, :, :, k) , dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'fig', gcf, 'shouldRound', true);
+%     end
+%         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
+         title(num2str(round2(pi2s(k))))
+end
+title(t, 'Effect of pi_entry on parameter space');
+
+goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts);
+
+%extract parameter set good at low Dorsal
+figure;
+tiledlayout('flow')
+
+for m = 1:5
+    temp1 = sub2ind(goodMatrixIndices, find(goodMatrixIndices(:, 1) == m));
+    nexttile;
+    for j = 1:size(temp1, 1)
+        g = goodMatrixIndices(temp1(j), :);
+        temp2 = num2cell(goodMatrixIndices(temp1(j), :));
+        % factive(temp2{:})
+        for k = 1:length(dls)
+
+            y(k) = factive(k, g(2), g(3), g(4), g(5));
+
+        end
+        plot(dls, y, 'LineWidth', 2)
+        hold on
+        % title({"K_D = "+kds(g(2)),...
+    %     "\pi_{exit} = " + pi1s(g(3)),...
+    %     "c = " + cs(g(4)),...
+    %     "\pi_{entry} = " + pi2s(g(5))})
+    end
+end
+
+
+% title({"K_D = "+kds(g(2)),...
+%     "\pi_{exit} = " + pi1s(g(3)),...
+%     "c = " + cs(g(4)),...
+%     "\pi_{entry} = " + pi2s(g(5))})
+%%
+figure;
+tiledlayout('flow')
+temp1 = sub2ind(goodMatrixIndices, find(goodMatrixIndices(:, 1) == 5)); %dls(5) ~ 1000 
+for j = 1:size(temp1, 1)
+        g = goodMatrixIndices(temp1(j), :);
+        
+        % factive(temp2{:})
+        for k = 1:length(dls)
+            
+            params{k} = [k, g(2:5)];
+            y(k) = factive(k, g(2), g(3), g(4), g(5));
+            z(k) = dt(k, g(2), g(3), g(4), g(5));
+            w(k) = mfpts(k, g(2), g(3), g(4), g(5));
+            
+            isGood(k) = any(ismember(goodMatrixIndices, params{k}, 'rows'));
+            
+        end
+        
+        if y(1) < .2 && y(end) > .8 && sum(isGood) >= 19 && y(3) < .8  %only plot curves that span the full factive range
+%         if y(1) < .2 && y(end) > .8 && y(3) < .8  %only plot curves that span the full factive range
+ 
+            nexttile(1)
+            plot(dls, y, 'LineWidth', 2)
+            xlim([0, 4000])
+             xlabel('[Dorsal] (au)')
+             ylabel('fraction of active nuclei')
+             ylim([0, 1])
+            hold on
+            
+            nexttile(2)
+            plot(dls, z, 'LineWidth', 2)
+             xlabel('[Dorsal] (au)')
+             ylabel('Change in mean turn on time across large range of affinities (min)')
+            xlim([0, 4000])
+            hold on
+            
+            
+            nexttile(3)
+            plot(dls, w, 'LineWidth', 2)
+            hold on
+            xlim([0, 4000])
+            set(gca, 'XScale', 'log');
+            ylim([0, 10])
+            ylabel('mean time to turn on (min)')
+            xlabel('[Dorsal] (au)')
+        end
+        % title({"K_D = "+kds(g(2)),...
+    %     "\pi_{exit} = " + pi1s(g(3)),...
+    %     "c = " + cs(g(4)),...
+    %     "\pi_{entry} = " + pi2s(g(5))})
+end
+%%
+a = [1 6 3 10 10]
+isGood = any(ismember(goodMatrixIndices, a, 'rows'))
 
 %%
 % 
@@ -139,6 +285,28 @@ end
 % leg =legend(num2str(round2(cs')));
 % title(leg, 'c (min-1)');
 % title({'pientry=1', 'pisilent=.3', 'Dl=700'})
+
+
+figure;
+tl = tiledlayout('flow');
+%dls, kds, pi1s, cs, pi2s
+%kd=1300. pi1=0. pi2 = .21
+nexttile;
+plot(pi2s, squeeze(mfpts(10, 6, 1,5, :)), 'LineWidth', 2);
+xlabel('pi_entry (min-1)')
+ylabel('mean turn on time (min)')
+nexttile;
+plot(pi2s, squeeze(factive(10, 6, 1,5, :)), 'LineWidth', 2);
+xlabel('pi_entry (min-1)')
+ylabel('fraction active nuclei')
+nexttile;
+plot(pi2s, squeeze(dt(10, 6, 1,5, :)), 'LineWidth', 2);
+xlabel('pi_entry (min-1)')
+ylabel('dt (min)')
+title(tl, 'Effect of entry rate on metrics in the entry model')
+
+
+
 % %%
 % %
 % % figure;
