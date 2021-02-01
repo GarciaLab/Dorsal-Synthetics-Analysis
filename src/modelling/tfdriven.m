@@ -25,10 +25,14 @@ tonfun  = @(d, c, kd) 5.*c.^(-1).*(1+d.^(-1).*kd+2500.*c.^5.*d.^4.*(3.*d.^4+30.*
 %% setup parameters and stuff
 close all;
 
+nPlots = 100;
+cmap = colormap(viridis(nPlots));
+% nPlots = 10;
 d = logspace(1, 4); % range of dorsal concentrations in AUs
 t = linspace(0, 10)'; % time in mins
 kd = 500; % Kd of Dorsal binding in AUs
-cs = logspace(-1, 2, 10);  % rate increase per unit dorsal
+cs = linspace(5, 15, nPlots);  % rate increase per unit dorsal
+% cs = logspace(-1, 2, nPlots);  % rate increase per unit dorsal
 R = 1; % rate of transcription when the dorsal site is 100% occupied
 nSteps = 5; % number of irreversible steps
 t_nc13 = 10; % duration of the transcriptional window in minutes
@@ -132,11 +136,6 @@ for c = cs
     ylabel(ax4,'acumulated mRNA (AU)')
     hold(ax4, 'on')
     
-    % fraction active
-    plot(ax5, d, fon2(n, :))
-    xlabel(ax5,'Dorsal concentration (AU)')
-    ylabel(ax5,'fraction of active nuclei')
-    hold(ax5, 'on')
     
     % time on
 %     plot(ax8, d, ton4(n, :))
@@ -199,8 +198,11 @@ plot(ax4, d, mrna2(n, :), 'LineWidth', 2, 'Color', cmap(n, :))
 hold(ax4, 'on')
 
 
+%fraction active vs. dorsal, varied c
 plot(ax5, d, fon2(n, :),  'LineWidth', 2, 'Color', cmap(n, :))
 hold(ax5, 'on')
+xlabel(ax5,'Dorsal concentration (AU)')
+ylabel(ax5,'fraction of active nuclei')
 end
 
 %%
@@ -236,14 +238,13 @@ set(ax4, 'XScale', 'log')
 
 
 title(ax5, 'predicted fraction active. pi \alpha occupancy')
-xlim(ax5, [10, dmax]);
+xlim(ax5, [10, 3500]);
 ylim(ax5,[0, 1]);
 % leg5 = legend(ax5, num2str(round(cs', 2, 'significant')));
 % title(leg5, 'c')
 xlabel(ax5,'[Dorsal] (au)')
 ylabel(ax5,'fraction active')
-set(ax5, 'XScale', 'log')
-
+% set(ax5, 'XScale', 'log')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 
