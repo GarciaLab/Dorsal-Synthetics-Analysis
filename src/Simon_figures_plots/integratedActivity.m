@@ -1,4 +1,4 @@
-function integratedActivity(DataType,metric,ax)
+function integratedActivity(DataType,metric,window,ax)
 % DataType should be an enhancer such as '1Dg11'
 % metrics can be  maxfluo, accumulatedfluo or fraction
 % ax is for plotting from the plotEVERYTHING funcion
@@ -53,20 +53,42 @@ int_accFluo = cumsum(accFluo,'omitnan');
 int_fraction = cumsum(isOn);
 int_timeon = cumsum(timeOn);
 
+
+% we want the integration window to be always the same number of nuclei
+
+%deal with the active nuclei only first
+int_maxFluo2=maxFluo(1);
+int_accFluo2=accFluo(1);
+int_timeon2=timeOn(1);
+dorsalFluosForOnNuclei2=dorsalFluosForOnNuclei(1);
+for j = 0:window:length(maxFluo)-window
+    int_maxFluo2 = [int_maxFluo2 int_maxFluo2(end)+sum(maxFluo(j+1:j+window))];
+    int_accFluo2 = [int_accFluo2 int_accFluo2(end)+sum(accFluo(j+1:j+window))];
+    int_timeon2 = [int_timeon2 int_timeon2(end)+sum(timeOn(j+1:j+window))];
+    dorsalFluosForOnNuclei2 = [dorsalFluosForOnNuclei2 mean(dorsalFluosForOnNuclei(j+1:j+window))];
+end
+%deal with all nuclei now
+int_fraction2=isOn(1);
+dorsalFluosForAll2=dorsalFluos(1);
+for j = 0:window:length(dorsalFluos)-window
+    int_fraction2 = [int_fraction2 int_fraction2(end)+sum(isOn(j+1:j+window))];
+    dorsalFluosForAll2 = [dorsalFluosForAll2 mean(dorsalFluos(j+1:j+window))];
+end
+
+
+
 % plot results
 if strcmpi(metric,'maxfluo') 
-plot(ax,dorsalFluosForOnNuclei,int_maxFluo,'b')
-    
+plot(ax,dorsalFluosForOnNuclei2,int_maxFluo2,'b','LineWidth',2)
     
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
-plot(ax,dorsalFluosForOnNuclei,int_accFluo,'b')
-    
+plot(ax,dorsalFluosForOnNuclei2,int_accFluo2,'b''LineWidth',2)
     
 elseif contains(lower(metric),'fraction')
-plot(ax,dorsalFluos,int_fraction,'b')
+plot(ax,dorsalFluosForAll2,int_fraction2,'b','LineWidth',2)
 
 elseif contains(lower(metric),'timeon')
-plot(ax,dorsalFluosForOnNuclei,int_timeon,'b')
+plot(ax,dorsalFluosForOnNuclei2,int_timeon2,'b','LineWidth',2)
     
     
 end

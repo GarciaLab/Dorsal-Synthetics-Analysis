@@ -1,4 +1,4 @@
-function movingAverage(DataType,metric,averagingWindow,ax)
+function movingAverage(DataType,metric,averagingWindow,fiducialTime,ax)
 % DataType should be an enhancer such as '1Dg11'
 % metrics can be  maxfluo, accumulatedfluo or fraction
 % averaging window is the number of nuclei
@@ -11,6 +11,8 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat']);%, 'dorsalResultsDat
 % entry for all enhancers.
 AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
 AllNC12ThisEnhancer = AllNC12Struct(contains({AllNC12Struct.dataSet}, DataType));
+AllNC12ThisEnhancer = DorsalFluoArbitraryTime(AllNC12ThisEnhancer,fiducialTime);
+
 
 % sort the struct according to dorsal fluorescence
 tempTable = struct2table(AllNC12ThisEnhancer); % convert the struct to a table
@@ -84,25 +86,40 @@ for i = 1:max(dorsalFluos-(averagingWindow/3))
     timeOnWindow2(i) = nanmean(timeOn(windowNuclei));
 end
 
+
+fluoOnNuclei = dorsalFluos(isOn);
+fluoOffNuclei = dorsalFluos(~isOn);
+
 % plot results
 if strcmpi(metric,'maxfluo') 
-plot(ax,dorsalFluoWindow,maxFluoWindow,'b')
+hold on
+plot(ax,dorsalFluos,maxFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
+plot(ax,dorsalFluoWindow,maxFluoWindow,'b','LineWidth',2)
 ylim([0 600])
     
     
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
+hold on
+plot(ax,dorsalFluos,accFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
 plot(ax,dorsalFluoWindow,accFluoWindow,'b')
 ylim([0 800])    
     
 elseif contains(lower(metric),'fraction')
-%hold on
+yyaxis left
+hold on
+histogram(fluoOffNuclei,'BinWidth',200,'FaceColor',[.4 .4 .4],'EdgeColor','none')
+histogram(fluoOnNuclei,'BinWidth',200,'FaceColor',[.4 .4 1],'EdgeColor','none')
+%plot(ax,dorsalFluos,isOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
+yyaxis right
 plot(ax,dorsalFluoWindow,fractionOnWindow,'b')
 ylim([0 1.1])
 %plot(dorsalFluoWindow2,fractionOnWindow2,'r')
 %hold off
 
 elseif contains(lower(metric),'timeon')
-plot(ax,dorsalFluoWindow,timeOnWindow,'b') 
+hold on
+plot(ax,dorsalFluos,timeOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
+plot(ax,dorsalFluoWindow,timeOnWindow,'b','LineWidth',2) 
 ylim([0 10])
     
 end

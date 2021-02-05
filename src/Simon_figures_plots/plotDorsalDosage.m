@@ -3,7 +3,7 @@ function plotDorsalDosage
 %% get the prefix names
 %this is where the data is
 load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat')
-condIdx = contains({combinedCompiledProjects_allEnhancers.prefix},'noExport') & [combinedCompiledProjects_allEnhancers.cycle]==12;
+condIdx = contains({combinedCompiledProjects_allEnhancers.prefix},'1Dg11_2xDl') & [combinedCompiledProjects_allEnhancers.cycle]==12;
 
 combinedCompiledProjects_SomeEnhancers = combinedCompiledProjects_allEnhancers(condIdx);
 
@@ -53,7 +53,7 @@ MeanFluoPer2XPrefix = MeanFluoPerPrefix;
 
 
 %% find the top brightest (or dimmest) prefixes
-TopNumber = 3; %number of prefixes to plot
+TopNumber = 10; %number of prefixes to plot
 
 sortedFluos1XPrefixes = sort(MeanFluoPer1XPrefix(find(~isnan(MeanFluoPer1XPrefix))),'descend'); %default is 'ascend'
 Extreme1Xidx = find(ismember(MeanFluoPer1XPrefix, sortedFluos1XPrefixes(1:TopNumber)));
