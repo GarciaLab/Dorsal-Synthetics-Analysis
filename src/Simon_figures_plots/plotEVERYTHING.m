@@ -4,12 +4,12 @@ function plotEVERYTHING(metric)
 allenhancers = {'1Dg-8D','1Dg11','1DgW','1Dg-5','1DgVW','1DgS2',...
     '1DgAW3','1DgVVW3','1Dg-12','1DgSVW2','2Dgc','TwiPEv5'};
 optoenhancers = {'1Dg11_noExport','1Dg11_Export_first4min','1Dg11_exportedAfter4min'};
-affinity_enhancers = {'1Dg11_2xDl_FFF','1DgW','1DgVW','1DgS2','1DgAW3','1DgVVW3','1DgSVW2'};
+affinity_enhancers = {'1Dg11_2xDl_FFF','1DgW_2x','1DgVW','1DgS2','1DgAW3','1DgVVW3','1DgSVW2'};
 
 enhancers = affinity_enhancers;
 
 %% the traditional way, binning
-numBins = 23;
+numBins = 18;
 errorgroup = 'embryos'; %whether error is calculated across nuclei or across embryos
 figure
 tiledlayout('flow')

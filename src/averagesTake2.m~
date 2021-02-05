@@ -11,11 +11,6 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
 % contains one entry per nucleus.
 % First, make a smaller struct called 'enhancerStruct'containing only the nc12 nuclei for the enhancer
 % specified by the 'DataTye' argument.
-for i = 1:length(combinedCompiledProjects_allEnhancers)
-    if isempty(combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature)
-        combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature = nan;
-    end
-end
 
 enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
@@ -33,13 +28,13 @@ for n = 1:length(enhancerStruct)
     enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
 end
 
-%plot([enhancerStruct.dorsalFluoFeature],[enhancerStruct.dorsalFluoBin2],'o')
-coveredBins = unique([enhancerStruct.dorsalFluoBin2]);
+%plot([enhancerStruct.dorsalFluoFeature],[enhancerStruct.dorsalFluoBin],'o')
+coveredBins = unique([enhancerStruct.dorsalFluoBin]);
 binValues = binValues(coveredBins);
 
 % now make one struct per bin
 % define some filters
-minEmbryosPerBin = 3;
+minEmbryosPerBin = 1;
 minNucleiPerEmbryoPerBin = 1;
 
 %store everything in these arrays
@@ -60,8 +55,8 @@ OnNucleiPerBin = [];
 OffNucleiPerBin = [];
 for b = 1:length(coveredBins)
     binID = coveredBins(b);
-    binStruct = enhancerStruct([enhancerStruct.dorsalFluoBin2]== binID);
-    activeNuc_Bin = length([binStruct.particleTimeOn]);
+    binStruct = enhancerStruct([enhancerStruct.dorsalFluoBin]== binID);
+    activeNuc_Bin = length([binStruct.compiledParticle]);
     inactiveNuc_Bin = length(binStruct) - activeNuc_Bin;
     % take the means and errors across nuclei first because it's easy      
     mean_maxFluo_acrossNuclei_perBin(b) = nanmean([binStruct.particleFluo95]);
@@ -71,7 +66,6 @@ for b = 1:length(coveredBins)
     mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
     mean_timeOn_acrossNuclei_perBin(b) = nanmean([binStruct.particleTimeOn]);
     se_timeOn_acrossNuclei_perBin(b) = nanstd([binStruct.particleTimeOn])./sqrt(activeNuc_Bin);
-    totalRNA_acrossNuclei_perBin(b) = nansum([binStruct.particleAccumulatedFluo]);
     
     % save this for bootstrapping later
     OnNucleiPerBin(b) = activeNuc_Bin;
@@ -85,21 +79,19 @@ for b = 1:length(coveredBins)
     maxFluo_perEmbryo = [];
     accFluo_perEmbryo = [];
     fraction_perEmbryo = []; 
-    nuclei_perEmbryo = [];
+    nuclei_per_Embryo = [];
     timeOn_perEmbryo = [];
-    totalRNA_perEmbryo = [];
     
     if numEmbryos >= minEmbryosPerBin     
         for e = 1:numEmbryos
             embryoPrefix = uniqueEmbryos{e};
 %            if qualityEmbryos(e) %if this prefix has enough nuclei
             embryoStruct = binStruct(strcmpi({binStruct.prefix},embryoPrefix));
-            nuclei_perEmbryo(e) = length(embryoStruct);
+            nuclei_per_Embryo(e) = length(embryoStruct);
             maxFluo_perEmbryo(e) = nanmean([embryoStruct.particleFluo95]);
             accFluo_perEmbryo(e) =  nanmean([embryoStruct.particleAccumulatedFluo]);
-            fraction_perEmbryo(e) = length([embryoStruct.particleTimeOn])/length(embryoStruct);
+            fraction_perEmbryo(e) = length([embryoStruct.compiledParticle])/length(embryoStruct);
             timeOn_perEmbryo(e) = nanmean([embryoStruct.particleTimeOn]);
-            totalRNA_perEmbryo(e) =  nansum([embryoStruct.particleAccumulatedFluo]).*fraction_perEmbryo(e);
 %            end
         end
     end
@@ -113,8 +105,6 @@ for b = 1:length(coveredBins)
     se_fraction_acrossEmbryos_perBin(b) = std(fraction_perEmbryo)./sqrt(numEmbryos);
     mean_timeOn_acrossEmbryos_perBin(b) = nanmean(timeOn_perEmbryo);
     se_timeOn_acrossEmbryos_perBin(b) = nanstd(timeOn_perEmbryo)./sqrt(numEmbryos);
-    mean_totalRNA_acrossEmbryos_perBin(b) = nanmean(totalRNA_perEmbryo);
-    se__totalRNA_acrossEmbryos_perBin(b) = nanstd(totalRNA_perEmbryo)./sqrt(numEmbryos);
     
     %clear  nuclei_per_Embryo maxFluo_perEmbryo accFluo_perEmbryo fraction_perEmbryo timeOn_perEmbryo
      
@@ -202,21 +192,6 @@ ylabel('turn on time')
 ylim([0 10])
 xlim([0 4000])
 
-elseif contains(lower(metric),'total')
-    if strcmpi(errorgroup,'nuclei')
-        errorbar(ax,binValues,totalRNA_acrossNuclei_perBin,se_timeOn_acrossNuclei_perBin,'ro-','CapSize',0,'LineWidth',1.5,...
-        'MarkerFaceColor','r','MarkerEdgeColor','none','MarkerSize',6)
-    elseif strcmpi(errorgroup,'embryos')
-        errorbar(ax,binValues,mean_totalRNA_acrossEmbryos_perBin,se__totalRNA_acrossEmbryos_perBin,'ko-','CapSize',0,'LineWidth',1.5,...
-            'MarkerFaceColor','k','MarkerEdgeColor','none','MarkerSize',6)
-    end
-xlabel('Dorsal concentration (AU)')
-ylabel('total produced mRNA')
-%set(gca,'XScale','log')
-%ylim([0 900])
-xlim([0 4000])
-
-    
 
 end
 %set(gca,'Fontsize',20);
