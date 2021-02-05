@@ -11,6 +11,11 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
 % contains one entry per nucleus.
 % First, make a smaller struct called 'enhancerStruct'containing only the nc12 nuclei for the enhancer
 % specified by the 'DataTye' argument.
+for i = 1:length(combinedCompiledProjects_allEnhancers)
+    if isempty(combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature)
+        combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature = nan;
+    end
+end
 
 enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));

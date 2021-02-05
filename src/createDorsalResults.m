@@ -50,7 +50,7 @@ for e = 1:nEmbryos
             spotMaxFluos = [];
             spotTurnOnTimes = [];
             
-            nucleiOfInterest= find( [compiledProject.cycle] == nc & [compiledProject.dorsalFluoBin] == bin );
+            nucleiOfInterest= find([compiledProject.cycle] == nc & [compiledProject.dorsalFluoBin] == bin);
             
             particlesOfInterest = 0;
             for n = 1:length(nucleiOfInterest)

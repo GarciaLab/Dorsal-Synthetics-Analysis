@@ -35,6 +35,8 @@ threshold_frames = 10; %10 frames ~1.5mins under standard conditions
 for k = 1:length(schnitzcells)
     if length(schnitzcells(k).frames) <= threshold_frames
         schnitzcells(k).Approved = false;
+    else
+        schnitzcells(k).Approved = true;
     end
 end
 
@@ -53,7 +55,12 @@ for s = approvedSchnitzes
         compiledProject(n).compiledParticle = [];
         schnitzcells(s).compiledParticle = [];
     end
-    compiledProject(n).dorsalFluoBin = schnitzcells(s).dorsalFluoBin;
+    
+    if ~isempty(schnitzcells(s).dorsalFluoBin)
+        compiledProject(n).dorsalFluoBin = schnitzcells(s).dorsalFluoBin;
+    else
+        compiledProject(n).dorsalFluoBin = nan;
+    end
     compiledProject(n).dorsalFluoFeature = schnitzcells(s).FluoFeature;
     compiledProject(n).dorsalFluoTimeTrace= schnitzcells(s).FluoTimeTrace;
     compiledProject(n).nuclearTimeSinceAnaphase = schnitzcells(s).timeSinceAnaphase;
