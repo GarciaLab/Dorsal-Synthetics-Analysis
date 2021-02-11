@@ -1,4 +1,4 @@
-function movingAverage(DataType,metric,averagingWindow,fiducialTime,ax)
+function movingAverage(DataType,metric,averagingWindow,fiducialTime,Color,ax)
 % DataType should be an enhancer such as '1Dg11'
 % metrics can be  maxfluo, accumulatedfluo or fraction
 % averaging window is the number of nuclei
@@ -9,13 +9,25 @@ function movingAverage(DataType,metric,averagingWindow,fiducialTime,ax)
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat']);%, 'dorsalResultsDatabase')
 % combinedCompiledProjects_allEnhancers is a struct with one nucleus per
 % entry for all enhancers.
-AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
-AllNC12ThisEnhancer = AllNC12Struct(contains({AllNC12Struct.dataSet}, DataType));
-AllNC12ThisEnhancer = DorsalFluoArbitraryTime(AllNC12ThisEnhancer,fiducialTime);
+% AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
+% AllNC12ThisEnhancer = AllNC12Struct(contains({AllNC12Struct.dataSet}, DataType));
+% AllNC12ThisEnhancer = DorsalFluoArbitraryTime(AllNC12ThisEnhancer,fiducialTime);
+% 
+for i = 1:length(combinedCompiledProjects_allEnhancers)
+    if isempty(combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature)
+        combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature = nan;
+    end
+end
+
+enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
+    [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
+%this function calculates the Dorsal fluorescence at some arbitrary time
+%in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
+enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
 
 
 % sort the struct according to dorsal fluorescence
-tempTable = struct2table(AllNC12ThisEnhancer); % convert the struct to a table
+tempTable = struct2table(enhancerStruct); % convert the struct to a table
 sortedT = sortrows(tempTable, 'dorsalFluoFeature'); % sort the table by dorsal fluo
 sortedStruct = table2struct(sortedT); % change it back to struct array 
 
@@ -90,38 +102,43 @@ end
 fluoOnNuclei = dorsalFluos(isOn);
 fluoOffNuclei = dorsalFluos(~isOn);
 
-% plot results
+%% plot results
+
 if strcmpi(metric,'maxfluo') 
 hold on
 plot(ax,dorsalFluos,maxFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
-plot(ax,dorsalFluoWindow,maxFluoWindow,'b','LineWidth',2)
+plot(ax,dorsalFluoWindow,maxFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 600])
     
     
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
 hold on
 plot(ax,dorsalFluos,accFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
-plot(ax,dorsalFluoWindow,accFluoWindow,'b')
+plot(ax,dorsalFluoWindow,accFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 800])    
     
+
+
 elseif contains(lower(metric),'fraction')
 yyaxis left
 hold on
-histogram(fluoOffNuclei,'BinWidth',200,'FaceColor',[.4 .4 .4],'EdgeColor','none')
-histogram(fluoOnNuclei,'BinWidth',200,'FaceColor',[.4 .4 1],'EdgeColor','none')
+histogram(fluoOffNuclei,'BinWidth',200,'FaceColor',[.7 .7 .7],'EdgeColor','none')
+histogram(fluoOnNuclei,'BinWidth',200,'FaceColor',Color,'EdgeColor','none')
 %plot(ax,dorsalFluos,isOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
 yyaxis right
-plot(ax,dorsalFluoWindow,fractionOnWindow,'b')
+plot(ax,dorsalFluoWindow,fractionOnWindow,'Color',Color,'LineWidth',2)
 ylim([0 1.1])
+xlim([0 4800])
 %plot(dorsalFluoWindow2,fractionOnWindow2,'r')
 %hold off
 
 elseif contains(lower(metric),'timeon')
 hold on
 plot(ax,dorsalFluos,timeOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
-plot(ax,dorsalFluoWindow,timeOnWindow,'b','LineWidth',2) 
+plot(ax,dorsalFluoWindow,timeOnWindow,'Color',Color,'LineWidth',2) 
 ylim([0 10])
     
+
 end
 
 
