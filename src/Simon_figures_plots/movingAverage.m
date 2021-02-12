@@ -109,6 +109,7 @@ hold on
 plot(ax,dorsalFluos,maxFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
 plot(ax,dorsalFluoWindow,maxFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 600])
+xlim([0 4000])
     
     
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
@@ -116,6 +117,7 @@ hold on
 plot(ax,dorsalFluos,accFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
 plot(ax,dorsalFluoWindow,accFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 800])    
+xlim([0 4000])
     
 
 
@@ -128,7 +130,7 @@ histogram(fluoOnNuclei,'BinWidth',200,'FaceColor',Color,'EdgeColor','none')
 yyaxis right
 plot(ax,dorsalFluoWindow,fractionOnWindow,'Color',Color,'LineWidth',2)
 ylim([0 1.1])
-xlim([0 4800])
+xlim([0 4000])
 %plot(dorsalFluoWindow2,fractionOnWindow2,'r')
 %hold off
 
@@ -137,6 +139,7 @@ hold on
 plot(ax,dorsalFluos,timeOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
 plot(ax,dorsalFluoWindow,timeOnWindow,'Color',Color,'LineWidth',2) 
 ylim([0 10])
+xlim([0 4000])
     
 
 end

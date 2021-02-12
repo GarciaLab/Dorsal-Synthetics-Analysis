@@ -194,7 +194,7 @@ xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
 %set(gca,'XScale','log')
 ylim([0 1])
-xlim([0 3800])
+xlim([0 3500])
 
 
 elseif contains(lower(metric),'timeon')
