@@ -11,8 +11,9 @@ if nargin<1
 end
 
 
-dorsalResultsDatabase = struct;
 
+
+dorsalResultsDatabase = struct;
 combinedCompiledProjects_allEnhancers = [];
 
 for i = 1:length(dataTypes)
