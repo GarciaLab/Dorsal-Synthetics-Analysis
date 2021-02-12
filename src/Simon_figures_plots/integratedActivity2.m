@@ -1,4 +1,4 @@
-function integratedActivity2(DataType,metric,window,ax)
+function integratedActivity2(DataType,metric,fiducialTime,numBins,Color,ax)
 % DataType should be an enhancer such as '1Dg11'
 % metrics can be  maxfluo, accumulatedfluo or fraction
 % ax is for plotting from the plotEVERYTHING funcion
@@ -8,18 +8,39 @@ function integratedActivity2(DataType,metric,window,ax)
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat']);%, 'dorsalResultsDatabase')
 % combinedCompiledProjects_allEnhancers is a struct with one nucleus per
 % entry for all enhancers.
-AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
-AllNC12ThisEnhancer = AllNC12Struct(contains({AllNC12Struct.dataSet}, DataType));
+% AllNC12Struct = combinedCompiledProjects_allEnhancers([combinedCompiledProjects_allEnhancers.cycle]==12);
+% enhancerStruct = AllNC12Struct(contains({AllNC12Struct.dataSet}, DataType));
+for i = 1:length(combinedCompiledProjects_allEnhancers)
+    if isempty(combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature)
+        combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature = nan;
+    end
+end
+
+enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
+    [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
+
+% bin nuclei 
+%this function calculates the Dorsal fluorescence at some arbitrary time
+%in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
+enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
+nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
+nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+
+binValues = linspace(0,4500,numBins);
+binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
+for n = 1:length(enhancerStruct)
+    enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
+end
 
 
 % bin nuclei according to Dorsal-Venus fluorescence
-DorsalFluos = [AllNC12ThisEnhancer.dorsalFluoFeature];
+DorsalFluos = [enhancerStruct.dorsalFluoFeature];
 binLimits = (0:100:nanmax(DorsalFluos));
 BinnedDorsalFluos = BinData(DorsalFluos,binLimits);
 BinnedDorsalFluos(isnan(DorsalFluos)) = nan;
 
-for i = 1:length(AllNC12ThisEnhancer)
-    AllNC12ThisEnhancer(i).dorsalFluoBin2 = BinnedDorsalFluos(i);
+for i = 1:length(enhancerStruct)
+    enhancerStruct(i).dorsalFluoBin2 = BinnedDorsalFluos(i);
 end
 
 % now go over bins and calculate the fraction of active nuclei
@@ -35,13 +56,13 @@ for bin = 1:max(BinnedDorsalFluos)
     BinAccumulatedFluo = nan;
     BinTimeOn = nan;
     
-    for n = 1:length(AllNC12ThisEnhancer)
-        if AllNC12ThisEnhancer(n).dorsalFluoBin2 == bin
-            if ~isempty(AllNC12ThisEnhancer(n).particleFluo)
+    for n = 1:length(enhancerStruct)
+        if enhancerStruct(n).dorsalFluoBin2 == bin
+            if ~isempty(enhancerStruct(n).particleFluo)
                 BinOnNuclei = BinOnNuclei+1;
-                BinMaxFluo = [BinMaxFluo AllNC12ThisEnhancer(n).particleFluo95];
-                BinAccumulatedFluo = [BinAccumulatedFluo AllNC12ThisEnhancer(n).particleAccumulatedFluo];
-                BinTimeOn = [BinTimeOn AllNC12ThisEnhancer(n).particleTimeOn];
+                BinMaxFluo = [BinMaxFluo enhancerStruct(n).particleFluo95];
+                BinAccumulatedFluo = [BinAccumulatedFluo enhancerStruct(n).particleAccumulatedFluo];
+                BinTimeOn = [BinTimeOn enhancerStruct(n).particleTimeOn];
             else
                 BinOffNuclei = BinOffNuclei+1;
             end
@@ -63,19 +84,19 @@ integrated_timeon = cumsum(TimeOnPerBin,'omitnan');
 
 
 if contains(lower(metric),'fraction')
-plot(binLimits,integrated_fraction,'b','LineWidth',2)
+plot(binLimits,integrated_fraction,'Color',Color,'LineWidth',2)
 ylabel('fraction active')
 
 elseif strcmpi(metric,'maxfluo') 
-plot(binLimits,integrated_maxfluo,'b','LineWidth',2)
+plot(binLimits,integrated_maxfluo,'Color',Color,'LineWidth',2)
 ylabel('maximum fluo')
 
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
-plot(binLimits,integrated_accumulatedfluo,'b','LineWidth',2)
+plot(binLimits,integrated_accumulatedfluo,'Color',Color,'LineWidth',2)
 ylabel('accumulated fluo')
 
 elseif contains(lower(metric),'timeon')
-plot(binLimits,integrated_timeon,'b','LineWidth',2)
+plot(binLimits,integrated_timeon,'Color',Color,'LineWidth',2)
 ylabel('time on')
 
 
@@ -91,7 +112,7 @@ ylabel('time on')
 % 
 % 
 % % sort the struct according to dorsal fluorescence
-% tempTable = struct2table(AllNC12ThisEnhancer); % convert the struct to a table
+% tempTable = struct2table(enhancerStruct); % convert the struct to a table
 % sortedT = sortrows(tempTable, 'dorsalFluoFeature'); % sort the table by dorsal fluo
 % sortedStruct = table2struct(sortedT); % change it back to struct array 
 % 
