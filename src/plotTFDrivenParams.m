@@ -5,6 +5,7 @@ nPoints = []; %if this is an integer, plotting will subsample using this many po
 shouldRound = false; %if true, subsample by discretizing data points and rounding nearby values
 fig = [];
 goodMatrixIndices = [];
+dim = 3;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -73,6 +74,7 @@ end
 
 if nargout == 0
     
+    if dim == 3
     plot(hull)
     hold on
 
@@ -98,6 +100,20 @@ if nargout == 0
     fig.Renderer='Painters';
 
     view(0, -90)
+    
+    elseif dim == 2
+        
+        scatter(x(in),y(in),'r.')
+        
+        hold on
+        
+        scatter(x(~in),y(~in),'b.')
+        
+        [dat_x, dat_y] = plotGreenBoxWithData;
+        
+        nBins = [15, 5]
+        h = binscatter(dat_x,dat_y, nBins)
+        h.ShowEmptyBins = 'on';
 
 end
 

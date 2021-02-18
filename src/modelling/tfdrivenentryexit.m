@@ -98,7 +98,9 @@ end
 % load([dropboxfolder, 'tfentry_paramsearch.mat'])
 
 try
-    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4)
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', .5E4)
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', .5E4, 'dim', 2)
+
 catch
     plotTFDrivenParams(factive, dt, mfpts);
 end
