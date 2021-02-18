@@ -44,7 +44,7 @@ schnitzcells = filterSchnitz(schnitzcells, imSize);
 
 
 %filter out schnitz that have an empty fluo field.
-schnitzcells = filterSchnitzFurther(...
+   schnitzcells = filterSchnitzFurther(...
     schnitzcells);
 
 approvedSchnitzes = find([schnitzcells.Approved]);

@@ -1,28 +1,18 @@
 function dorsalResults = compileAllProjects(DataType)
 % 
-% dataSets = { '1Dg11_2xDl', '1DgW_2x_Leica',...
-%      '1Dg-5_2xDl',...
-%     '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl',...
-%     '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF','1Dg-8D_FFF'};
+% dataSets = unique({'1Dg11_2xDl_FFF','1Dg-20(11)_2xDl','1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
+%         '1DgW_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl','1Dg-5_FFF'...
+%         '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl',...
+%         '1DgVW_2xDl','TwiPEv5(7)_2xDl','2Dgc_FFF','2Dgc_2xDl','1Dg-12_6_2xDl'});
 % 
 % for k = 1:length(dataSets)
 %     compileAllProjects(dataSets{k})
 %     
 % end
 
-dataTypes = {'1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
-    '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl',...
-    '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl','2Dgc_FFF_2x','TwiPEv5(7)_2xDl'};
-
-
 thisProject = LiveProject(DataType) %#ok<NOPRT>
 
 [~, resultsFolder] = getDorsalFolders;
-
-% dataTypes = {'1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
-%     '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl',...
-%     '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl'};
-
 
 
 prefixes = thisProject.includedExperimentNames;
@@ -32,17 +22,17 @@ compiledProjects = cell(1, length(prefixes));
 % 
 if true
 for k = 1:length(prefixes)
-%     prefixes{k}
-%     clear LiveExperiment
+    prefixes{k}
+    clear LiveExperiment
 %     TrackNuclei(prefixes{k},'retrack', 'nWorkers', 1);
-% %     integrateSchnitzFluo(prefixes{k});
-% %     TrackmRNADynamics(prefixes{k});
+%     integrateSchnitzFluo(prefixes{k});
+%     TrackmRNADynamics(prefixes{k});
 %    CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
 %        'yToManualAlignmentPrompt');
-%     fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
-%     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
-%         'yToManualAlignmentPrompt');
-%    alignCompiledParticlesByAnaphase(prefixes{k});
+    fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 24)
+    CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
+        'yToManualAlignmentPrompt');
+   alignCompiledParticlesByAnaphase(prefixes{k});
 end
 end
 
@@ -88,7 +78,10 @@ save([resultsFolder,filesep,DataType,filesep,'combinedCompiledProjects.mat'], 'c
 
 % averagedTimeTraces = averageCombinedCompiledProjects(DataType, true);
 
-dorsalResults = createDorsalResults(DataType); 
+try
+    dorsalResults = createDorsalResults(DataType); 
+catch
+end
 
 % plotDorsalResultsLoop(DataType, 'frac', 1:6, 'hill')
 % plotDorsalResultsLoop(DataType, activity)
