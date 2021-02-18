@@ -15,10 +15,10 @@ for i = 1:2:(numel(varargin)-1)
     end
 end
 
-mfpts0 = mfpts; 
+mfpts0 = mfpts;
 dt0 = dt;
 factive0 = factive;
-    
+
 factive(isnan(mfpts)) = [];
 dt(isnan(mfpts)) = [];
 mfpts(isnan(mfpts)) = [];
@@ -75,33 +75,47 @@ end
 if nargout == 0
     
     if dim == 3
-    plot(hull)
-    hold on
-
-    scatter3(x(in),y(in),z(in),'r.')
-    scatter3(x(~in),y(~in), z(~in),'b.')
-    % 
-    % xlabel('factive')
-    % ylabel('mean turn on (min)')
-    % zlabel('delta t')
-    % legend('viable region', 'viable parameters', 'unphysical parameters');
-
-    ax = gca;
-    % ax.Children(3).EdgeColor = 'none';
-    ax.Children(3).FaceAlpha = .5;
-
-    % title('Parameter space for TF Driven model')
-
-    axis square;
-
-    xlim([0, 1]);
-    ylim([0, 10]);
-    fig = gcf;
-    fig.Renderer='Painters';
-
-    view(0, -90)
-    
+        plot(hull)
+        hold on
+        
+        scatter3(x(in),y(in),z(in),'r.')
+        scatter3(x(~in),y(~in), z(~in),'b.')
+        %
+        % xlabel('factive')
+        % ylabel('mean turn on (min)')
+        % zlabel('delta t')
+        % legend('viable region', 'viable parameters', 'unphysical parameters');
+        
+        ax = gca;
+        % ax.Children(3).EdgeColor = 'none';
+        ax.Children(3).FaceAlpha = .5;
+        
+        % title('Parameter space for TF Driven model')
+        
+        axis square;
+        
+        xlim([0, 1]);
+        ylim([0, 10]);
+        fig = gcf;
+        fig.Renderer='Painters';
+        
+        view(0, -90)
+        
     elseif dim == 2
+        
+        colormap(brewermap(20,'Blues'));
+        
+        [dat_y, dat_x] = plotGreenBoxWithData;
+        
+        nBins = [15, 5];
+        h = binscatter(dat_x,dat_y, nBins);
+%         h.ShowEmptyBins = 'on';
+        colormap(brewermap(20,'Blues'));
+        xlim([0, 1])
+        
+
+        
+        hold on
         
         scatter(x(in),y(in),'r.')
         
@@ -109,30 +123,28 @@ if nargout == 0
         
         scatter(x(~in),y(~in),'b.')
         
-        [dat_x, dat_y] = plotGreenBoxWithData;
+%         set (gca,'Ydir','reverse')
         
-        nBins = [15, 5]
-        h = binscatter(dat_x,dat_y, nBins)
-        h.ShowEmptyBins = 'on';
-
-end
-
-%%% Let's return the good parameters
-if ~shouldRound && isempty(nPoints)
+   
+        
+    end
     
-    factive0(isnan(mfpts0)) = -1;
-    dt0(isnan(mfpts0)) = 100;
-    mfpts0(isnan(mfpts0)) = 100;
-
-    factive0(isnan(dt0)) = -1;
-    mfpts0(isnan(dt0)) = 100;
-    dt0(isnan(dt0)) = 100;
+    %%% Let's return the good parameters
+    if ~shouldRound && isempty(nPoints)
+        
+        factive0(isnan(mfpts0)) = -1;
+        dt0(isnan(mfpts0)) = 100;
+        mfpts0(isnan(mfpts0)) = 100;
+        
+        factive0(isnan(dt0)) = -1;
+        mfpts0(isnan(dt0)) = 100;
+        dt0(isnan(dt0)) = 100;
+        
+        in2 = inShape(hull,factive0(:), mfpts0(:), dt0(:));
+        goodLinearIndices = find(in2);
+        [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
+        goodMatrixIndices = [in1 in2 in3 in4 in5];
+        
+    end
     
-    in2 = inShape(hull,factive0(:), mfpts0(:), dt0(:));
-    goodLinearIndices = find(in2);
-    [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
-    goodMatrixIndices = [in1 in2 in3 in4 in5];
-    
-end
-
 end

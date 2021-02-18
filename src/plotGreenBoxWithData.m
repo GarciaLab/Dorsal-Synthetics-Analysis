@@ -1,4 +1,19 @@
-function [x, y] = plotGreenBoxWithData
+function [x, y] = plotGreenBoxWithData(varargin)
+
+if nargout > 0
+    displayFigures = false;
+else
+    displayFigures = true;
+end
+    
+%options must be specified as name, value pairs. unpredictable errors will
+%occur, otherwise.
+for i = 1:2:(numel(varargin)-1)
+    if i ~= numel(varargin)
+        eval([varargin{i} '=varargin{i+1};']);
+    end
+end
+
 
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
@@ -66,8 +81,8 @@ for p = 1:length(prefixes)
     c = [c, mean_timeOn_acrossNuclei_perBin];
 end
 
-x = c;
-y = a;
+x = c; %time on
+y = a; %fraction
 
 
 %clean data
@@ -84,9 +99,8 @@ P = [x;y]';
 
 nBins = [15, 5];
 
-displayFigures = false;
-
 if displayFigures
+    colormap(brewermap(20,'Blues'))
     h = binscatter(x, y, nBins)
     h.ShowEmptyBins = 'on';
     xlabel('mean turn on')
@@ -101,12 +115,14 @@ if displayFigures
     % colormap brewermap(20,'Blues')
     % g = histogram2(x, y,nBins, 'DisplayStyle','tile','ShowEmptyBins','on')
     
-    size(h.Values)
-    h.Values
-    h.XBinEdges
-    h.YBinEdges
+    size(h.Values);
+    h.Values;
+    h.XBinEdges;
+    h.YBinEdges;
     
+    scatter(x, y)
     % [row,col,v] = find(h.Values > 10)
+    
     
 end
 
