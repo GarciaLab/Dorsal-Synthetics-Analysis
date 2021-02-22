@@ -1,4 +1,5 @@
-function [fpt_on_observed,factive] = averagePaths_entryexit(nSims, nSteps, pi0, pi1,pi2, onstate, silentstate, t_cycle, firstoffstate)
+function [fpt_on_observed,factive] = averagePaths_entryexit(nSims,...
+    nSteps, pi0, pi1,pi2, onstate, silentstate, t_cycle, firstoffstate)
 %subfunction for tfdrivenentryexit
 
 nSteps = 7;

@@ -110,20 +110,20 @@ if nargout == 0
         
     elseif dim == 2
          
-        bottomAx =axes;
+%         bottomAx =axes;
 
-        colormap(brewermap(20,'Blues'));
+%         colormap(brewermap(20,'Blues'));
         
-        try
-            load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
-        catch
-            [dat_onset, dat_fraction] = plotGreenBoxWithData;
-        end
+%         try
+%             load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
+%         catch
+%             [dat_onset, dat_fraction] = plotGreenBoxWithData;
+%         end
         
-        nBins = [6, 16];
-        h = binscatter(dat_fraction,dat_onset, nBins);
+%         nBins = [6, 16];
+%         h = binscatter(dat_fraction,dat_onset, nBins);
 %         h.ShowEmptyBins = 'on';
-        colormap(brewermap(20,'Blues'));
+%         colormap(brewermap(20,'Blues'));
         xlim([0, 1])
         ylim([0, 10]);
         
@@ -197,17 +197,37 @@ if nargout == 0
         hold on
         colormap(brewermap(dim_dl,'Reds')) 
         
+        if params.model == "basic"
         scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
             reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
             params.dls, 'o', 'filled')
+        elseif params.model == "entryexit"
+            %%
+            figure      
+            colormap(brewermap(dim_dl,'Reds'))
+            j = nearestIndex(params.kds, 1E4); %10. %kd==100,000
+            m = nearestIndex(params.cs, 300);%5; %c == 77
+            l = nearestIndex(params.pi1s, 2); %pi1
+            n = nearestIndex(params.pi2s, 1); %pi2
+             scatter(reshape(factive0(:, j, l, m, n), [numel(factive0(:, j, l, m, n)), 1]),...
+            reshape(mfpts0(:, j, l, m, n), [numel(mfpts0(:, j, l, m, n)), 1]),[],...
+            params.dls, 'o', 'filled');
+            xlim([0, 1])
+            ylim([0, 10])
+            hold on
+             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.3)
+        hold on
+        %%
+        end
         
-        set(gca, 'ColorScale', 'linear')
+        set(gca, 'ColorScale', 'linear');
         xlim([0, 1]);
         ylim([0, 10]);
         
 %         set(topAxes,'xtick',[],'ytick',[]);
     end
-    
+else
     %%% Let's return the good parameters
     if ~shouldRound && isempty(nPoints)
         
@@ -234,4 +254,6 @@ if nargout == 0
         
     end
     
+end
+
 end

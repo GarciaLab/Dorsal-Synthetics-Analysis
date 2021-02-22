@@ -1,8 +1,8 @@
 
-model = "basic";
+% model = "basic";
 % model = "entry";
 % model = "exit";
-% model = "entryexit";
+model = "entryexit";
 
 dmax = 5000;
 nPlots = 10;
@@ -52,7 +52,9 @@ if model == "entry"
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100;
 elseif model == "entryexit"
-    dls = linspace(1, dmax, 20);
+    nSims = 1E4;
+%     dls = linspace(1, dmax, 20);
+    dls = logspace(log10(1), log10(dmax), 20);
     kds = logspace(2, 5, nPlots);
     cs = logspace(1, 3, nPlots);
 %     cs = 1;
@@ -60,15 +62,16 @@ elseif model == "entryexit"
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100; 
 elseif model == "basic"
-    nSims = 1E4;
+    nSims = 1E3;
 %     dls = linspace(1, dmax, 20);
-    dls = logspace(log10(1), log10(dmax), 300);
+    dls = logspace(log10(1), log10(dmax), 20);
     kds = logspace(2, 6, nPlots*3);
     cs = logspace(0, 4, nPlots*3);
     pi1s = 0;
     pi2s = 1E10;
 end
 
+clear params;
 params.dls = dls;
 params.kds = kds;
 params.cs = cs;
@@ -76,6 +79,8 @@ params.pi1s = pi1s;
 params.pi2s = pi2s;
 params.model = model; 
 
+
+%%
 mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 factive = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 
@@ -182,7 +187,7 @@ for k = 1:1:length(pi2s)
          title(num2str(round2(pi2s(k))))
 end
 title(t, 'Effect of pi_entry on parameter space');
-
+%%
 goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts);
 
 %extract parameter set good at low Dorsal
@@ -226,12 +231,12 @@ for j = 1:size(temp1, 1)
         % factive(temp2{:})
         for k = 1:length(dls)
             
-            params{k} = [k, g(2:5)];
+            params_temp{k} = [k, g(2:5)];
             y(k) = factive(k, g(2), g(3), g(4), g(5));
             z(k) = dt(k, g(2), g(3), g(4), g(5));
             w(k) = mfpts(k, g(2), g(3), g(4), g(5));
             
-            isGood(k) = any(ismember(goodMatrixIndices, params{k}, 'rows'));
+            isGood(k) = any(ismember(goodMatrixIndices, params_temp{k}, 'rows'));
             
         end
         
