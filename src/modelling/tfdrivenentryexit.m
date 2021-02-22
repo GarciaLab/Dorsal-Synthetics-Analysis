@@ -1,4 +1,9 @@
 
+model = "basic";
+% model = "entry";
+% model = "exit";
+% model = "entryexit";
+
 dmax = 5000;
 nPlots = 10;
 dl = 500;
@@ -37,8 +42,7 @@ cmap = colormap(parula(nPlots));
 pi2s = 1;
 pi1 = 1/3;
 
-onlyEntry = false;
-if onlyEntry == true
+if model == "entry"
     dls = linspace(1, dmax, 20);
     kds = logspace(2, 5, nPlots);
     cs = logspace(1, 3, nPlots);
@@ -47,7 +51,7 @@ if onlyEntry == true
     pi1s = 0;
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100;
-else
+elseif model == "entryexit"
     dls = linspace(1, dmax, 20);
     kds = logspace(2, 5, nPlots);
     cs = logspace(1, 3, nPlots);
@@ -55,7 +59,22 @@ else
     pi1s = logspace(-2, 1, nPlots);
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100; 
+elseif model == "basic"
+    nSims = 1E4;
+%     dls = linspace(1, dmax, 20);
+    dls = logspace(log10(1), log10(dmax), 300);
+    kds = logspace(2, 6, nPlots*3);
+    cs = logspace(0, 4, nPlots*3);
+    pi1s = 0;
+    pi2s = 1E10;
 end
+
+params.dls = dls;
+params.kds = kds;
+params.cs = cs;
+params.pi1s = pi1s;
+params.pi2s = pi2s;
+params.model = model; 
 
 mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 factive = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
@@ -89,22 +108,28 @@ dt = repmat(dt, [1 length(kds) 1 1 1]);
 
 [~, dropboxfolder] = getDorsalFolders;
 
-if onlyEntry
-    save([dropboxfolder, 'tfentry_paramsearch.mat'])
-else
-    save([dropboxfolder, 'tfentryexit_paramsearch.mat'])
-end
+save(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
+
+% if model == "entry"
+%     save([dropboxfolder, 'tfentry_paramsearch.mat'])
+% elseif model == "entryexit"
+%     save([dropboxfolder, 'tfentryexit_paramsearch.mat'])
+% end
 % load([dropboxfolder, 'tfentryexit_paramsearch.mat'])
 % load([dropboxfolder, 'tfentry_paramsearch.mat'])
+load(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
 
+figure;
 try
 %     plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4)
-    figure;
-    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', .5E4, 'dim', 2)
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', 2E4, 'dim', 2, 'params', params)
 
 catch
-    plotTFDrivenParams(factive, dt, mfpts);
+    plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
+%         plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params, 'nPoints', 100);
+
 end
+
 
 
 figure;

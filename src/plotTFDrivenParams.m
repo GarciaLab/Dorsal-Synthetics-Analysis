@@ -5,7 +5,8 @@ nPoints = []; %if this is an integer, plotting will subsample using this many po
 shouldRound = false; %if true, subsample by discretizing data points and rounding nearby values
 fig = [];
 goodMatrixIndices = [];
-dim = 3;
+dim = 2;
+params = struct;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -14,6 +15,8 @@ for i = 1:2:(numel(varargin)-1)
         eval([varargin{i} '=varargin{i+1};']);
     end
 end
+
+[~, resultsFolder] = getDorsalFolders;
 
 mfpts0 = mfpts;
 dt0 = dt;
@@ -35,10 +38,10 @@ z = dt(:);
 % fmin = .1;
 fmin = 0;
 fmax = 1;
-tmin = 3.5;
-tmax = 7;
-deltatmin = 0;
-deltatmax = 3;
+tmin = 3.1; %95% highest density interval
+tmax = 7.1; %95% highest density interval
+deltatmin = 0; %arbitrary
+deltatmax = 3; %arbitrary
 
 box = makeBox([fmin, tmin, deltatmin], [fmax, tmax, deltatmax]);
 x_hull = box(:, 1);
@@ -47,6 +50,8 @@ z_hull = box(:, 3);
 
 
 hull = alphaShape(x_hull, y_hull, z_hull,Inf,'HoleThreshold',1E30 );
+
+hull_2D = alphaShape(x_hull, y_hull, Inf,'HoleThreshold',1E30 );
 %%
 
 %% Subsample and/or round
@@ -65,6 +70,8 @@ if shouldRound
 end
 
 in = inShape(hull,x, y, z);
+
+in_2D = inShape(hull_2D,x, y);
 
 %%
 if ~isempty(fig)
@@ -102,48 +109,128 @@ if nargout == 0
         view(0, -90)
         
     elseif dim == 2
-        
+         
+        bottomAx =axes;
+
         colormap(brewermap(20,'Blues'));
         
-        [dat_y, dat_x] = plotGreenBoxWithData;
+        try
+            load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
+        catch
+            [dat_onset, dat_fraction] = plotGreenBoxWithData;
+        end
         
-        nBins = [15, 5];
-        h = binscatter(dat_x,dat_y, nBins);
+        nBins = [6, 16];
+        h = binscatter(dat_fraction,dat_onset, nBins);
 %         h.ShowEmptyBins = 'on';
         colormap(brewermap(20,'Blues'));
         xlim([0, 1])
+        ylim([0, 10]);
         
-
+         xlabel('fraction of active nuclei')
+         ylabel('mean transcription onset time (min)')  
+%          legend('viable region', 'viable parameters', 'unphysical parameters');
         
         hold on
         
-        scatter(x(in),y(in),'r.')
+%         scatter(x(in),y(in),'r.')
+%         scatter(x(in_2D),y(in_2D),'r.')
+%         scatter(x(in_2D),y(in_2D),'k.')
         
         hold on
         
-        scatter(x(~in),y(~in),'b.')
+%         scatter(x(~in),y(~in),'b.')
+%         scatter(x(~in_2D),y(~in_2D),'b.')
+%         scatter(x(~in_2D),y(~in_2D),'k.')
         
 %         set (gca,'Ydir','reverse')
+
+%          [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices)
+        dim_dl = size(factive0, 1);
+%         c = brewermap(dim_dl,'Reds');
+%         c = brewermap(dim_dl,'Reds');
+
         
-   
+        factive0(isnan(mfpts)) = [];
+        dt0(isnan(mfpts)) = [];
+        mfpts0(isnan(mfpts)) = [];
         
+        %these points are unreliable due to small number issues,
+        %so let's remove them.  
+        mfpts0(factive0 < .05) = nan;
+        dt0(factive0 < .05) = nan;
+        factive0(factive0 < .05) = nan;
+       
+        %
+%         figure
+        if ~isempty(params)
+            j = nearestIndex(params.kds, 1E5); %10. %kd==100,000
+            l = 1; 
+            m = nearestIndex(params.cs, 77);%5; %c == 77
+        else
+            j=10; %kd==100,000
+            l=1;
+            m=5;%c == 77
+        end
+        
+%         for k = 1:dim_dl
+% %             x0 = factive0(k, :, :, :, :);
+% %             y0 = mfpts0(k, :, :, :, :);
+%             x0 = factive0(k, j, l, m);
+%             y0 = mfpts0(k, j, l, m); 
+% %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(k,:), 'MarkerEdgeColor', 'none' )
+%             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(round(log10(k)),:),...
+%                 'MarkerEdgeColor', 'none' )
+% 
+% %             scatter(x0(:), y0(:), 'o')
+% 
+%             hold on
+%         end
+
+%         topAxes = axes;
+        x0 = x;
+        y0 = y;
+        x0(x0 < .05) = nan;
+        y0(x0 < .05) = nan;
+        scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.3)
+        hold on
+        colormap(brewermap(dim_dl,'Reds')) 
+        
+        scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
+            reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
+            params.dls, 'o', 'filled')
+        
+        set(gca, 'ColorScale', 'linear')
+        xlim([0, 1]);
+        ylim([0, 10]);
+        
+%         set(topAxes,'xtick',[],'ytick',[]);
     end
     
     %%% Let's return the good parameters
     if ~shouldRound && isempty(nPoints)
         
-        factive0(isnan(mfpts0)) = -1;
-        dt0(isnan(mfpts0)) = 100;
-        mfpts0(isnan(mfpts0)) = 100;
+        %let's change nans to some numerical values that will get rejected
+        factive0(isnan(mfpts0)) = -1; 
+        dt0(isnan(mfpts0)) = 100; 
+        mfpts0(isnan(mfpts0)) = 100; 
         
         factive0(isnan(dt0)) = -1;
         mfpts0(isnan(dt0)) = 100;
         dt0(isnan(dt0)) = 100;
         
-        in2 = inShape(hull,factive0(:), mfpts0(:), dt0(:));
-        goodLinearIndices = find(in2);
-        [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
-        goodMatrixIndices = [in1 in2 in3 in4 in5];
+        if dim==3
+            in_temp = inShape(hull,factive0(:), mfpts0(:), dt0(:));
+            goodLinearIndices = find(in_temp);
+            [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
+            goodMatrixIndices = [in1 in2 in3 in4 in5];
+        elseif dim==2
+            in_temp_2D = inShape(hull_2D, factive0(:), mfpts0(:) );
+            goodLinearIndices = find(in_temp_2D);
+            [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
+            goodMatrixIndices = [in1 in2 in3 in4 in5];
+        end
         
     end
     

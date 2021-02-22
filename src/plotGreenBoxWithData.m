@@ -1,4 +1,4 @@
-function [x, y] = plotGreenBoxWithData(varargin)
+function [dat_onset, dat_fraction] = plotGreenBoxWithData(varargin)
 
 if nargout > 0
     displayFigures = false;
@@ -36,7 +36,6 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(...
 %this function calculates the Dorsal fluorescence at some arbitrary time
 %in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
 enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
-nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
 nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
 
 binValues = linspace(0,4500,numBins);
@@ -55,10 +54,9 @@ se_fraction_acrossEmbryos_perBin = [];
 OnNucleiPerBin = [];
 OffNucleiPerBin = [];
 
-dataSets = unique({enhancerStruct.dataSet});
 prefixes = unique({enhancerStruct.prefix});
-a = [];
-c = [];
+dat_fraction = [];
+dat_onset = [];
 for p = 1:length(prefixes)
     
     mean_fraction_acrossNuclei_perBin = [];
@@ -72,57 +70,92 @@ for p = 1:length(prefixes)
         
         activeNuc_Bin = length([binStruct.particleTimeOn]);
         inactiveNuc_Bin = length(binStruct) - activeNuc_Bin;
-        % take the means and errors across nuclei first because it's easy
         mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
         mean_timeOn_acrossNuclei_perBin(b) = nanmean([binStruct.particleTimeOn]);
         se_timeOn_acrossNuclei_perBin(b) = nanstd([binStruct.particleTimeOn])./sqrt(activeNuc_Bin);
     end
-    a = [a, mean_fraction_acrossNuclei_perBin];
-    c = [c, mean_timeOn_acrossNuclei_perBin];
+    dat_fraction = [dat_fraction, mean_fraction_acrossNuclei_perBin];
+    dat_onset = [dat_onset, mean_timeOn_acrossNuclei_perBin];
 end
 
-x = c; %time on
-y = a; %fraction
+save([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
+
 
 
 %clean data
-y(x<2) = [];
-x(x < 2) = [];
-y(x>8) = [];
-x(x>8) = [];
-y(isnan(x)) = [];
-x(isnan(x)) = [];
-x(isnan(y)) = [];
-y(isnan(y)) = [];
+dat_fraction(dat_onset<2) = [];
+dat_onset(dat_onset < 2) = [];
+dat_fraction(dat_onset>8) = [];
+dat_onset(dat_onset>8) = [];
+dat_fraction(isnan(dat_onset)) = [];
+dat_onset(isnan(dat_onset)) = [];
+dat_onset(isnan(dat_fraction)) = [];
+dat_fraction(isnan(dat_fraction)) = [];
 
-P = [x;y]';
+P = [dat_onset;dat_fraction]';
 
 nBins = [15, 5];
 
 if displayFigures
+    
+    fighis = figure;
+    ax = axes(fighis);
+    
+    
+    figure;
     colormap(brewermap(20,'Blues'))
-    h = binscatter(x, y, nBins)
+    yyaxis left
+    h = binscatter(dat_onset, dat_fraction, nBins);
     h.ShowEmptyBins = 'on';
-    xlabel('mean turn on')
+    xlabel('mean transcription onset time (min)')
     ylabel('fraction active')
-    ax = gca;
     hold on
-    [k,	~] = convhull([x;y]');
+%     [k,	~] = convhull([x;y]');
     % plot(x(k),y(k))
-    hold on
+%     hold on
     % fill(x(k),y(k), 'g', 'FaceAlpha', .3, 'LineWidth', 3, 'EdgeColor', 'g')
     % hull = alphaShape(x_hull, y_hull,Inf,'HoleThreshold',1E30 );
     % colormap brewermap(20,'Blues')
-    % g = histogram2(x, y,nBins, 'DisplayStyle','tile','ShowEmptyBins','on')
+    g = histogram2(ax, dat_onset, dat_fraction,nBins, 'DisplayStyle','tile','ShowEmptyBins','on',...
+        'Normalization', 'probability');
     
-    size(h.Values);
-    h.Values;
-    h.XBinEdges;
-    h.YBinEdges;
+
+    %Now, we'll add the marginalized turn on density
+    bincenters = g.XBinEdges + g.BinWidth(1)/2;
+    bincenters = bincenters(1:end-1);
     
-    scatter(x, y)
-    % [row,col,v] = find(h.Values > 10)
+    %let's integrate out the fraction axis 
+    f = sum(g.Values, 2);
     
+    hold on
+    yyaxis right
+    plot(bincenters, f, '-ok', 'LineWidth', 2);
+    ylabel('density')
+    
+    
+    %we're going to plot the narrowest region containing 95% density. 
+    width = nan(length(f), length(f));
+    target = .95;
+    for k = 1:length(f)-1
+       for j = k+1:length(f)
+           ss = sum(f(k:j));
+           if ss >= target && j > k
+            width(k, j) = abs(j-k);
+           end
+       end
+    end
+    [~,I] = min(width, [], 'all', 'linear');
+    [row,col] = ind2sub([length(f), length(f)], I);
+
+    xline(bincenters(row), 'g', 'LineWidth', 2)
+    hold on
+    xline(bincenters(col), 'g', 'LineWidth', 2)
+    
+    
+   
+    
+%     scatter(x, y)
+%     
     
 end
 

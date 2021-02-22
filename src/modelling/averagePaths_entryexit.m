@@ -24,7 +24,7 @@ initStates = [repmat([1, 2, 3, 4, 5, 6], 1, 1), zeros(1,6)];
 initTimes = [zeros(nSims, 1), cumsum(tau_entry)', zeros(nSims,6)];
 
 
-for k = 1:nSims
+parfor k = 1:nSims
     
     
     if initTimes(k, 6) < t_cycle
