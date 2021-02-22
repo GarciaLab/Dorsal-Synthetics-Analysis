@@ -104,9 +104,16 @@ if displayFigures
     
     figure;
     colormap(brewermap(20,'Blues'))
-    yyaxis left
-    h = binscatter(dat_onset, dat_fraction, nBins);
-    h.ShowEmptyBins = 'on';
+%     yyaxis left
+%     h = binscatter(dat_onset, dat_fraction, nBins);
+%     h.ShowEmptyBins = 'on';
+    g = histogram2(dat_onset, dat_fraction,nBins,...
+        'DisplayStyle','tile','ShowEmptyBins','on');
+    g.EdgeColor = 'none';
+    xlim([0, 10])
+    ylim([0, 1])
+    grid off
+    colorbar
     xlabel('mean transcription onset time (min)')
     ylabel('fraction active')
     hold on
