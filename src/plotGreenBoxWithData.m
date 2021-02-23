@@ -103,7 +103,7 @@ if displayFigures
     
     
     figure;
-    colormap(brewermap(20,'Blues'))
+    colormap(brewermap(20,'Purples'))
 %     yyaxis left
 %     h = binscatter(dat_onset, dat_fraction, nBins);
 %     h.ShowEmptyBins = 'on';

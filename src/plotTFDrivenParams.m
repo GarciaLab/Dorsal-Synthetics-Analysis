@@ -95,7 +95,6 @@ if nargout == 0
         
         ax = gca;
         % ax.Children(3).EdgeColor = 'none';
-        ax.Children(3).FaceAlpha = .5;
         
         % title('Parameter space for TF Driven model')
         
@@ -193,18 +192,18 @@ if nargout == 0
         x0(x0 < .05) = nan;
         y0(x0 < .05) = nan;
         scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-            'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.3)
+            'MarkerEdgeColor', 'none')
         hold on
-        colormap(brewermap(dim_dl,'Reds')) 
+        colormap(brewermap(dim_dl,'Greens')) 
         
         if params.model == "basic"
         scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
             reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
             params.dls, 'o', 'filled')
         elseif params.model == "entryexit"
-            %%
+            %% 
             figure      
-            colormap(brewermap(dim_dl,'Reds'))
+            colormap(brewermap(dim_dl,'Greens'))
             j = nearestIndex(params.kds, 1E4); %10. %kd==100,000
             m = nearestIndex(params.cs, 300);%5; %c == 77
             l = nearestIndex(params.pi1s, 2); %pi1
@@ -216,7 +215,7 @@ if nargout == 0
             ylim([0, 10])
             hold on
              scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-            'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.3)
+            'MarkerEdgeColor', 'none')
         hold on
         %%
         end

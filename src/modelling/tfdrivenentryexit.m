@@ -54,9 +54,9 @@ if model == "entry"
 elseif model == "entryexit"
     nSims = 1E4;
 %     dls = linspace(1, dmax, 20);
-    dls = logspace(log10(1), log10(dmax), 20);
-    kds = logspace(2, 5, nPlots);
-    cs = logspace(1, 3, nPlots);
+    dls = logspace(log10(1), log10(dmax), 100);
+    kds = logspace(2, 6, nPlots);
+    cs = logspace(0, 4, nPlots);
 %     cs = 1;
     pi1s = logspace(-2, 1, nPlots);
     pi2s = logspace(-2, 1, nPlots);
