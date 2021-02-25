@@ -4,8 +4,9 @@
 % model = "exit";
 model = "entryexit";
 
+rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 5000;
-nPlots = 10;
+nPlots = 8;
 
 
 t_cycle = 10; %min
@@ -30,9 +31,9 @@ if model == "entry"
     pi2s = logspace(-2, 1, nPlots);
 %     pi2s = 100;
 elseif model == "entryexit"
-    nSims = 1E4;
+    nSims = 1E3;
 %     dls = linspace(1, dmax, 20);
-    dls = logspace(log10(1), log10(dmax), 100);
+    dls = logspace(log10(1), log10(dmax), 40);
     kds = logspace(2, 6, nPlots);
     cs = logspace(0, 4, nPlots);
 %     cs = 1;
@@ -55,6 +56,16 @@ elseif model == "exit"
     pi1s = logspace(-2, 1, nPlots);
     pi2s = 1E10;
 end
+
+nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
+
+% tau1s = exprnd(pi1^-1, [1, nSteps, nSims, nParams];
+
+tau_entry = zeros(nEntryStates, nSims*nParams/numel(pi2s), numel(pi2s));
+for k = 1:length(pi2s)
+    tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims*nParams/numel(pi2s)]);
+end
+
 
 clear params;
 params.dls = dls;
@@ -223,7 +234,7 @@ for j = 1:size(temp1, 1)
                 goodIndex(3), goodIndex(4), goodIndex(5));
             dt_theory(k) = dt(k, goodIndex(2), goodIndex(3),...
                 goodIndex(4), goodIndex(5));
-            onset_theory(k) = mfpts(k, goodIndex(2), goodIndex(3),...
+            onset_theory(k) = mfpts(k, goodIndex(2), goodIndex(3),... 
                 goodIndex(4), goodIndex(5));
             
             isGood(k) = any(ismember(goodMatrixIndices, params_temp{k}, 'rows'));

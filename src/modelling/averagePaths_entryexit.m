@@ -30,7 +30,8 @@ parfor k = 1:nSims
     
     if initTimes(k, 6) < t_cycle
         
-        [states, times] = makePath(nSteps,onstate, silentstate, firstoffstate, tau_on(:, k), tau_exit(:, k), ind(:, k), initStates, initTimes(k,:));
+        [states, times] = makePath(nSteps,onstate, silentstate, firstoffstate,...
+            tau_on(:, k), tau_exit(:, k), ind(:, k), initStates, initTimes(k,:));
         
         % plot(time, states);
         % xlim([0, 10]);
