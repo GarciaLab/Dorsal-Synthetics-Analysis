@@ -1,37 +1,38 @@
 function [fpt_on_observed,factive] = averagePaths_entryexit(nSims,...
-    nSteps, pi0, pi1,pi2, onstate, silentstate, t_cycle, firstoffstate)
+    nSteps, pi0, pi1,pi2, onstate, silentstate,...
+    t_cycle, firstoffstate, tau_entry, tau_exit, tau_on)
 %subfunction for tfdrivenentryexit
 
-nSteps = 7;
 
-% fpt_on = [];
 fpt_on = nan(1, nSims);
-%     fpt_on_observed = [];
-%     duration = [];
-taus = [exprnd(pi0^-1, [1, nSteps, nSims]) %on
-    exprnd(pi1^-1, [1, nSteps, nSims]) %exit
-    ];
 
-tau_on = squeeze(taus(1, :, :));
-tau_exit = squeeze(taus(2, :, :));
+if isempty(tau_entry)
+    tau_entry = exprnd(pi2^-1, [5, nSims]);
+end
 
-tau_entry = exprnd(pi2^-1, [5, nSims]);
+if isempty(tau_exit)
+    tau_exit = exprnd(pi1^-1, [nSteps, nSims]); 
+end
 
-[~, ind] = min([taus(1,:, :); taus(2,:, :)]);
+if isempty(tau_on)
+    tau_on = exprnd(pi0^-1, [nSteps, nSims]); 
+end
 
-ind = squeeze(ind);
+
+[~, whichTransition] = min(cat(3,tau_on,tau_exit), [], 3);
+whichTransition = squeeze(whichTransition);
 
 initStates = [repmat([1, 2, 3, 4, 5, 6], 1, 1), zeros(1,6)];
 initTimes = [zeros(nSims, 1), cumsum(tau_entry)', zeros(nSims,6)];
 
-
-parfor k = 1:nSims
+for k = 1:nSims
+%parfor k = 1:nSims
     
     
     if initTimes(k, 6) < t_cycle
         
         [states, times] = makePath(nSteps,onstate, silentstate, firstoffstate,...
-            tau_on(:, k), tau_exit(:, k), ind(:, k), initStates, initTimes(k,:));
+            tau_on(:, k), tau_exit(:, k), whichTransition(:, k), initStates, initTimes(k,:));
         
         % plot(time, states);
         % xlim([0, 10]);
@@ -68,7 +69,8 @@ factive = length(fpt_on_observed) / nSims;
 
 end
 
-function [states, times] = makePath(nSteps, onstate, silentstate,firstoffstate, tau_on, tau_exit, ind, states, times)
+function [states, times] = makePath(nSteps, onstate, silentstate,firstoffstate,...
+    tau_on, tau_exit, ind, states, times)
 
 
 n = 6;
