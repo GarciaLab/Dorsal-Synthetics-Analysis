@@ -1,8 +1,8 @@
 
-% model = "basic";
+model = "basic";
 % model = "entry";
 % model = "exit";
-model = "entryexit";
+% model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 5000;
@@ -62,12 +62,12 @@ nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 [userview,~] = memory;
 userview.MaxPossibleArrayBytes;
 
-tau_exit = zeros(nSteps, nSims, numel(pi1s), 'single');
+tau_exit = nan(nSteps, nSims, numel(pi1s), 'single');
 for k = 1:length(pi1s)
     tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nSteps, nSims]);
 end
 
-tau_entry = zeros(nEntryStates, nSims, nParams/numel(pi2s), numel(pi2s), 'single');
+tau_entry = nan(nEntryStates, nSims, nParams/numel(pi2s), numel(pi2s), 'single');
 for k = 1:length(pi2s)
     tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
 end
@@ -94,10 +94,7 @@ for m = 1:length(cs)
             pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
 
             
-            tau_on = nan(nSteps, nSims, 'single');
-            for p = 1:length(pi2s)
-                tau_on(:, :) = exprnd(pi0^-1, [nSteps, nSims]);
-            end
+            tau_on = exprnd(pi0^-1, [nSteps, nSims]);
 
             for n = 1:length(pi2s)
                 for k = 1:length(pi1s)

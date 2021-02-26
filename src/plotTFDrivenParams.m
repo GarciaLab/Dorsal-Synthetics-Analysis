@@ -34,7 +34,7 @@ x = factive(:);
 y = mfpts(:);
 z = dt(:);
 
-%% make  convex hull out of the allowable region
+%% make convex hull out of the allowable region
 % fmin = .1;
 fmin = 0;
 fmax = 1;
