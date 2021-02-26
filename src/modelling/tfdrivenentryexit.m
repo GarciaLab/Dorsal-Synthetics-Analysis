@@ -67,7 +67,7 @@ for k = 1:length(pi1s)
     tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nSteps, nSims]);
 end
 
-tau_entry = nan(nEntryStates, nSims, nParams/numel(pi2s), numel(pi2s), 'single');
+tau_entry = nan(nEntryStates, nSims, numel(pi2s), 'single');
 for k = 1:length(pi2s)
     tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
 end
@@ -91,19 +91,15 @@ for m = 1:length(cs)
     for i = 1:length(dls)
         for j = 1:length(kds)
                                 
-            pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-
-            
+            pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1    
             tau_on = exprnd(pi0^-1, [nSteps, nSims]);
 
             for n = 1:length(pi2s)
                 for k = 1:length(pi1s)
 
-                    pi1 = pi1s(k); %min-1
-                    pi2 = pi2s(n); %min-1
                     
                     [fpt_on_observed, factive_temp] = averagePaths_entryexit(...
-                        nSims, nSteps, pi0, pi1, pi2,onstate, silentstate, t_cycle,...
+                        nSims, nSteps, pi0, pi1s(k), pi2s(n),onstate, silentstate, t_cycle,...
                         firstoffstate,...
                         squeeze(tau_entry(:, :, n)), squeeze(tau_exit(:, :, k)), tau_on );
                     
