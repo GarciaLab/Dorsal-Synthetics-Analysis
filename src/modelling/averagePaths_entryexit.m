@@ -70,16 +70,16 @@ factive = length(fpt_on_observed) / nSims;
 end
 
 function [states, times] = makePath(nSteps, onstate, silentstate,firstoffstate,...
-    tau_on, tau_exit, ind, states, times)
+    tau_on, tau_exit, whichTransition, states, times)
 
 
 n = 6;
 for step = 1:nSteps
     n = n + 1;
-    if ind(step) == 1 && states(n-1) < onstate
+    if whichTransition(step) == 1 && states(n-1) < onstate
         states(n) = states(n-1) + 1;
         times(n) = times(n-1) + tau_on(step);
-    elseif ind(step) == 2 || states(n-1) == onstate
+    elseif whichTransition(step) == 2 || states(n-1) == onstate
         states(n) = silentstate;
         times(n) = times(n-1) + tau_exit(step);
         return;
