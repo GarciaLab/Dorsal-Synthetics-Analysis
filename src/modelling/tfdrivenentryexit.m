@@ -137,8 +137,9 @@ catch
     
 end
 
+plotGoodCurves(factive, dt, mfpts, params)
 
-
+%%
 figure;
 t = tiledlayout('flow');
 for k = 1:2:length(dls)
@@ -223,67 +224,6 @@ for m = 1:5
 end
 
 
-% title({"K_D = "+kds(g(2)),...
-%     "\pi_{exit} = " + pi1s(g(3)),...
-%     "c = " + cs(g(4)),...
-%     "\pi_{entry} = " + pi2s(g(5))})
-%%
-factive_theory = []; dt_theory = []; onset_theory = [];
-figure;
-tiledlayout('flow')
 
-temp1 = sub2ind(goodMatrixIndices,...
-    find(goodMatrixIndices(:, 1) == nearestIndex(params.dls, 1E3)));
 
-for j = 1:size(temp1, 1)
-    goodIndex = goodMatrixIndices(temp1(j), :);
-    
-    % factive(temp2{:})
-    for k = 1:length(params.dls)
-        
-        params_temp{k} = [k, goodIndex(2:5)];
-        factive_theory(k) = factive(k, goodIndex(2),...
-            goodIndex(3), goodIndex(4), goodIndex(5));
-        dt_theory(k) = dt(k, goodIndex(2), goodIndex(3),...
-            goodIndex(4), goodIndex(5));
-        onset_theory(k) = mfpts(k, goodIndex(2), goodIndex(3),...
-            goodIndex(4), goodIndex(5));
-        
-        isGood(k) = any(ismember(goodMatrixIndices, params_temp{k}, 'rows'));
-        
-    end
-    
-    if factive_theory(1) < .2 && factive_theory(end) > .6 &&...
-            sum(isGood) >= (length(params.dls)-1) && factive_theory(3) < .8
-        %only plot curves that span the full factive range
-        
-        nexttile(1)
-        plot(params.dls, factive_theory, 'LineWidth', 2)
-        xlim([0, 4000])
-        xlabel('[Dorsal] (au)')
-        ylabel('fraction of active nuclei')
-        ylim([0, 1])
-        hold on
-        
-        nexttile(2)
-        plot(params.dls, dt_theory, 'LineWidth', 2)
-        xlabel('[Dorsal] (au)')
-        ylabel('Change in mean turn on time across large range of affinities (min)')
-        xlim([0, 4000])
-        hold on
-        
-        
-        nexttile(3)
-        plot(params.dls, onset_theory, 'LineWidth', 2)
-        hold on
-        xlim([0, 4000])
-        set(gca, 'XScale', 'log');
-        ylim([0, 10])
-        ylabel('mean time to turn on (min)')
-        xlabel('[Dorsal] (au)')
-    end
-    % title({"K_D = "+kds(g(2)),...
-    %     "\pi_{exit} = " + pi1s(g(3)),...
-    %     "c = " + cs(g(4)),...
-    %     "\pi_{entry} = " + pi2s(g(5))})
 end
