@@ -1,6 +1,6 @@
 function [fpt_on_observed,factive] = averagePaths_entryexit(nSims,...
     nSteps, pi0, pi1,pi2, onstate, silentstate,...
-    t_cycle, firstoffstate, tau_entry, tau_exit, tau_on)
+    t_cycle, firstoffstate, tau_entry, tau_exit, tau_on, params)
 %subfunction for tfdrivenentryexit
 
 
@@ -18,9 +18,20 @@ if isempty(tau_on)
     tau_on = exprnd(pi0^-1, [nSteps, nSims]); 
 end
 
+% [~, whichTransition_entry_exit] = min(cat(3,tau_entry,tau_exit(1:params.nEntryStates, :)), [], 3);
+% whichTransition_entry_exit = squeeze(whichTransition_entry_exit);
+% 
+% [~, whichTransition_off_exit] = min(cat(3,tau_on,tau_exit(params.nEntryStates+1:end, :)), [], 3);
+% whichTransition_off_exit = squeeze(whichTransition_off_exit);
 
-[~, whichTransition] = min(cat(3,tau_on,tau_exit), [], 3);
+tau_entry_off = [tau_entry; tau_on]; 
+[~, whichTransition] = min(cat(3,tau_entry_off,tau_exit), [], 3);
 whichTransition = squeeze(whichTransition);
+reachedOn = sum(whichTransition(1:params.nEntryStates+params.nOffStates, :), 1) == params.nEntryStates+params.nOffStates; 
+factive = sum(reachedOn)/numel(reachedOn);
+fpts = tau_entry_off(params.nEntryStates+params.nOffStates, reachedOn);
+
+
 
 initStates = [repmat([1, 2, 3, 4, 5, 6], 1, 1), zeros(1,6)];
 initTimes = [zeros(nSims, 1), cumsum(tau_entry)', zeros(nSims,6)];
@@ -29,10 +40,12 @@ for k = 1:nSims
 %parfor k = 1:nSims
     
     
-    if initTimes(k, 6) < t_cycle
+    if initTimes(k, params.nEntryStates+1) < t_cycle &&... %%reached the off state before the end of the cycle.
+            sum(whichTransition(1:params.nEntryStates, k)) == params.nEntryStates %it never transitioned to silent. 
         
         [states, times] = makePath(nSteps,onstate, silentstate, firstoffstate,...
-            tau_on(:, k), tau_exit(:, k), whichTransition(:, k), initStates, initTimes(k,:));
+            tau_on(:, k), tau_exit(:, k),...
+            whichTransition(params.nEntryStates+1:end, k), initStates, initTimes(k,:));
         
         % plot(time, states);
         % xlim([0, 10]);

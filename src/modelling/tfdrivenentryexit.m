@@ -1,12 +1,17 @@
+%leaving this here for to remember for testing
+%setpref('profiler','showJitLines',1);
+%profile -memory on;
 
-model = "basic";
+
+
+% model = "basic";
 % model = "entry";
 % model = "exit";
-% model = "entryexit";
+model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 5000;
-nPlots = 8;
+nPlots = 30;
 
 
 t_cycle = 10; %min
@@ -31,14 +36,14 @@ if model == "entry"
     pi2s = logspace(-2, 1, nPlots);
     %     pi2s = 100;
 elseif model == "entryexit"
-    nSims = 1E3;
+    nSims = 1E2;
     %     dls = linspace(1, dmax, 20);
-    dls = logspace(log10(1), log10(dmax), 40);
-    kds = logspace(2, 6, nPlots);
-    cs = logspace(0, 4, nPlots);
+    dls = logspace(log10(1), log10(dmax), 20);
+    kds = logspace(0, 6, nPlots);
+    cs = logspace(0, 5, nPlots);
     %     cs = 1;
-    pi1s = logspace(-2, 1, nPlots);
-    pi2s = logspace(-2, 1, nPlots);
+    pi1s = logspace(-4, 1, nPlots);
+    pi2s = logspace(-4, 1, nPlots);
     %     pi2s = 100;
 elseif model == "basic"
     nSims = 1E3;
@@ -62,16 +67,15 @@ nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 [userview,~] = memory;
 userview.MaxPossibleArrayBytes;
 
-tau_exit = nan(nSteps, nSims, numel(pi1s), 'single');
+tau_exit = nan(nStates-1, nSims, numel(pi1s), 'single');
 for k = 1:length(pi1s)
-    tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nSteps, nSims]);
+    tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nStates-1, nSims]);
 end
 
 tau_entry = nan(nEntryStates, nSims, numel(pi2s), 'single');
 for k = 1:length(pi2s)
     tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
 end
-
 
 clear params;
 params.dls = dls;
@@ -80,11 +84,15 @@ params.cs = cs;
 params.pi1s = pi1s;
 params.pi2s = pi2s;
 params.model = model;
+params.nEntryStates = nEntryStates;
+params.nOffStates = nOffStates;
+params.nStates = nStates;
 
 
 %%
 mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 factive = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
+fpts_std = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
 
 %dls, kds, pi1s, cs, pi2s
 for m = 1:length(cs)
@@ -92,22 +100,30 @@ for m = 1:length(cs)
         for j = 1:length(kds)
                                 
             pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1    
-            tau_on = exprnd(pi0^-1, [nSteps, nSims]);
+            tau_on = exprnd(pi0^-1, [nOffStates+1, nSims]);
 
             for n = 1:length(pi2s)
-                for k = 1:length(pi1s)
+                
+                tau_entry_off = [squeeze(tau_entry(:, :, n)); tau_on];
 
+                for k = 1:length(pi1s)
                     
-                    [fpt_on_observed, factive_temp] = averagePaths_entryexit(...
-                        nSims, nSteps, pi0, pi1s(k), pi2s(n),onstate, silentstate, t_cycle,...
-                        firstoffstate,...
-                        squeeze(tau_entry(:, :, n)), squeeze(tau_exit(:, :, k)), tau_on );
+                    [~, whichTransition] = min(cat(3,tau_entry_off,squeeze(tau_exit(:, :, k))), [], 3);
+                    whichTransition = squeeze(whichTransition);
+                    reachedOn = sum(whichTransition(1:params.nEntryStates+params.nOffStates, :), 1) == params.nEntryStates+params.nOffStates; 
+                    factive(i,j,k,m,n) = sum(reachedOn)/numel(reachedOn);
+                    onsets_sim = tau_entry_off(params.nEntryStates+params.nOffStates, reachedOn);
+                    onsets_sim_truncated = onsets_sim(onsets_sim < t_cycle);
+
+                    mfpts(i, j, k, m, n) = mean(onsets_sim_truncated);
+                    fpts_std(i, j, k, m, n) = std(onsets_sim_truncated);
                     
-                    
-                    mfpts(i, j, k, m, n) = nanmean(fpt_on_observed);
-                    
-                    factive(i,j,k,m,n) = factive_temp;
-                    
+%                     [fpt_on_observed, factive_temp] = averagePaths_entryexit(...
+%                         nSims, nSteps, pi0, pi1s(k), pi2s(n),onstate, silentstate, t_cycle,...
+%                         firstoffstate,...
+%                         squeeze(tau_entry(:, :, n)), squeeze(tau_exit(:, :, k)), tau_on, params );
+%                    
+                                       
                 end %for pi1
             end %for pi2
         end% for kd
@@ -124,7 +140,7 @@ dt = repmat(dt, [1 length(kds) 1 1 1]);
 
 save(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
 
-load(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
+% load(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
 
 figure;
 try
@@ -140,11 +156,13 @@ end
 plotGoodCurves(factive, dt, mfpts, params)
 
 %%
+try
 figure;
 t = tiledlayout('flow');
 for k = 1:2:length(dls)
     nexttile;
-    plotTFDrivenParams(factive(k, :, :, :, :) , dt(k, :, :, :, :), mfpts(k, :, :, :, :), 'fig', gcf);
+    plotTFDrivenParams(factive(k, :, :, :, :) , dt(k, :, :, :, :),...
+        mfpts(k, :, :, :, :), 'params', params, 'fig', gcf);
 end
 title(t, 'Effect of [Dorsal] on parameter space');
 
@@ -154,7 +172,7 @@ t = tiledlayout('flow');
 for k = 1:1:length(cs)
     nexttile;
     plotTFDrivenParams(factive(:, :, :, k, :) , dt(:, :, :, k, :),...
-        mfpts(:, :, :, k, :), 'fig', gcf);
+        mfpts(:, :, :, k, :),'params', params, 'fig', gcf);
 end
 title(t, 'Effect of c on parameter space');
 
@@ -163,7 +181,7 @@ t = tiledlayout('flow');
 for k = 1:1:length(kds)
     nexttile;
     plotTFDrivenParams(factive(:, k, :, :, :) ,...
-        dt(:, k, :, :, :), mfpts(:, k, :, :, :),'nPoints', 1E3, 'fig', gcf);
+        dt(:, k, :, :, :), mfpts(:, k, :, :, :),'params', params,'nPoints', 1E3, 'fig', gcf);
 end
 title(t, 'Effect of KD on parameter space');
 
@@ -173,7 +191,7 @@ for k = 1:1:length(pi1s)
     nexttile;
     try
         plotTFDrivenParams(factive(:, :, k, :, :) ,...
-            dt(:, :, k, :, :), mfpts(:, :, k, :, :), 'nPoints', 1E3, 'fig', gcf);
+            dt(:, :, k, :, :), mfpts(:, :, k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
         %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
         title(num2str(round2(pi1s(k))))
     end
@@ -188,42 +206,10 @@ for k = 1:1:length(pi2s)
     nexttile;
     %     try
     plotTFDrivenParams(factive(:, :, :, :, k),...
-        dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'fig', gcf, 'shouldRound', true);
+        dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'params', params, 'fig', gcf, 'shouldRound', true);
     %     end
     %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
     title(num2str(round2(pi2s(k))))
 end
 title(t, 'Effect of pi_entry on parameter space');
-%%
-goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts);
-
-%extract parameter set good at low Dorsal
-figure;
-tiledlayout('flow')
-
-for m = 1:5
-    temp1 = sub2ind(goodMatrixIndices, find(goodMatrixIndices(:, 1) == m));
-    nexttile;
-    for j = 1:size(temp1, 1)
-        goodIndex = goodMatrixIndices(temp1(j), :);
-        temp2 = num2cell(goodMatrixIndices(temp1(j), :));
-        % factive(temp2{:})
-        for k = 1:length(params.dls)
-            
-            factive_theory(k) = factive(k, goodIndex(2), goodIndex(3),...
-                goodIndex(4), goodIndex(5));
-            
-        end
-        plot(params.dls, factive_theory, 'LineWidth', 2)
-        hold on
-        % title({"K_D = "+kds(g(2)),...
-        %     "\pi_{exit} = " + pi1s(g(3)),...
-        %     "c = " + cs(g(4)),...
-        %     "\pi_{entry} = " + pi2s(g(5))})
-    end
-end
-
-
-
-
 end

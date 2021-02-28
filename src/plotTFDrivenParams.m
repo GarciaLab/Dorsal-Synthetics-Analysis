@@ -214,8 +214,8 @@ if nargout == 0
             xlim([0, 1])
             ylim([0, 10])
             hold on
-%              scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-%             'MarkerEdgeColor', 'none')
+             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            'MarkerEdgeColor', 'none')
         hold on
         %%
         end
