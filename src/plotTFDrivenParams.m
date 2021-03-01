@@ -160,7 +160,8 @@ if nargout == 0
         dt0(factive0 < .05) = nan;
         factive0(factive0 < .05) = nan;
        
-        %
+        %dls, kds, pi1s, cs, pi2s
+
 %         figure
         if ~isempty(params)
             j = nearestIndex(params.kds, 1E5); %10. %kd==100,000
@@ -203,19 +204,24 @@ if nargout == 0
         elseif params.model == "entryexit"
             %% 
             figure      
+            %dls, kds, pi1s, cs, pi2s
+
             colormap(brewermap(dim_dl,'Greens'))
             j = nearestIndex(params.kds, 1E4); %10. %kd==100,000
-            m = nearestIndex(params.cs, 300);%5; %c == 77
-            l = nearestIndex(params.pi1s, 2); %pi1
-            n = nearestIndex(params.pi2s, 1); %pi2
-             scatter(reshape(factive0(:, j, l, m, n), [numel(factive0(:, j, l, m, n)), 1]),...
-            reshape(mfpts0(:, j, l, m, n), [numel(mfpts0(:, j, l, m, n)), 1]),[],...
-            params.dls, 'o', 'filled');
+            m = nearestIndex(params.cs, 1);%5; %c == 77
+            l = nearestIndex(params.pi1s, .0001); %pi1
+            n = nearestIndex(params.pi2s, .01); %pi2
+            
+            f = @(x) reshape(x(:, j, l, m, n), [numel(x(:, j, l, m, n)), 1]);
+            
+            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
             xlim([0, 1])
             ylim([0, 10])
+            set(gca,'Color','r')
+
             hold on
-             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-            'MarkerEdgeColor', 'none')
+%              scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+%             'MarkerEdgeColor', 'none')
         hold on
         %%
         end
@@ -255,11 +261,14 @@ else
         end
         
         
+        %dls, kds, pi1s, cs, pi2s
+        pars = ["dl", "kd", "pi1", "c", "pi2"];
         figure; 
         t = tiledlayout('flow');
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
             hist(goodMatrixIndices(:, k));
+            xlabel(pars(k));
         end
     end
     

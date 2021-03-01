@@ -36,14 +36,14 @@ if model == "entry"
     pi2s = logspace(-2, 1, nPlots);
     %     pi2s = 100;
 elseif model == "entryexit"
-    nSims = 1E2;
+    nSims = 1E3;
     %     dls = linspace(1, dmax, 20);
-    dls = logspace(log10(1), log10(dmax), 20);
-    kds = logspace(0, 6, nPlots);
+    dls = logspace(log10(1), log10(dmax), 40);
+    kds = logspace(2, 6, nPlots);
     cs = logspace(0, 5, nPlots);
     %     cs = 1;
-    pi1s = logspace(-4, 1, nPlots);
-    pi2s = logspace(-4, 1, nPlots);
+    pi1s = logspace(-5, 1, nPlots);
+    pi2s = logspace(-5, 1, nPlots);
     %     pi2s = 100;
 elseif model == "basic"
     nSims = 1E3;
