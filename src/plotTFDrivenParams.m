@@ -207,12 +207,12 @@ if nargout == 0
             %dls, kds, pi1s, cs, pi2s
 
             colormap(brewermap(dim_dl,'Greens'))
-            j = nearestIndex(params.kds, 1E4); %10. %kd==100,000
-            m = nearestIndex(params.cs, 1);%5; %c == 77
-            l = nearestIndex(params.pi1s, .0001); %pi1
-            n = nearestIndex(params.pi2s, .01); %pi2
+            j = nearestIndex(params.kds, 3.8E5); %10. %kd==100,000
+            m = nearestIndex(params.cs, 3.2);%5; %c == 77
+            l = nearestIndex(params.pi1s, 2.8E-4); %pi1
+            n = nearestIndex(params.pi2s, .0049); %pi2
             
-            f = @(x) reshape(x(:, j, l, m, n), [numel(x(:, j, l, m, n)), 1]);
+            f = @(t) reshape(t(:, j, l, m, n), [numel(t(:, j, l, m, n)), 1]);
             
             scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
             xlim([0, 1])
@@ -220,8 +220,8 @@ if nargout == 0
             set(gca,'Color','r')
 
             hold on
-%              scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-%             'MarkerEdgeColor', 'none')
+             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            'MarkerEdgeColor', 'none')
         hold on
         %%
         end
@@ -263,12 +263,18 @@ else
         
         %dls, kds, pi1s, cs, pi2s
         pars = ["dl", "kd", "pi1", "c", "pi2"];
+        fields_params = fieldnames(params);
         figure; 
+
         t = tiledlayout('flow');
+                            title(t, 'x axes all log10 scale')
+
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
-            hist(goodMatrixIndices(:, k));
-            xlabel(pars(k));
+            histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
+%             set(gca, 'XScale', 'log')
+%             hh = histogram(goodMatrixIndices(:, k));
+            xlabel(fields_params{k});
         end
     end
     

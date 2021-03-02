@@ -5,7 +5,7 @@ function plotGoodCurves(factive, dt, mfpts, params, varargin)
 if length(varargin)==1
     goodMatrixIndices = varargin{1};
 else
-    goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2);
+    goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
 end
  
 %sort to get dorsals arrayed contiguously
