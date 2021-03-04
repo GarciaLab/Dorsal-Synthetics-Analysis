@@ -12,7 +12,7 @@ end
 goodMatrixIndices = sortrows(goodMatrixIndices,[5 4 3 2]);
 
 %get locations of contiguous dorsal arrays
-lenContig = length(params.dls)/2; %this needs to be dehardcoded 
+lenContig = round(length(params.dls)/1.5); %this needs to be dehardcoded 
 % lenContig = length(params.dls);
 pos = findArray(goodMatrixIndices(:, 1), lenContig);
 
@@ -24,6 +24,9 @@ for j = 1:length(pos)
     inds = pos(j) : pos(j)+lenContig-1;
     gmi = goodMatrixIndices( inds, : );
     
+    if gmi(1, 2) >= 8
+%         1
+    end
     if max(gmi(:, 1)) == length(params.dls) %solns that don't reach max [dl] are weird.
 
         factive_theory = nan(1, lenContig); 
@@ -74,7 +77,6 @@ for j = 1:length(pos)
             ylim([0, 10])
             ylabel('mean transcriptional onset time (min)')
             xlabel('fraction of active nuclei')
-            waitforbuttonpress
             
         end
     end

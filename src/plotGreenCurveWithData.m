@@ -1,4 +1,4 @@
-function [dat_onset, dat_fraction] = plotGreenBoxWithData(varargin)
+function [dat_onset, dat_fraction] = plotGreenCurveWithData(varargin)
 
 if nargout > 0
     displayFigures = false;
@@ -28,8 +28,12 @@ for i = 1:length(combinedCompiledProjects_allEnhancers)
     end
 end
 
+%just gonna grab 1dg11_2xDl data
 enhancerStruct = combinedCompiledProjects_allEnhancers(...
-    [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
+    [combinedCompiledProjects_allEnhancers.cycle]==12 &...
+    ({combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_2xDl" |...
+      {combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_FFF"  )&...
+    ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 
 % bin nuclei
@@ -76,11 +80,65 @@ for p = 1:length(prefixes)
     end
     dat_fraction = [dat_fraction, mean_fraction_acrossNuclei_perBin];
     dat_onset = [dat_onset, mean_timeOn_acrossNuclei_perBin];
+    
+    dat_fraction_dl(p, :) = mean_fraction_acrossNuclei_perBin;
+    dat_onset_dl(p, :) = mean_timeOn_acrossNuclei_perBin;
+    dat_onsetSE_dl(p, :) = mean(se_timeOn_acrossNuclei_perBin);
+    
 end
 
 save([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
 
+ dat_fraction_dl0 =  dat_fraction_dl;
+ dat_onset_dl0 = dat_onset_dl;
 
+%clean data
+dat_fraction_dl(dat_onset_dl<2) = nan;
+dat_onset_dl(dat_onset_dl < 2) = nan;
+dat_fraction_dl(dat_onset_dl>8) = nan;
+dat_onset_dl(dat_onset_dl>8) = nan;
+
+dat_fraction_dl_mean = nanmean(dat_fraction_dl,1);
+dat_fraction_dl_ste = nanstd(dat_fraction_dl,1)./sqrt(length(prefixes));
+
+dat_onset_dl_mean = nanmean(dat_onset_dl, 1);
+dat_onset_dl_ste = nanstd(dat_onset_dl, 1)./sqrt(length(prefixes));
+
+c = binValues; 
+
+dat_onset_dl_mean(isnan(dat_onset_dl_ste)) = []; 
+c(isnan(dat_onset_dl_ste)) = [];
+dat_fraction_dl_mean(isnan(dat_onset_dl_ste)) = []; 
+dat_fraction_dl_ste(isnan(dat_onset_dl_ste)) = []; 
+dat_onset_dl_ste(isnan(dat_onset_dl_ste)) = []; 
+
+
+
+%this is for scatter_ellipse. not a huge fan, but leaving this here for
+%future reference. 
+for k = 1:length(c)
+    cov(:, :, k) = diag([dat_fraction_dl_ste(k), dat_onset_dl_ste(k)]);
+end
+ 
+P = [dat_fraction_dl_mean;dat_onset_dl_mean]';
+
+Ps = sortrows(P, 1);
+
+x = Ps(:, 1);
+y = Ps(:, 2);
+figure; 
+colormap(brewermap(length(c),'Greens'))
+scatter(x, y,[],c, 'o', 'filled')
+hold on
+errorbar(x, y, dat_onset_dl_ste, dat_onset_dl_ste,...
+    dat_fraction_dl_ste,dat_fraction_dl_ste,'k', 'LineStyle', 'none', 'CapSize', 0)
+% h = scatter_ellipse(x, y, c, cov)
+xlim([0, 1])
+ylim([0, 8.5])
+ylabel('mean transcriptional onset time (min)')
+xlabel('fraction of active nuclei')
+title('1Dg11_2xDl')
+colorbar;
 
 %clean data
 dat_fraction(dat_onset<2) = [];
@@ -93,6 +151,16 @@ dat_onset(isnan(dat_fraction)) = [];
 dat_fraction(isnan(dat_fraction)) = [];
 
 P = [dat_onset;dat_fraction]';
+
+Ps = sortrows(P, 2);
+
+x = Ps(:, 2);
+y = Ps(:, 1);
+
+figure; plot(x, y,'ok')
+
+
+
 
 nBins = [15, 5];
 

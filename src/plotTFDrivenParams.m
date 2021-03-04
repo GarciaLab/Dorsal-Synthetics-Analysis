@@ -108,64 +108,64 @@ if nargout == 0
         view(0, -90)
         
     elseif dim == 2
-         
-%         bottomAx =axes;
-
-%         colormap(brewermap(20,'Blues'));
         
-%         try
-%             load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
-%         catch
-%             [dat_onset, dat_fraction] = plotGreenBoxWithData;
-%         end
+        %         bottomAx =axes;
         
-%         nBins = [6, 16];
-%         h = binscatter(dat_fraction,dat_onset, nBins);
-%         h.ShowEmptyBins = 'on';
-%         colormap(brewermap(20,'Blues'));
+        %         colormap(brewermap(20,'Blues'));
+        
+        %         try
+        %             load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
+        %         catch
+        %             [dat_onset, dat_fraction] = plotGreenBoxWithData;
+        %         end
+        
+        %         nBins = [6, 16];
+        %         h = binscatter(dat_fraction,dat_onset, nBins);
+        %         h.ShowEmptyBins = 'on';
+        %         colormap(brewermap(20,'Blues'));
         xlim([0, 1])
         ylim([0, 10]);
         
-         xlabel('fraction of active nuclei')
-         ylabel('mean transcription onset time (min)')  
-%          legend('viable region', 'viable parameters', 'unphysical parameters');
+        xlabel('fraction of active nuclei')
+        ylabel('mean transcription onset time (min)')
+        %          legend('viable region', 'viable parameters', 'unphysical parameters');
         
         hold on
         
-%         scatter(x(in),y(in),'r.')
-%         scatter(x(in_2D),y(in_2D),'r.')
-%         scatter(x(in_2D),y(in_2D),'k.')
+        %         scatter(x(in),y(in),'r.')
+        %         scatter(x(in_2D),y(in_2D),'r.')
+        %         scatter(x(in_2D),y(in_2D),'k.')
         
         hold on
         
-%         scatter(x(~in),y(~in),'b.')
-%         scatter(x(~in_2D),y(~in_2D),'b.')
-%         scatter(x(~in_2D),y(~in_2D),'k.')
+        %         scatter(x(~in),y(~in),'b.')
+        %         scatter(x(~in_2D),y(~in_2D),'b.')
+        %         scatter(x(~in_2D),y(~in_2D),'k.')
         
-%         set (gca,'Ydir','reverse')
-
-%          [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices)
+        %         set (gca,'Ydir','reverse')
+        
+        %          [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices)
         dim_dl = size(factive0, 1);
-%         c = brewermap(dim_dl,'Reds');
-%         c = brewermap(dim_dl,'Reds');
-
+        %         c = brewermap(dim_dl,'Reds');
+        %         c = brewermap(dim_dl,'Reds');
+        
         
         factive0(isnan(mfpts)) = [];
         dt0(isnan(mfpts)) = [];
         mfpts0(isnan(mfpts)) = [];
         
         %these points are unreliable due to small number issues,
-        %so let's remove them.  
+        %so let's remove them.
         mfpts0(factive0 < .05) = nan;
         dt0(factive0 < .05) = nan;
         factive0(factive0 < .05) = nan;
-       
+        
         %dls, kds, pi1s, cs, pi2s
-
-%         figure
+        
+        %         figure
         if ~isempty(params)
             j = nearestIndex(params.kds, 1E5); %10. %kd==100,000
-            l = 1; 
+            l = 1;
             m = nearestIndex(params.cs, 77);%5; %c == 77
         else
             j=10; %kd==100,000
@@ -173,73 +173,97 @@ if nargout == 0
             m=5;%c == 77
         end
         
-%         for k = 1:dim_dl
-% %             x0 = factive0(k, :, :, :, :);
-% %             y0 = mfpts0(k, :, :, :, :);
-%             x0 = factive0(k, j, l, m);
-%             y0 = mfpts0(k, j, l, m); 
-% %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(k,:), 'MarkerEdgeColor', 'none' )
-%             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(round(log10(k)),:),...
-%                 'MarkerEdgeColor', 'none' )
-% 
-% %             scatter(x0(:), y0(:), 'o')
-% 
-%             hold on
-%         end
-
-%         topAxes = axes;
+        %         for k = 1:dim_dl
+        % %             x0 = factive0(k, :, :, :, :);
+        % %             y0 = mfpts0(k, :, :, :, :);
+        %             x0 = factive0(k, j, l, m);
+        %             y0 = mfpts0(k, j, l, m);
+        % %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(k,:), 'MarkerEdgeColor', 'none' )
+        %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(round(log10(k)),:),...
+        %                 'MarkerEdgeColor', 'none' )
+        %
+        % %             scatter(x0(:), y0(:), 'o')
+        %
+        %             hold on
+        %         end
+        
+        %         topAxes = axes;
         x0 = x;
         y0 = y;
         x0(x0 < .05) = nan;
         y0(x0 < .05) = nan;
-%         scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-%             'MarkerEdgeColor', 'none')
+        %         scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+        %             'MarkerEdgeColor', 'none')
         hold on
-        colormap(brewermap(dim_dl,'Greens')) 
+        colormap(brewermap(dim_dl,'Greens'))
         
         if params.model == "basic"
-        scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
-            reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
-            params.dls, 'o', 'filled')
+            scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
+                reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
+                params.dls, 'o', 'filled')
         elseif params.model == "entryexit"
-            %% 
-            figure      
+            %%
+            figure
             %dls, kds, pi1s, cs, pi2s
-
+            
+            hold on
+            
             colormap(brewermap(dim_dl,'Greens'))
-            j = nearestIndex(params.kds, 3.8E5); %10. %kd==100,000
-            m = nearestIndex(params.cs, 3.2);%5; %c == 77
-            l = nearestIndex(params.pi1s, 2.8E-4); %pi1
-            n = nearestIndex(params.pi2s, .0049); %pi2
+            if ~params.exitOnlyDuringOffStates
+                j = nearestIndex(params.kds, 3.8E5); 
+                m = nearestIndex(params.cs, 3.2);
+                l = nearestIndex(params.pi1s, 2.8E-4); 
+                n = nearestIndex(params.pi2s, .0049); 
+            else
+                j = nearestIndex(params.kds, 1E3);  
+                m = nearestIndex(params.cs, 77); 
+                l = nearestIndex(params.pi1s, .07);
+                n = nearestIndex(params.pi2s, 1); 
+            end
             
             f = @(t) reshape(t(:, j, l, m, n), [numel(t(:, j, l, m, n)), 1]);
             
-            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
+           
+%            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
+            
+            
+            xx = f(factive0)';
+            yy = f(mfpts0)';
+            zz = zeros(size(xx));
+            col = params.dls; % This is the color, vary with x in this case.
+            surface([xx;xx],[yy;yy],[zz;zz],[col;col],...
+                    'facecol','no',...
+                    'edgecol','interp',...
+                    'linew',2);
+            
+            
             xlim([0, 1])
             ylim([0, 10])
             set(gca,'Color','r')
-
+            
             hold on
-             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-            'MarkerEdgeColor', 'none')
-        hold on
-        %%
+           
+%              scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+%                 'MarkerEdgeColor', 'none')
+            
+            hold on
+            %%
         end
         
         set(gca, 'ColorScale', 'linear');
         xlim([0, 1]);
         ylim([0, 10]);
         
-%         set(topAxes,'xtick',[],'ytick',[]);
+        %         set(topAxes,'xtick',[],'ytick',[]);
     end
 else
     %%% Let's return the good parameters
     if ~shouldRound && isempty(nPoints)
         
         %let's change nans to some numerical values that will get rejected
-        factive0(isnan(mfpts0)) = -1; 
-        dt0(isnan(mfpts0)) = 100; 
-        mfpts0(isnan(mfpts0)) = 100; 
+        factive0(isnan(mfpts0)) = -1;
+        dt0(isnan(mfpts0)) = 100;
+        mfpts0(isnan(mfpts0)) = 100;
         
         
         if dim==3
@@ -258,22 +282,20 @@ else
             goodLinearIndices = find(in_temp_2D);
             [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
             goodMatrixIndices = [in1 in2 in3 in4 in5];
+            
         end
         
         
         %dls, kds, pi1s, cs, pi2s
-        pars = ["dl", "kd", "pi1", "c", "pi2"];
         fields_params = fieldnames(params);
-        figure; 
-
+        figure;
+        
         t = tiledlayout('flow');
-                            title(t, 'x axes all log10 scale')
-
+        title(t, 'x axes all log10 scale')
+        
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
             histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
-%             set(gca, 'XScale', 'log')
-%             hh = histogram(goodMatrixIndices(:, k));
             xlabel(fields_params{k});
         end
     end
