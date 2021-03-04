@@ -173,21 +173,6 @@ if nargout == 0
             m=5;%c == 77
         end
         
-        %         for k = 1:dim_dl
-        % %             x0 = factive0(k, :, :, :, :);
-        % %             y0 = mfpts0(k, :, :, :, :);
-        %             x0 = factive0(k, j, l, m);
-        %             y0 = mfpts0(k, j, l, m);
-        % %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(k,:), 'MarkerEdgeColor', 'none' )
-        %             scatter(x0(:), y0(:),'o', 'MarkerFaceColor', c(round(log10(k)),:),...
-        %                 'MarkerEdgeColor', 'none' )
-        %
-        % %             scatter(x0(:), y0(:), 'o')
-        %
-        %             hold on
-        %         end
-        
-        %         topAxes = axes;
         x0 = x;
         y0 = y;
         x0(x0 < .05) = nan;
@@ -201,6 +186,9 @@ if nargout == 0
             scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
                 reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
                 params.dls, 'o', 'filled')
+            hold on
+                 scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+                'MarkerEdgeColor', 'none')
         elseif params.model == "entryexit"
             %%
             figure
@@ -295,8 +283,11 @@ else
         
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
+            try
             histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
+            end
             xlabel(fields_params{k});
+            
         end
     end
     

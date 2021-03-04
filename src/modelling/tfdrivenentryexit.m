@@ -7,7 +7,7 @@ tic
 % model = "basic";
 % model = "entry";
 % model = "exit";
-model = "basic";
+model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 4000;
@@ -25,9 +25,9 @@ nStates = nEntryStates + nOffStates + 1 + 1;
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 
-exitOnlyDuringOffStates = true;
+exitOnlyDuringOffStates = false;
 nSims = 1E3;
-nPlots = 20;
+nPlots = 10;
 if exitOnlyDuringOffStates
     nPlots = 10;
 end
@@ -117,13 +117,15 @@ for m = 1:N_cs
                     %never reached silent.
                     reachedOn = sum(whichTransition(1:nOffEntryStates, :), 1) ==...
                         nOffEntryStates;
-                    factive(i,j,k,m,n) = sum(reachedOn)/nSims;
-                    
+
                     %let's get the total duration of the successful trajectories up to
                     %the on state
                     onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
                     onsets_sim_truncated = onsets_sim(onsets_sim < t_cycle);
                     
+                    reachedOn_truncated = reachedOn(onsets_sim < t_cycle);
+                    
+                    factive(i,j,k,m,n) = sum(reachedOn_truncated)/nSims;
                     mfpts(i, j, k, m, n) = mean(onsets_sim_truncated);
                     fpts_std(i, j, k, m, n) = std(onsets_sim_truncated);
                     
