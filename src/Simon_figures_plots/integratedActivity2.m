@@ -49,12 +49,15 @@ FractionPerBin = [];
 MaxFluoPerBin = [];
 AccumulatedFluoPerBin = [];
 TimeOnPerBin = [];
+ParticleDurationPerBin = [];
+
 for bin = 1:max(BinnedDorsalFluos)
     BinOnNuclei = 0;
     BinOffNuclei = 0;
     BinMaxFluo = nan;
     BinAccumulatedFluo = nan;
     BinTimeOn = nan;
+    BinSpotDuration = nan;
     
     for n = 1:length(enhancerStruct)
         if enhancerStruct(n).dorsalFluoBin2 == bin
@@ -63,6 +66,7 @@ for bin = 1:max(BinnedDorsalFluos)
                 BinMaxFluo = [BinMaxFluo enhancerStruct(n).particleFluo95];
                 BinAccumulatedFluo = [BinAccumulatedFluo enhancerStruct(n).particleAccumulatedFluo];
                 BinTimeOn = [BinTimeOn enhancerStruct(n).particleTimeOn];
+                BinSpotDuration = [BinSpotDuration enhancerStruct(n).particleDuration];
             else
                 BinOffNuclei = BinOffNuclei+1;
             end
@@ -73,6 +77,7 @@ for bin = 1:max(BinnedDorsalFluos)
     MaxFluoPerBin = [MaxFluoPerBin nanmean(BinMaxFluo)];
     AccumulatedFluoPerBin = [AccumulatedFluoPerBin nanmean(BinAccumulatedFluo)];
     TimeOnPerBin = [TimeOnPerBin nanmean(BinTimeOn)];
+    ParticleDurationPerBin = [ParticleDurationPerBin nanmean(BinSpotDuration)];
 end
 
 
@@ -80,6 +85,7 @@ integrated_fraction = cumsum(FractionPerBin,'omitnan');
 integrated_maxfluo = cumsum(MaxFluoPerBin,'omitnan');
 integrated_accumulatedfluo = cumsum(AccumulatedFluoPerBin,'omitnan');
 integrated_timeon = cumsum(TimeOnPerBin,'omitnan');
+integrated_duration = cumsum(ParticleDurationPerBin,'omitnan');
 
 
 
@@ -98,6 +104,10 @@ ylabel('accumulated fluo')
 elseif contains(lower(metric),'timeon')
 plot(binLimits,integrated_timeon,'Color',Color,'LineWidth',2)
 ylabel('time on')
+
+elseif contains(lower(metric),'duration')
+plot(binLimits,integrated_duration,'Color',Color,'LineWidth',2)
+ylabel('duration')
 
 
 % 

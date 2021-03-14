@@ -1,4 +1,4 @@
-function movingAverage(DataType,metric,averagingWindow,fiducialTime,Color,ax)
+function [embryoMeanOverAll embryoSEMOverAll] = movingAverage(DataType,metric,averagingWindow,fiducialTime,Color,ax)
 % DataType should be an enhancer such as '1Dg11'
 % metrics can be  maxfluo, accumulatedfluo or fraction
 % averaging window is the number of nuclei
@@ -40,8 +40,11 @@ maxFluo = [];
 accFluo=[];
 fraction=[];
 timeon=[];
+duration=[];
 dorsalFluos = [sortedStruct.dorsalFluoFeature];
 
+% to count the number of spots
+NParticles = 0;
     
 %loop over nuclei of this enhancer to populate the vectors
 for i = 1:length(sortedStruct)    
@@ -50,18 +53,22 @@ for i = 1:length(sortedStruct)
         accFluo(i) = sortedStruct(i).particleAccumulatedFluo;
         maxFluo(i) = max(sortedStruct(i).particleFluo95);
         timeOn(i) = sortedStruct(i).particleTimeOn;
+        duration(i) = sortedStruct(i).particleDuration;
+        NParticles = NParticles+1;
     else
         accFluo(i) = 0;
         maxFluo(i) = 0;
         timeOn(i) = nan;
+        duration(i) = 0;
     end
 
 end
 
-% convert 0s to NaNs in maxFluo and accFluo so that we only take active
+% convert 0s to NaNs in maxFluo and accFluo and duration so that we only take active
 % nucleiS into account 
 accFluo(accFluo==0)=nan;
 maxFluo(maxFluo==0)=nan;
+duration(duration==0)=nan;
 
 % do a moving window with the same number of nuclei.
 dorsalFluoWindow = [];
@@ -69,6 +76,7 @@ fractionOnWindow =[];
 accFluoWindow = [];
 maxFluoWindow = [];
 timeOnWindow = [];
+durationWindow = [];
 
 for i = 1:length(sortedStruct) 
     windowEnds = min(i+averagingWindow,length(sortedStruct));
@@ -77,6 +85,7 @@ for i = 1:length(sortedStruct)
     accFluoWindow(i) = nanmean(accFluo(i:windowEnds));
     maxFluoWindow(i) = nanmean(maxFluo(i:windowEnds));
     timeOnWindow(i) = nanmean(timeOn((i:windowEnds)));
+    durationWindow(i) = nanmean(duration((i:windowEnds)));
 end
 
 % do a moving window with the same 'jump' in dorsal fluorescence every time
@@ -110,6 +119,8 @@ plot(ax,dorsalFluos,maxFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .
 plot(ax,dorsalFluoWindow,maxFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 600])
 xlim([0 4000])
+embryoMeanOverAll = nanmean(maxFluoWindow);
+embryoSEMOverAll = nanstd(maxFluoWindow)/sqrt(NParticles);
     
     
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
@@ -118,6 +129,8 @@ plot(ax,dorsalFluos,accFluo,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .
 plot(ax,dorsalFluoWindow,accFluoWindow,'Color',Color,'LineWidth',2)
 ylim([0 800])    
 xlim([0 4000])
+embryoMeanOverAll = nanmean(accFluoWindow);
+embryoSEMOverAll = nanstd(accFluoWindow)/sqrt(NParticles);
     
 
 
@@ -131,6 +144,8 @@ yyaxis right
 plot(ax,dorsalFluoWindow,fractionOnWindow,'Color',Color,'LineWidth',2)
 ylim([0 1.1])
 xlim([0 4000])
+embryoMeanOverAll = nanmean(fractionOnWindow);
+embryoSEMOverAll = nanstd(fractionOnWindow)/sqrt(sum(isOn));
 %plot(dorsalFluoWindow2,fractionOnWindow2,'r')
 %hold off
 
@@ -140,6 +155,17 @@ plot(ax,dorsalFluos,timeOn,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7
 plot(ax,dorsalFluoWindow,timeOnWindow,'Color',Color,'LineWidth',2) 
 ylim([0 10])
 xlim([0 4000])
+embryoMeanOverAll = nanmean(timeOnWindow);
+embryoSEMOverAll = nanstd(timeOnWindow)/sqrt(sum(~isnan(timeOnWindow)));
+
+elseif strcmpi(metric,'duration') 
+hold on
+plot(ax,dorsalFluos,duration,'o','MarkerEdgeColor','none','MarkerFaceColor',[.7 .7 .7])
+plot(ax,dorsalFluoWindow,durationWindow,'Color',Color,'LineWidth',2)
+ylim([0 10])
+xlim([0 4000])
+embryoMeanOverAll = nanmean(durationWindow);
+embryoSEMOverAll = nanstd(durationWindow)/sqrt(sum(~isnan(durationWindow)));
     
 
 end

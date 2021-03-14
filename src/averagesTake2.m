@@ -71,6 +71,8 @@ for b = 1:length(coveredBins)
     mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
     mean_timeOn_acrossNuclei_perBin(b) = nanmean([binStruct.particleTimeOn]);
     se_timeOn_acrossNuclei_perBin(b) = nanstd([binStruct.particleTimeOn])./sqrt(activeNuc_Bin);
+    mean_duration_acrossNuclei_perBin(b) = nanmean([binStruct.particleDuration]);
+    se_duration_acrossNuclei_perBin(b) = nanstd([binStruct.particleDuration])./sqrt(activeNuc_Bin);    
     totalRNA_acrossNuclei_perBin(b) = nansum([binStruct.particleAccumulatedFluo]);
     
     % save this for bootstrapping later
@@ -87,6 +89,7 @@ for b = 1:length(coveredBins)
     fraction_perEmbryo = []; 
     nuclei_perEmbryo = [];
     timeOn_perEmbryo = [];
+    duration_perEmbryo = [];
     totalRNA_perEmbryo = [];
     
     if numEmbryos >= minEmbryosPerBin     
@@ -99,6 +102,7 @@ for b = 1:length(coveredBins)
             accFluo_perEmbryo(e) =  nanmean([embryoStruct.particleAccumulatedFluo]);
             fraction_perEmbryo(e) = length([embryoStruct.particleTimeOn])/length(embryoStruct);
             timeOn_perEmbryo(e) = nanmean([embryoStruct.particleTimeOn]);
+            duration_perEmbryo(e) = nanmean([embryoStruct.particleDuration]);
             totalRNA_perEmbryo(e) =  nansum([embryoStruct.particleAccumulatedFluo]).*fraction_perEmbryo(e);
 %            end
         end
@@ -113,6 +117,8 @@ for b = 1:length(coveredBins)
     se_fraction_acrossEmbryos_perBin(b) = std(fraction_perEmbryo)./sqrt(numEmbryos);
     mean_timeOn_acrossEmbryos_perBin(b) = nanmean(timeOn_perEmbryo);
     se_timeOn_acrossEmbryos_perBin(b) = nanstd(timeOn_perEmbryo)./sqrt(numEmbryos);
+    mean_duration_acrossEmbryos_perBin(b) = nanmean(duration_perEmbryo);
+    se_duration_acrossEmbryos_perBin(b) = nanstd(duration_perEmbryo)./sqrt(numEmbryos);
     mean_totalRNA_acrossEmbryos_perBin(b) = nanmean(totalRNA_perEmbryo);
     se__totalRNA_acrossEmbryos_perBin(b) = nanstd(totalRNA_perEmbryo)./sqrt(numEmbryos);
     
@@ -153,10 +159,10 @@ embryoRNAError = sqrt(nansum(se__totalRNA_acrossEmbryos_perBin).^2);
 if strcmpi(metric,'maxfluo') 
     if strcmpi(errorgroup,'nuclei')
     errorbar(ax,binValues,mean_maxFluo_acrossNuclei_perBin,se_maxFluo_acrossNuclei_perBin,'ro-','CapSize',0,'LineWidth',1.5,...
-        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     elseif strcmpi(errorgroup,'embryos')
     errorbar(ax,binValues,mean_maxFluo_acrossEmbryos_perBin,se_maxFluo_acrossEmbryos_perBin,'ko-','CapSize',0,'LineWidth',1.5,...
-       'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+       'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     end
 xlabel('Dorsal concentration (AU)')
 ylabel('maximum spot fluorescence')
@@ -170,10 +176,10 @@ xlim([0 3800])
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
     if strcmpi(errorgroup,'nuclei')
         errorbar(ax,binValues,mean_accFluo_acrossNuclei_perBin,se_accFluo_acrossNuclei_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-     'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+     'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
      elseif strcmpi(errorgroup,'embryos')
         errorbar(ax,binValues,mean_accFluo_acrossEmbryos_perBin,se_accFluo_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     end
 xlabel('Dorsal concentration (AU)')
 ylabel('accumulated fluorescence')
@@ -185,10 +191,10 @@ ylim([0 1200])
 elseif contains(lower(metric),'fraction')
     if strcmpi(errorgroup,'nuclei')
         errorbar(ax,binValues,mean_fraction_acrossNuclei_perBin,btsrp_error_fraction_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-            'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+            'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     elseif strcmpi(errorgroup,'embryos')
         errorbar(ax,binValues,mean_fraction_acrossEmbryos_perBin,se_fraction_acrossEmbryos_perBin,'ko-','CapSize',0,'LineWidth',1.5,...
-            'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+            'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     end
 xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
@@ -200,10 +206,10 @@ xlim([0 3500])
 elseif contains(lower(metric),'timeon')
     if strcmpi(errorgroup,'nuclei')
         errorbar(ax,binValues,mean_timeOn_acrossNuclei_perBin,se_timeOn_acrossNuclei_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     elseif strcmpi(errorgroup,'embryos')
         errorbar(ax,binValues,mean_timeOn_acrossEmbryos_perBin,se_timeOn_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     end
 xlabel('Dorsal concentration (AU)')
 ylabel('turn on time')
@@ -214,7 +220,7 @@ xlim([0 3800])
 elseif contains(lower(metric),'total')
     if strcmpi(errorgroup,'nuclei')
         errorbar(ax,binValues,totalRNA_acrossNuclei_perBin,se_timeOn_acrossNuclei_perBin,'o-','CapSize',0,'LineWidth',1.5,...
-        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',4)
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     elseif strcmpi(errorgroup,'embryos')
         errorbar(ax,binValues,mean_totalRNA_acrossEmbryos_perBin,se__totalRNA_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
             'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
@@ -222,6 +228,20 @@ elseif contains(lower(metric),'total')
 xlabel('Dorsal concentration (AU)')
 ylabel('total produced mRNA')
 %ylim([0 1800])
+xlim([0 3800])
+%set(gca,'YScale','log')
+
+elseif contains(lower(metric),'duration')
+    if strcmpi(errorgroup,'nuclei')
+        errorbar(ax,binValues,mean_duration_acrossNuclei_perBin,se_duration_acrossNuclei_perBin,'o-','CapSize',0,'LineWidth',1.5,...
+        'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
+    elseif strcmpi(errorgroup,'embryos')
+        errorbar(ax,binValues,mean_duration_acrossEmbryos_perBin,se_duration_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
+            'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
+    end
+xlabel('Dorsal concentration (AU)')
+ylabel('spot duration (min)')
+ylim([0 6])
 xlim([0 3800])
 %set(gca,'YScale','log')
 
