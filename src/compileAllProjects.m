@@ -42,7 +42,7 @@ for k = 1:length(prefixes)
 %     fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
 %     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
 %         'yToManualAlignmentPrompt');
-%    alignCompiledParticlesByAnaphase(prefixes{k});
+    alignCompiledParticlesByAnaphase(prefixes{k});
 end
 end
 
