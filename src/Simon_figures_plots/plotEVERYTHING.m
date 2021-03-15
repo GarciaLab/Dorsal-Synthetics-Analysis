@@ -3,17 +3,19 @@ function plotEVERYTHING(metric,method)
 %%
 allenhancers = {'1Dg-8D','1Dg11','1DgW','1Dg-5','1DgVW','1DgS2',...
     '1DgAW3','1DgVVW3','1Dg-12','1DgSVW2','2Dgc','TwiPEv5'};
-optoenhancers = {'1Dg11_noExport','1Dg11_Export_first4min','1Dg11_exportedAfter4min'};
+optoenhancers = {'1Dg11_noExport','1Dg11_Export_first4min'};%,'1Dg11_exportedAfter4min'};
 
 affinity_enhancers = {'1Dg11_2xDl','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3','1DgVW'};
 %Palette = brewermap(length(affinity_enhancers),'YlGnBu');
-affinity_enhancers = {'1Dg11_2xDl_FFF'}%,'1DgS2','1DgW_2xDl_FFF','1DgAW3','1DgSVW2','1DgVVW3','1DG_VW_2xDl_FFF'};
+affinity_enhancers = {'1Dg11_2xDl_FFF'};%,'1DgS2','1DgW_2xDl_FFF','1DgAW3','1DgSVW2','1DgVVW3','1DG_VW_2xDl_FFF'};
 %affinity_enhancers = {'1Dg11_2xDl','1Dg11_FFF'};
-Palette = viridis(length(affinity_enhancers));
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
-scores = scores(1:length(affinity_enhancers));
-enhancers = affinity_enhancers;
+
+enhancers = optoenhancers;
+Palette = viridis(length(enhancers));
+scores = scores(1:length(enhancers));
+
 
 %% the traditional way, binning
 if contains(lower(method),'binning')
@@ -27,7 +29,7 @@ if contains(lower(method),'binning')
     %tiledlayout(1,length(enhancers), 'TileSpacing', 'compact', 'Padding', 'compact')
     % tiledlayout('flow')
     hold on
-    fiducialTime = 6;
+    fiducialTime = 3.5;
     for e = 1:length(enhancers)
         Color = Palette(e,:);
         %ax = nexttile; %comment this out to plot everything in one graph
