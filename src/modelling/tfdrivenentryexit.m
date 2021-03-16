@@ -25,23 +25,15 @@ nStates = nEntryStates + nOffStates + 1 + 1;
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 
-exitOnlyDuringOffStates = false;
-nSims = 1E3;
-nPlots = 10;
-if exitOnlyDuringOffStates
-    nPlots = 10;
-end
-dls = logspace(log10(2), log10(dmax), 20);
-kds = logspace(2, 5, nPlots);
-cs = logspace(-5, 1, nPlots);
-pi1s = logspace(-3, 2, nPlots);
-pi2s = logspace(-1, 1, nPlots);
+exitOnlyDuringOffStates = true;
+nSims = 1E5;
+nPlots = 20;
 
-if exitOnlyDuringOffStates
-    dls = logspace(log10(2), log10(dmax), 20);
-    cs = logspace(-2, 3, nPlots);
-    pi1s = logspace(-3, 3, nPlots);
-end
+dls = logspace(0, log10(dmax), 80);
+kds = logspace(2, 7, nPlots);
+cs = logspace(-5, 2, nPlots);
+pi1s = logspace(-3, 2, nPlots);
+pi2s = logspace(-1, 2, nPlots);
 
 switch model
     case "entry"
@@ -160,7 +152,7 @@ save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
 
 toc
-% load(dropboxfolder + "\" + "tf_paramsearch_"+model+"_.mat")
+% load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
 figure;
 try
