@@ -142,7 +142,7 @@ for nc = 1
     
     filteredWeightedMean = @(x) ((nansum(x.*nschnitzFluoEmbryo{nc},embryoDim))./nSchnitzBinTotal{nc}).*binFilter{nc};
     filteredWeightedSE = @(y) nanstd(bootstrp(nSamples, @(x) filteredWeightedMean(x), y,...
-        'Weights',nSchnitzBinTotalWithZeros{nc})', embryoDim);
+        'Weights',nSchnitzBinTotalWithZeros{nc})',1, embryoDim);
     
     %     filteredWeightedMean = @(x) nanmean(x,2).*binFilter{nc}';
     %      filteredWeightedSE = @(y) nanstd(bootstrp(nSamples, @(x) filteredWeightedMean(x), y), 0, 1);

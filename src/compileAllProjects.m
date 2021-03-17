@@ -35,14 +35,14 @@ for k = 1:length(prefixes)
 %     prefixes{k}
 %     clear LiveExperiment
 %     TrackNuclei(prefixes{k},'retrack', 'nWorkers', 1);
-% %     integrateSchnitzFluo(prefixes{k});
+     integrateSchnitzFluo(prefixes{k});
 % %     TrackmRNADynamics(prefixes{k});
 %    CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
 %        'yToManualAlignmentPrompt');
 %     fit3DGaussiansToAllSpots(prefixes{k}, 1, 'nWorkers', 1)
 %     CompileParticles(prefixes{k},  'minBinSize', 0, 'MinParticles', 0,...
 %         'yToManualAlignmentPrompt');
-    alignCompiledParticlesByAnaphase(prefixes{k});
+%    alignCompiledParticlesByAnaphase(prefixes{k});
 end
 end
 
@@ -88,8 +88,9 @@ save([resultsFolder,filesep,DataType,filesep,'combinedCompiledProjects.mat'], 'c
 
 % averagedTimeTraces = averageCombinedCompiledProjects(DataType, true);
 
+try
 dorsalResults = createDorsalResults(DataType); 
-
+end
 % plotDorsalResultsLoop(DataType, 'frac', 1:6, 'hill')
 % plotDorsalResultsLoop(DataType, activity)
 
