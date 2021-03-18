@@ -5,8 +5,8 @@
 tic
 
 % model = "basic";
-% model = "entry";
-model = "exit";
+model = "entry";
+% model = "exit";
 % model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
@@ -74,7 +74,6 @@ end
 
 % nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
-clear params;
 params.dls = dls;
 params.kds = kds;
 params.cs = cs;
@@ -159,13 +158,20 @@ dt = mfpts(:, nearestIndex(kds, 1E4), :, :, :) -...
 dt = repmat(dt, [1 length(kds) 1 1 1]);
 
 
+params.nPoints = 2E4; 
+
 [~, dropboxfolder] = getDorsalFolders;
 
 saveStr = model;
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
-save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
+params.saveStr = saveStr;
+
+goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
+
+save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat",...
+    'params', 'mfpts', 'dt', 'factive' , 'goodMatrixIndices')
 
 % %Also save a timestamped copy.
 % dttm = strrep(strrep(string(datetime), " ", "_"), ":", "_");
@@ -175,14 +181,9 @@ save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 toc
 % load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
-nPoints = 2E4; 
 figure;
-if numel(factive) < nPoints
-    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
-else
-    plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params)
-end
-goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
+plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
+
 plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 
 %%
