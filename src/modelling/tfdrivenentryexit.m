@@ -45,17 +45,7 @@ switch model
         pi2s = 1E10;
 end
 
-nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
-
-tau_exit = nan(nStates-1, nSims, numel(pi1s), 'double');
-for k = 1:length(pi1s)
-    tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nStates-1, nSims]);
-end
-
-tau_entry = nan(nEntryStates, nSims, numel(pi2s), 'double');
-for k = 1:length(pi2s)
-    tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
-end
+% nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
 clear params;
 params.dls = dls;
@@ -81,6 +71,17 @@ N_kds = length(params.kds);
 N_pi1s = length(params.pi1s);
 N_pi2s = length(params.pi2s);
 
+
+tau_exit = nan(nStates-1, nSims, numel(pi1s), 'double');
+for k = 1:length(pi1s)
+    tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nStates-1, nSims]);
+end
+
+tau_entry = nan(nEntryStates, nSims, numel(pi2s), 'double');
+for k = 1:length(pi2s)
+    tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
+end
+
 %dls, kds, pi1s, cs, pi2s
 for m = 1:N_cs
     
@@ -89,18 +90,18 @@ for m = 1:N_cs
     for i = 1:N_dls
         for j = 1:N_kds
             
-            pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-            tau_on = exprnd(pi0^-1, [nOffStates+1, nSims]);
+            %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
+            tau_on = exprnd((cs(m).*occupancy(dls(i), kds(j)))^-1, [nOffStates+1, nSims]);
             
             for n = 1:N_pi2s
                 
-                tau_entry_off = [squeeze(tau_entry(:, :, n)); tau_on];
+                tau_entry_off = [tau_entry(:, :, n); tau_on];
                 
                 for k = 1:N_pi1s
                     
                     %let's determine if the transition is to the silent
                     %state or other.
-                    [~, whichTransition] = min(cat(3,tau_entry_off,squeeze(tau_exit(:, :, k))), [], 3);
+                    [~, whichTransition] = min(cat(3,tau_entry_off,tau_exit(:, :, k)), [], 3);
                     
                     if exitOnlyDuringOffStates
                         whichTransition(1:nEntryStates, :) = 1;
@@ -109,23 +110,16 @@ for m = 1:N_cs
                     %never reached silent.
                     reachedOn = sum(whichTransition(1:nOffEntryStates, :), 1) ==...
                         nOffEntryStates;
-
+                    
                     %let's get the total duration of the successful trajectories up to
                     %the on state
                     onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
-                    onsets_sim_truncated = onsets_sim(onsets_sim < t_cycle);
+                    trunc = onsets_sim < t_cycle;
+                                      
+                    factive(i,j,k,m,n) = sum(reachedOn(trunc))/nSims;
+                    mfpts(i, j, k, m, n) = mean(onsets_sim(trunc));
+                    %                     fpts_std(i, j, k, m, n) = std(onsets_sim(trunc));
                     
-                    reachedOn_truncated = reachedOn(onsets_sim < t_cycle);
-                    
-                    factive(i,j,k,m,n) = sum(reachedOn_truncated)/nSims;
-                    mfpts(i, j, k, m, n) = mean(onsets_sim_truncated);
-                    fpts_std(i, j, k, m, n) = std(onsets_sim_truncated);
-                    
-                    %                     [fpt_on_observed, factive_temp] = averagePaths_entryexit(...
-                    %                         nSims, nSteps, pi0, pi1s(k), pi2s(n),onstate, silentstate, t_cycle,...
-                    %                         firstoffstate,...
-                    %                         squeeze(tau_entry(:, :, n)), squeeze(tau_exit(:, :, k)), tau_on, params );
-                    %
                 end %for pi2
             end %for pi1
         end% for kd
@@ -155,11 +149,10 @@ toc
 % load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
 figure;
-try
-plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
-catch
-    
-plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params)
+if numel(factive) < nPoints
+    plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
+else
+    plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params)
 end
 goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
 plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
