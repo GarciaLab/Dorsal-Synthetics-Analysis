@@ -12,21 +12,19 @@ end
 goodMatrixIndices = sortrows(goodMatrixIndices,[5 4 3 2]);
 
 %get locations of contiguous dorsal arrays
-lenContig = round(length(params.dls)/2.5); %this needs to be dehardcoded 
+% lenContig = round(length(params.dls)/2); %this needs to be dehardcoded 
 % lenContig = length(params.dls);
+lenContig = findContigLength(params, goodMatrixIndices);
 pos = findArray(goodMatrixIndices(:, 1), lenContig);
 
 figure;
 tiledlayout('flow')
-
+ 
 for j = 1:length(pos)
     
     inds = pos(j) : pos(j)+lenContig-1;
     gmi = goodMatrixIndices( inds, : );
     
-    if gmi(1, 2) >= 5
-%         1
-    end
     if max(gmi(:, 1)) == length(params.dls) %solns that don't reach max [dl] are weird.
 
         factive_theory = nan(1, lenContig); 
@@ -82,5 +80,25 @@ for j = 1:length(pos)
     end
 
 end
+
+
+end
+
+
+function lenContig = findContigLength(params, goodMatrixIndices)
+
+n = zeros(1, length(params.dls));
+
+for k = 1:length(params.dls)
+    pos = findArray(goodMatrixIndices(:, 1), k);
+    for j = 1:length(pos)
+        inds = pos(j) : pos(j)+k-1;
+        gmi = goodMatrixIndices( inds, : );
+        n(k) = n(k) + (max(gmi(:, 1)) == length(params.dls));
+    end
+end
+
+[~,lenContig] = max(n(n>length(params.dls)/4));
+lenContig = 22
 
 end

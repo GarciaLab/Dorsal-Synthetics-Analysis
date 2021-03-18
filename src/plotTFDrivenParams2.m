@@ -1,5 +1,5 @@
 % load('C:\Users\Armando\Dropbox\DorsalSyntheticsDropbox\tfentryexit_paramsearch.mat')
-function goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, varargin)
+function goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, varargin)
 
 nPoints = []; %if this is an integer, plotting will subsample using this many points. Otherwise, no subsampling
 shouldRound = false; %if true, subsample by discretizing data points and rounding nearby values
@@ -125,8 +125,8 @@ if nargout == 0
         %         h = binscatter(dat_fraction,dat_onset, nBins);
         %         h.ShowEmptyBins = 'on';
         %         colormap(brewermap(20,'Blues'));
-        xlim([0, 1])
-        ylim([0, 10]);
+        ylim([0, 1])
+        xlim([0, 10]);
         
         xlabel('fraction of active nuclei')
         ylabel('mean transcription onset time (min)')
@@ -184,7 +184,7 @@ if nargout == 0
         hold on
         colormap(brewermap(dim_dl,'Greens'))
         
-        if params.model == "basic"
+        if params.model == "basic" 
 %             scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
 %                 reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
 %                 params.dls, 'o', 'filled')
@@ -192,8 +192,8 @@ if nargout == 0
             
             f = @(t) reshape(t(:, j, l, m), [numel(t(:, j, l, m)), 1]);
     
-            xx = f(factive0)';
-            yy = f(mfpts0)';
+            yy = f(factive0)';
+            xx = f(mfpts0)';
             zz = zeros(size(xx));
             col = params.dls; % This is the color, vary with x in this case.
             surface([xx;xx],[yy;yy],[zz;zz],[col;col],...
@@ -202,12 +202,12 @@ if nargout == 0
                     'LineWidth',3);
             
             colorbar;
-            xlim([0, 1])
-            ylim([0, 10])
+            ylim([0, 1])
+            xlim([0, 10])
             
             
             hold on
-                 scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+                 scatter(y0(in),x0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
                 'MarkerEdgeColor', 'none')
         else
             %%
@@ -215,7 +215,7 @@ if nargout == 0
             %dls, kds, pi1s, cs, pi2s
             
            
-             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+             scatter(y0(in),x0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
                 'MarkerEdgeColor', 'none')
             hold on
             
@@ -238,8 +238,8 @@ if nargout == 0
 %            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
             
             
-            xx = f(factive0)';
-            yy = f(mfpts0)';
+            yy = f(factive0)';
+            xx = f(mfpts0)';
             zz = zeros(size(xx));
             col = params.dls; % This is the color, vary with x in this case.
             surface([xx;xx],[yy;yy],[zz;zz],[col;col],...
@@ -248,8 +248,8 @@ if nargout == 0
                     'linew',3);
             
             colorbar;
-            xlim([0, 1])
-            ylim([0, 8.5])
+            ylim([0, 1])
+            xlim([0, 10])
 %             set(gca,'Color','r')
             
             hold on
@@ -259,11 +259,14 @@ if nargout == 0
         end
         
         set(gca, 'ColorScale', 'linear');
-        xlim([0, 1]);
-        ylim([0, 10]);
+        ylim([0, 1]);
+        xlim([0, 10]);
         
         %         set(topAxes,'xtick',[],'ytick',[]);
     end
+    
+    pbaspect([3 1 1])
+    
 else
     %%% Let's return the good parameters
     if ~shouldRound && isempty(nPoints)

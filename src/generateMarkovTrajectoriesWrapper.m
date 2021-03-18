@@ -1,6 +1,7 @@
-
-
-model = "entryexit";
+function generateMarkovTrajectoriesWrapper(model)
+% 
+% model = "entry";
+% model = "entryexit"; 
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 4000;
@@ -30,8 +31,16 @@ cs = 10;
 pi1s = .5;
 pi2s = 1;
 
+switch model
+    case "entry"
+        pi1s = 0;
+    case "basic"
+        pi1s = 0;
+        pi2s = 1E10;
+    case "exit"
+        pi2s = 1E10;
+end
 
-nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
 tau_exit = nan(nStates-1, nSims, numel(pi1s), 'double');
 for k = 1:length(pi1s)

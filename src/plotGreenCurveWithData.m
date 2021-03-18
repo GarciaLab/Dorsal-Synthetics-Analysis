@@ -128,15 +128,16 @@ x = Ps(:, 1);
 y = Ps(:, 2);
 figure; 
 colormap(brewermap(length(c),'Greens'))
-scatter(x, y,[],c, 'o', 'filled')
+scatter(y, x,[],c, 'o', 'filled', 'MarkerEdgeColor', 'k')
 hold on
-errorbar(x, y, dat_onset_dl_ste, dat_onset_dl_ste,...
-    dat_fraction_dl_ste,dat_fraction_dl_ste,'k', 'LineStyle', 'none', 'CapSize', 0)
+errorbar(y, x, dat_fraction_dl_ste, dat_fraction_dl_ste,...
+    dat_onset_dl_ste, dat_onset_dl_ste,...
+    'k', 'LineStyle', 'none', 'CapSize', 0)
 % h = scatter_ellipse(x, y, c, cov)
-xlim([0, 1])
-ylim([0, 8.5])
-ylabel('mean transcriptional onset time (min)')
-xlabel('fraction of active nuclei')
+ylim([0, 1])
+xlim([0, 8.5])
+xlabel('mean transcriptional onset time (min)')
+ylabel('fraction of active nuclei')
 title('1Dg11_2xDl')
 colorbar;
 

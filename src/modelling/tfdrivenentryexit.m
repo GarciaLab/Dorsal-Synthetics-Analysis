@@ -6,8 +6,8 @@ tic
 
 % model = "basic";
 % model = "entry";
-% model = "exit";
-model = "entryexit";
+model = "exit";
+% model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 4000;
@@ -24,25 +24,52 @@ silentstate = onstate+1;
 nStates = nEntryStates + nOffStates + 1 + 1;
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
+% %% SLOW
+% exitOnlyDuringOffStates = true;
+% nSims = 1E5;
+% nPlots = 20;
+% 
+% dls = logspace(0, log10(dmax), 80);
+% kds = logspace(2, 7, nPlots);
+% cs = logspace(-5, 2, nPlots);
+% pi1s = logspace(-3, 2, nPlots);
+% pi2s = logspace(-1, 2, nPlots);
 
+% %% MEDIUM
+% exitOnlyDuringOffStates = true;
+% nSims = 1E4;
+% nPlots = 20;
+% 
+% dls = logspace(0, log10(dmax), 20);
+% kds = logspace(2, 7, nPlots);
+% cs = logspace(-5, 2, nPlots);
+% pi1s = logspace(-3, 2, nPlots);
+% pi2s = logspace(-1, 2, nPlots);
+% 
+% %%
+
+%% FAST
 exitOnlyDuringOffStates = true;
-nSims = 1E5;
-nPlots = 20;
+nSims = 1E3;
+nPlots = 40;
 
-dls = logspace(0, log10(dmax), 80);
+dls = logspace(0, log10(dmax), 20);
 kds = logspace(2, 7, nPlots);
 cs = logspace(-5, 2, nPlots);
-pi1s = logspace(-3, 2, nPlots);
-pi2s = logspace(-1, 2, nPlots);
+pi_exits = logspace(-3, 2, nPlots);
+pi_entries = logspace(-1, 2, nPlots);
+%%
 
 switch model
     case "entry"
-        pi1s = 0;
+        pi_exits = 0;
     case "basic"
-        pi1s = 0;
-        pi2s = 1E10;
+        pi_exits = 0;
+        pi_entries = 1E10;
     case "exit"
-        pi2s = 1E10;
+        cs = logspace(-5, -1, nPlots);
+        pi_exits = logspace(-4, 4, nPlots);
+        pi_entries = 1E10;
 end
 
 % nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
@@ -51,8 +78,8 @@ clear params;
 params.dls = dls;
 params.kds = kds;
 params.cs = cs;
-params.pi1s = pi1s;
-params.pi2s = pi2s;
+params.pi1s = pi_exits;
+params.pi2s = pi_entries;
 params.model = model;
 params.nEntryStates = nEntryStates;
 params.nOffStates = nOffStates;
@@ -61,9 +88,9 @@ params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 
 
 %%
-mfpts = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
-factive = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
-fpts_std = nan(length(dls), length(kds), length(pi1s), length(cs), length(pi2s));
+mfpts = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
+factive = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
+fpts_std = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
 
 N_cs = length(params.cs);
 N_dls = length(params.dls);
@@ -72,14 +99,14 @@ N_pi1s = length(params.pi1s);
 N_pi2s = length(params.pi2s);
 
 
-tau_exit = nan(nStates-1, nSims, numel(pi1s), 'double');
-for k = 1:length(pi1s)
-    tau_exit(:, :, k) = exprnd(pi1s(k)^-1, [nStates-1, nSims]);
+tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'double');
+for k = 1:length(pi_exits)
+    tau_exit(:, :, k) = exprnd(pi_exits(k)^-1, [nStates-1, nSims]);
 end
 
-tau_entry = nan(nEntryStates, nSims, numel(pi2s), 'double');
-for k = 1:length(pi2s)
-    tau_entry(:, :, k) = exprnd(pi2s(k)^-1, [nEntryStates, nSims]);
+tau_entry = nan(nEntryStates, nSims, numel(pi_entries), 'double');
+for k = 1:length(pi_entries)
+    tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nEntryStates, nSims]);
 end
 
 %dls, kds, pi1s, cs, pi2s
@@ -148,6 +175,7 @@ save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 toc
 % load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
+nPoints = 2E4; 
 figure;
 if numel(factive) < nPoints
     plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
