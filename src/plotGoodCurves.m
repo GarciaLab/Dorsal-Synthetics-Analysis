@@ -14,7 +14,8 @@ goodMatrixIndices = sortrows(goodMatrixIndices,[5 4 3 2]);
 %get locations of contiguous dorsal arrays
 % lenContig = round(length(params.dls)/2); %this needs to be dehardcoded 
 % lenContig = length(params.dls);
-lenContig = findContigLength(params, goodMatrixIndices);
+% lenContig = findContigLength(params, goodMatrixIndices);
+lenContig = 8
 pos = findArray(goodMatrixIndices(:, 1), lenContig);
 
 figure;
@@ -98,7 +99,7 @@ for k = 1:length(params.dls)
     end
 end
 
-[~,lenContig] = max(n(n>length(params.dls)/4));
-lenContig = 22
+[~,lenContig] = min(n(n>length(params.dls)/4));
+% lenContig = 22
 
 end

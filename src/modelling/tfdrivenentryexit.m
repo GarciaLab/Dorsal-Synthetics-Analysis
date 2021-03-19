@@ -17,11 +17,8 @@ t_cycle = 8; %min
 
 nOffStates = 5;
 nEntryStates = 5;
-nOffEntryStates = nOffStates + nEntryStates;
-firstoffstate = nEntryStates+1;
-onstate = nEntryStates + nOffStates+1;
-silentstate = onstate+1;
-nStates = nEntryStates + nOffStates + 1 + 1;
+nSilentStates = 1;
+
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 % %% SLOW
@@ -71,6 +68,12 @@ switch model
         pi_exits = logspace(-4, 4, nPlots);
         pi_entries = 1E10;
 end
+
+nOffEntryStates = nOffStates + nEntryStates;
+firstoffstate = nEntryStates+1;
+onstate = nEntryStates + nOffStates+1;
+silentstate = onstate+1;
+nStates = nEntryStates + nOffStates + 1 + nSilentStates;
 
 % nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
@@ -168,7 +171,7 @@ if exitOnlyDuringOffStates
 end
 params.saveStr = saveStr;
 
-goodMatrixIndices = plotTFDrivenParams(factive, dt, mfpts, 'dim', 2, 'params', params);
+goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, 'dim', 2, 'params', params);
 
 save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat",...
     'params', 'mfpts', 'dt', 'factive' , 'goodMatrixIndices')
@@ -181,66 +184,69 @@ save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat",...
 toc
 % load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
-figure;
-plotTFDrivenParams(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
+plotTFDrivenParams2(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
 
 plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 
 %%
-% try
-%     figure;
-%     t = tiledlayout('flow');
-%     for k = 1:2:length(dls)
-%         nexttile;
-%         plotTFDrivenParams(factive(k, :, :, :, :) , dt(k, :, :, :, :),...
-%             mfpts(k, :, :, :, :), 'params', params, 'fig', gcf);
-%     end
-%     title(t, 'Effect of [Dorsal] on parameter space');
-%
-%
-%     figure;
-%     t = tiledlayout('flow');
-%     for k = 1:1:length(cs)
-%         nexttile;
-%         plotTFDrivenParams(factive(:, :, :, k, :) , dt(:, :, :, k, :),...
-%             mfpts(:, :, :, k, :),'params', params, 'fig', gcf);
-%     end
-%     title(t, 'Effect of c on parameter space');
-%
-%     figure;
-%     t = tiledlayout('flow');
-%     for k = 1:1:length(kds)
-%         nexttile;
-%         plotTFDrivenParams(factive(:, k, :, :, :) ,...
-%             dt(:, k, :, :, :), mfpts(:, k, :, :, :),'params', params,'nPoints', 1E3, 'fig', gcf);
-%     end
-%     title(t, 'Effect of KD on parameter space');
-%
-%     figure;
-%     t = tiledlayout('flow');
-%     for k = 1:1:length(pi1s)
-%         nexttile;
-%         try
-%             plotTFDrivenParams(factive(:, :, k, :, :) ,...
-%                 dt(:, :, k, :, :), mfpts(:, :, k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
-%             %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
-%             title(num2str(round2(pi1s(k))))
-%         end
-%     end
-%     title(t, 'Effect of pi_exit on parameter space');
-%
-%
-%
-%     figure;
-%     t = tiledlayout('flow');
-%     for k = 1:1:length(pi2s)
-%         nexttile;
-%         %     try
-%         plotTFDrivenParams(factive(:, :, :, :, k),...
-%             dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'params', params, 'fig', gcf, 'shouldRound', true);
-%         %     end
-%         %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
-%         title(num2str(round2(pi2s(k))))
-%     end
-%     title(t, 'Effect of pi_entry on parameter space');
-% end
+
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:2:length(dls)
+        nexttile;
+        try
+        plotTFDrivenParams2(factive(k, :, :, :, :) , dt(k, :, :, :, :),...
+            mfpts(k, :, :, :, :), 'params', params, 'fig', gcf);
+        end
+    end
+    title(t, 'Effect of [Dorsal] on parameter space');
+
+
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:1:length(cs)
+        nexttile;
+        try
+        plotTFDrivenParams2(factive(:, :, :, k, :) , dt(:, :, :, k, :),...
+            mfpts(:, :, :, k, :),'params', params, 'fig', gcf);
+        end
+    title(t, 'Effect of c on parameter space');
+    end
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:1:length(kds)
+        nexttile;
+        try
+            plotTFDrivenParams2(factive(:, k, :, :, :) ,...
+                dt(:, k, :, :, :), mfpts(:, k, :, :, :),'params', params,'nPoints', 1E3, 'fig', gcf);
+        end
+    end
+    title(t, 'Effect of KD on parameter space');
+
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:1:length(pi1s)
+        nexttile;
+        try
+            plotTFDrivenParams2(factive(:, :, k, :, :) ,...
+                dt(:, :, k, :, :), mfpts(:, :, k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
+            %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
+            title(num2str(round2(pi1s(k))))
+        end
+    end
+    title(t, 'Effect of pi_exit on parameter space');
+
+
+
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:1:length(pi2s)
+        nexttile;
+            try
+            plotTFDrivenParams2(factive(:, :, :, :, k),...
+                dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'params', params, 'fig', gcf,  'nPoints', 1E3);
+            end
+        %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
+        title(num2str(round2(pi2s(k))))
+    end
+    title(t, 'Effect of pi_entry on parameter space');

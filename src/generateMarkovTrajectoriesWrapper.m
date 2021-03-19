@@ -2,6 +2,7 @@ function generateMarkovTrajectoriesWrapper(model)
 % 
 % model = "entry";
 % model = "entryexit"; 
+%model = "basic"
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 4000;
@@ -11,11 +12,8 @@ t_cycle = 8; %min
 
 nOffStates = 5;
 nEntryStates = 5;
-nOffEntryStates = nOffStates + nEntryStates;
-firstoffstate = nEntryStates+1;
-onstate = nEntryStates + nOffStates+1;
-silentstate = onstate+1;
-nStates = nEntryStates + nOffStates + 1 + 1;
+nSilentStates = 1;
+
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 
@@ -35,12 +33,19 @@ switch model
     case "entry"
         pi1s = 0;
     case "basic"
+        cs = 1;
         pi1s = 0;
         pi2s = 1E10;
+        nEntryStates = 0;
     case "exit"
         pi2s = 1E10;
 end
 
+nOffEntryStates = nOffStates + nEntryStates;
+firstoffstate = nEntryStates+1;
+onstate = nEntryStates + nOffStates+1;
+silentstate = onstate+1;
+nStates = nEntryStates + nOffStates + 1 + nSilentStates;
 
 tau_exit = nan(nStates-1, nSims, numel(pi1s), 'double');
 for k = 1:length(pi1s)
@@ -116,4 +121,4 @@ for m = 1:N_cs
     end %for dl
 end %for c
 
-generateMarkovTrajectories(whichTransition, tau_entry_off, tau_exit);
+generateMarkovTrajectories(whichTransition, tau_entry_off, tau_exit, model);

@@ -16,7 +16,6 @@ for i = 1:2:(numel(varargin)-1)
     end
 end
 
-[~, resultsFolder] = getDorsalFolders;
 
 mfpts0 = mfpts;
 dt0 = dt;
@@ -76,8 +75,8 @@ in = inShape(hull,x, y, z);
 in_2D = inShape(hull_2D,x, y);
 
 %%
-if ~isempty(fig)
-    gcf;
+if isempty(fig)
+    fig = figure();
 end
 
 
@@ -111,46 +110,10 @@ if nargout == 0
         
     elseif dim == 2
         
-        %         bottomAx =axes;
+  
         
-        %         colormap(brewermap(20,'Blues'));
-        
-        %         try
-        %             load([resultsFolder, filesep, '2Dhist.mat'], 'dat_onset', 'dat_fraction')
-        %         catch
-        %             [dat_onset, dat_fraction] = plotGreenBoxWithData;
-        %         end
-        
-        %         nBins = [6, 16];
-        %         h = binscatter(dat_fraction,dat_onset, nBins);
-        %         h.ShowEmptyBins = 'on';
-        %         colormap(brewermap(20,'Blues'));
-        ylim([0, 1])
-        xlim([0, 10]);
-        
-        xlabel('fraction of active nuclei')
-        ylabel('mean transcription onset time (min)')
-        %          legend('viable region', 'viable parameters', 'unphysical parameters');
-        
-        hold on
-        
-        %         scatter(x(in),y(in),'r.')
-        %         scatter(x(in_2D),y(in_2D),'r.')
-        %         scatter(x(in_2D),y(in_2D),'k.')
-        
-        hold on
-        
-        %         scatter(x(~in),y(~in),'b.')
-        %         scatter(x(~in_2D),y(~in_2D),'b.')
-        %         scatter(x(~in_2D),y(~in_2D),'k.')
-        
-        %         set (gca,'Ydir','reverse')
-        
-        %          [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices)
+     
         dim_dl = size(factive0, 1);
-        %         c = brewermap(dim_dl,'Reds');
-        %         c = brewermap(dim_dl,'Reds');
-        
         
         factive0(isnan(mfpts)) = nan;
         dt0(isnan(mfpts)) = nan;
@@ -163,43 +126,22 @@ if nargout == 0
         factive0(factive0 < .05) = nan;
         
         %dls, kds, pi1s, cs, pi2s
-        
-        %         figure
-        if ~isempty(params)
-            j = nearestIndex(params.kds, 1E5); %10. %kd==100,000
-            l = 1;
-            m = nearestIndex(params.cs, 77);%5; %c == 77
-        else
-            j=10; %kd==100,000
-            l=1;
-            m=5;%c == 77
-        end
+
         
         x0 = x;
         y0 = y;
         x0(x0 < .05) = nan;
         y0(x0 < .05) = nan;
-        %         scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
-        %             'MarkerEdgeColor', 'none')
-        hold on
-        colormap(brewermap(dim_dl,'Greens'))
         
         %%
-        figure
         %dls, kds, pi1s, cs, pi2s
-        
         
         scatter(y0(in),x0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
             'MarkerEdgeColor', 'none')
         hold on
         
         colormap(brewermap(dim_dl,'Greens'))
-        if params.model == "basic"
-            j = nearestIndex(params.kds, 1E5); %10. %kd==100,000
-            l = 1; %singleton dimension
-            m = nearestIndex(params.cs, 77);%5; %c == 77
-            n = 1; %singleton dimension
-        else
+
             if ~params.exitOnlyDuringOffStates
                 j = nearestIndex(params.kds, 1E4);
                 m = nearestIndex(params.cs, 10);
@@ -211,7 +153,6 @@ if nargout == 0
                 l = nearestIndex(params.pi1s, .001);
                 n = nearestIndex(params.pi2s, 2.5);
             end
-        end
         
         f = @(t) reshape(t(:, j, l, m, n), [numel(t(:, j, l, m, n)), 1]);
         
@@ -241,6 +182,9 @@ if nargout == 0
         set(gca, 'ColorScale', 'linear');
         ylim([0, 1]);
         xlim([0, 10]);
+        ylabel('fraction of active nuclei')
+        xlabel('mean transcription onset time (min)')
+       
         
         %         set(topAxes,'xtick',[],'ytick',[]);
     end

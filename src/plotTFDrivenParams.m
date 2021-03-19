@@ -185,21 +185,21 @@ if nargout == 0
         colormap(brewermap(dim_dl,'Greens'))
         
         if params.model == "basic"
-%             scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
-%                 reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
-%                 params.dls, 'o', 'filled')
+            %             scatter(reshape(factive0(:, j, l, m), [numel(factive0(:, j, l, m)), 1]),...
+            %                 reshape(mfpts0(:, j, l, m), [numel(mfpts0(:, j, l, m)), 1]),[],...
+            %                 params.dls, 'o', 'filled')
             
             
             f = @(t) reshape(t(:, j, l, m), [numel(t(:, j, l, m)), 1]);
-    
+            
             xx = f(factive0)';
             yy = f(mfpts0)';
             zz = zeros(size(xx));
             col = params.dls; % This is the color, vary with x in this case.
             surface([xx;xx],[yy;yy],[zz;zz],[col;col],...
-                    'FaceColor','none',...
-                    'EdgeColor','interp',...
-                    'LineWidth',3);
+                'FaceColor','none',...
+                'EdgeColor','interp',...
+                'LineWidth',3);
             
             colorbar;
             xlim([0, 1])
@@ -207,35 +207,35 @@ if nargout == 0
             
             
             hold on
-                 scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
                 'MarkerEdgeColor', 'none')
         else
             %%
             figure
             %dls, kds, pi1s, cs, pi2s
             
-           
-             scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
+            
+            scatter(x0(in),y0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
                 'MarkerEdgeColor', 'none')
             hold on
             
             colormap(brewermap(dim_dl,'Greens'))
             if ~params.exitOnlyDuringOffStates
-                j = nearestIndex(params.kds, 1E4); 
+                j = nearestIndex(params.kds, 1E4);
                 m = nearestIndex(params.cs, 10);
-                l = nearestIndex(params.pi1s, .001); 
-                n = nearestIndex(params.pi2s, 2); 
-            else
-                j = nearestIndex(params.kds, 1E4);  
-                m = nearestIndex(params.cs, 10); 
                 l = nearestIndex(params.pi1s, .001);
-                n = nearestIndex(params.pi2s, 2.5); 
+                n = nearestIndex(params.pi2s, 2);
+            else
+                j = nearestIndex(params.kds, 1E4);
+                m = nearestIndex(params.cs, 10);
+                l = nearestIndex(params.pi1s, .001);
+                n = nearestIndex(params.pi2s, 2.5);
             end
             
             f = @(t) reshape(t(:, j, l, m, n), [numel(t(:, j, l, m, n)), 1]);
             
-           
-%            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
+            
+            %            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
             
             
             xx = f(factive0)';
@@ -243,14 +243,14 @@ if nargout == 0
             zz = zeros(size(xx));
             col = params.dls; % This is the color, vary with x in this case.
             surface([xx;xx],[yy;yy],[zz;zz],[col;col],...
-                    'facecol','no',...
-                    'edgecol','interp',...
-                    'linew',3);
+                'facecol','no',...
+                'edgecol','interp',...
+                'linew',3);
             
             colorbar;
             xlim([0, 1])
             ylim([0, 8.5])
-%             set(gca,'Color','r')
+            %             set(gca,'Color','r')
             
             hold on
             
@@ -304,7 +304,7 @@ else
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
             try
-            histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
+                histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
             end
             xlabel(fields_params{k});
             
