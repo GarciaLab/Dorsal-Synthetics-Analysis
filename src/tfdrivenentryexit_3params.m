@@ -47,12 +47,10 @@ occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 %% FAST
 exitOnlyDuringOffStates = true;
-nSims = 1E3;
-nPlots = 40;
+nSims = 2
+nPlots = 3;
 
-dls = logspace(0, log10(dmax), 20);
-kds = logspace(2, 7, nPlots);
-cs = logspace(-5, 2, nPlots);
+pi_basics = logspace(-3, 2, nPlots);
 pi_exits = logspace(-3, 2, nPlots);
 pi_entries = logspace(-1, 2, nPlots);
 %%
@@ -64,7 +62,6 @@ switch model
         pi_exits = 0;
         pi_entries = 1E10;
     case "exit"
-        cs = logspace(-5, -1, nPlots);
         pi_exits = logspace(-4, 4, nPlots);
         pi_entries = 1E10;
 end
@@ -77,11 +74,14 @@ nStates = nEntryStates + nOffStates + 1 + nSilentStates;
 
 % nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
-params.dls = dls;
-params.kds = kds;
-params.cs = cs;
+params.model = model;
+params.nEntryStates = nEntryStates;
+params.nOffStates = nOffStates;
+params.nStates = nStates;
+params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 params.pi1s = pi_exits;
 params.pi2s = pi_entries;
+params.pibasics = pi_basics;
 params.model = model;
 params.nEntryStates = nEntryStates;
 params.nOffStates = nOffStates;
@@ -90,16 +90,18 @@ params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 
 
 %%
-mfpts = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
-factive = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
-fpts_std = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
+mfpts = nan(length(pi_basics), length(pi_exits), length(pi_entries));
+factive =  nan(length(pi_basics), length(pi_exits), length(pi_entries));
+fpts_std = nan(length(pi_basics), length(pi_exits), length(pi_entries));
 
-N_cs = length(params.cs);
-N_dls = length(params.dls);
-N_kds = length(params.kds);
 N_pi1s = length(params.pi1s);
 N_pi2s = length(params.pi2s);
+N_pibasics = length(params.pibasics); 
 
+tau_on = nan(nEntryStates+1, nSims, numel(pi_basics), 'double');
+for k = 1:length(pi_basics)
+    tau_on(:, :, k) = exprnd(pi_basics(k)^-1, [nOffStates+1, nSims]);
+end
 
 tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'double');
 for k = 1:length(pi_exits)
@@ -111,21 +113,40 @@ for k = 1:length(pi_entries)
     tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nEntryStates, nSims]);
 end
 
-%dls, kds, pi1s, cs, pi2s
-for m = 1:N_cs
-    
-    display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
-    
-    for i = 1:N_dls
-        for j = 1:N_kds
-            
-            %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-            tau_on = exprnd((cs(m).*occupancy(dls(i), kds(j)))^-1, [nOffStates+1, nSims]);
-            
+tau_entry_off = cat(1, tau_entry, tau_on); 
+
+ [~, whichTransition] = min(cat(4,tau_entry_off, tau_exit), [], 4);
+ 
+if exitOnlyDuringOffStates
+    whichTransition(1:nEntryStates, :, :) = 1;
+end
+
+onsets_sim = squeeze(sum(tau_entry_off, 1));
+
+reachedOn = squeeze(sum(whichTransition(1:nOffEntryStates, :, :), 1) ==...
+                        nOffEntryStates);     
+ trunc = onsets_sim < t_cycle;
+                   
+                    
+ a = tau_entry_off;
+ b = find(~reachedOn)
+ a(:, b) =[];
+tau_entry_off_reachedOn = tau_entry_off(1:nOffEntryStates, reachedOn);
+onsets_sim = sum(tau_entry_off_reachedOn, 1);
+
+onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
+ 
+                                      
+factive = sum(reachedOn(trunc), 1)/nSims;
+
+mfpts(i, k, n) = mean(onsets_sim(trunc), 1);
+% display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
+
+%pi_basics, pi_exits,pi_entries
+for i = 1:N_pibasics
+
             for n = 1:N_pi2s
-                
-                tau_entry_off = [tau_entry(:, :, n); tau_on];
-                
+                                
                 for k = 1:N_pi1s
                     
                     %let's determine if the transition is to the silent
@@ -145,15 +166,13 @@ for m = 1:N_cs
                     onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
                     trunc = onsets_sim < t_cycle;
                                       
-                    factive(i,j,k,m,n) = sum(reachedOn(trunc))/nSims;
-                    mfpts(i, j, k, m, n) = mean(onsets_sim(trunc));
+                    factive(i,k, n) = sum(reachedOn(trunc))/nSims;
+                    mfpts(i, k, n) = mean(onsets_sim(trunc));
                     %                     fpts_std(i, j, k, m, n) = std(onsets_sim(trunc));
                     
                 end %for pi2
             end %for pi1
-        end% for kd
-    end %for dl
-end %for c
+        end% for pibasic
 
 dt = mfpts(:, nearestIndex(kds, 1E4), :, :, :) -...
     mfpts(:, nearestIndex(kds, 400), :, :, :);
@@ -165,7 +184,7 @@ params.nPoints = 2E4;
 
 [~, dropboxfolder] = getDorsalFolders;
 
-saveStr = model;
+saveStr = model + "_3param_";
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end

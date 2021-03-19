@@ -5,9 +5,9 @@
 tic
 
 % model = "basic";
-% model = "entry";
+model = "entry";
 % model = "exit";
-model = "entryexit";
+% model = "entryexit";
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 dmax = 4000;
@@ -47,14 +47,12 @@ occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 %% FAST
 exitOnlyDuringOffStates = true;
-nSims = 1E3;
-nPlots = 40;
+nSims = 1E5;
+nPlots = 100;
 
-dls = logspace(0, log10(dmax), 20);
-kds = logspace(2, 7, nPlots);
-cs = logspace(-5, 2, nPlots);
+pi_basics = logspace(-3, 6, nPlots);
 pi_exits = logspace(-3, 2, nPlots);
-pi_entries = logspace(-1, 2, nPlots);
+pi_entries = logspace(-1, 4, nPlots);
 %%
 
 switch model
@@ -64,8 +62,7 @@ switch model
         pi_exits = 0;
         pi_entries = 1E10;
     case "exit"
-        cs = logspace(-5, -1, nPlots);
-        pi_exits = logspace(-4, 4, nPlots);
+%         pi_exits = logspace(-4, 4, nPlots);
         pi_entries = 1E10;
 end
 
@@ -77,11 +74,14 @@ nStates = nEntryStates + nOffStates + 1 + nSilentStates;
 
 % nParams = numel(dls)*numel(kds)*numel(pi1s)*numel(pi2s)*numel(cs);
 
-params.dls = dls;
-params.kds = kds;
-params.cs = cs;
+params.model = model;
+params.nEntryStates = nEntryStates;
+params.nOffStates = nOffStates;
+params.nStates = nStates;
+params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 params.pi1s = pi_exits;
 params.pi2s = pi_entries;
+params.pibasics = pi_basics;
 params.model = model;
 params.nEntryStates = nEntryStates;
 params.nOffStates = nOffStates;
@@ -90,16 +90,18 @@ params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 
 
 %%
-mfpts = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
-factive = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
-fpts_std = nan(length(dls), length(kds), length(pi_exits), length(cs), length(pi_entries));
+mfpts = nan(length(pi_basics), length(pi_exits), length(pi_entries));
+factive =  nan(length(pi_basics), length(pi_exits), length(pi_entries));
+fpts_std = nan(length(pi_basics), length(pi_exits), length(pi_entries));
 
-N_cs = length(params.cs);
-N_dls = length(params.dls);
-N_kds = length(params.kds);
 N_pi1s = length(params.pi1s);
 N_pi2s = length(params.pi2s);
+N_pibasics = length(params.pibasics); 
 
+tau_on = nan(nEntryStates+1, nSims, numel(pi_basics), 'double');
+for k = 1:length(pi_basics)
+    tau_on(:, :, k) = exprnd(pi_basics(k)^-1, [nOffStates+1, nSims]);
+end
 
 tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'double');
 for k = 1:length(pi_exits)
@@ -111,20 +113,21 @@ for k = 1:length(pi_entries)
     tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nEntryStates, nSims]);
 end
 
-%dls, kds, pi1s, cs, pi2s
-for m = 1:N_cs
+if contains(model, "entry")
+    tau_entry_off = cat(1, tau_entry, tau_on); 
+else
+    tau_entry_off = tau_on;
+end
+
+
+%pi_basics, pi_entries, pi_exits
+for i = 1:N_pibasics
     
-    display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
-    
-    for i = 1:N_dls
-        for j = 1:N_kds
-            
-            %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-            tau_on = exprnd((cs(m).*occupancy(dls(i), kds(j)))^-1, [nOffStates+1, nSims]);
-            
-            for n = 1:N_pi2s
-                
-                tau_entry_off = [tau_entry(:, :, n); tau_on];
+display("tfdrivenentryexit progress: "+ num2str(( (i-1) / N_pibasics)*100)+"%" )
+
+            for j = 1:N_pi2s
+                        
+                tau_entry_off = [tau_entry(:, :, j); tau_on(:, :, i)];
                 
                 for k = 1:N_pi1s
                     
@@ -145,36 +148,28 @@ for m = 1:N_cs
                     onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
                     trunc = onsets_sim < t_cycle;
                                       
-                    factive(i,j,k,m,n) = sum(reachedOn(trunc))/nSims;
-                    mfpts(i, j, k, m, n) = mean(onsets_sim(trunc));
+                    factive(i, j, k) = sum(reachedOn(trunc))/nSims;
+                    mfpts(i, j, k) = mean(onsets_sim(trunc));
                     %                     fpts_std(i, j, k, m, n) = std(onsets_sim(trunc));
                     
-                end %for pi2
-            end %for pi1
-        end% for kd
-    end %for dl
-end %for c
-
-dt = mfpts(:, nearestIndex(kds, 1E4), :, :, :) -...
-    mfpts(:, nearestIndex(kds, 400), :, :, :);
-
-dt = repmat(dt, [1 length(kds) 1 1 1]);
-
+                end %for pi_entry
+            end %for pi_exit
+        end% for pibasic
 
 params.nPoints = 2E4; 
 
 [~, dropboxfolder] = getDorsalFolders;
 
-saveStr = model;
+saveStr = model + "_3param_";
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
 params.saveStr = saveStr;
 
-goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, 'dim', 2, 'params', params);
+goodMatrixIndices = plotTFDrivenParams_3params(factive, mfpts, 'params', params);
 
 save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat",...
-    'params', 'mfpts', 'dt', 'factive' , 'goodMatrixIndices')
+    'params', 'mfpts',  'factive' , 'goodMatrixIndices')
 
 % %Also save a timestamped copy.
 % dttm = strrep(strrep(string(datetime), " ", "_"), ":", "_");
@@ -184,54 +179,35 @@ save(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat",...
 toc
 % load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat")
 
-plotTFDrivenParams2(factive, dt, mfpts, 'nPoints', nPoints, 'dim', 2, 'params', params)
+plotTFDrivenParams_3params(factive, mfpts, 'nPoints', params.nPoints,  'params', params)
 
-plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
+% plotGoodCurves(factive,mfpts, params, goodMatrixIndices)
 
 %%
 
     figure;
     t = tiledlayout('flow');
-    for k = 1:2:length(dls)
+    for k = 1:5:length(params.pibasics)
         nexttile;
-        try
-        plotTFDrivenParams2(factive(k, :, :, :, :) , dt(k, :, :, :, :),...
-            mfpts(k, :, :, :, :), 'params', params, 'fig', gcf);
-        end
-    end
-    title(t, 'Effect of [Dorsal] on parameter space');
-
-
-    figure;
-    t = tiledlayout('flow');
-    for k = 1:1:length(cs)
-        nexttile;
-        try
-        plotTFDrivenParams2(factive(:, :, :, k, :) , dt(:, :, :, k, :),...
-            mfpts(:, :, :, k, :),'params', params, 'fig', gcf);
-        end
-    title(t, 'Effect of c on parameter space');
-    end
-    figure;
-    t = tiledlayout('flow');
-    for k = 1:1:length(kds)
-        nexttile;
-        try
-            plotTFDrivenParams2(factive(:, k, :, :, :) ,...
-                dt(:, k, :, :, :), mfpts(:, k, :, :, :),'params', params,'nPoints', 1E3, 'fig', gcf);
-        end
-    end
-    title(t, 'Effect of KD on parameter space');
-
-    figure;
-    t = tiledlayout('flow');
-    for k = 1:1:length(pi1s)
-        nexttile;
-        try
-            plotTFDrivenParams2(factive(:, :, k, :, :) ,...
-                dt(:, :, k, :, :), mfpts(:, :, k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
+%         try
+            plotTFDrivenParams_3params(factive(k, :, :) ,...
+                mfpts(k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
             %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
-            title(num2str(round2(pi1s(k))))
+            title(num2str(round2(pi_basics(k))))
+%         end
+    end
+    title(t, 'Effect of pi_basic on parameter space');
+    
+    
+    figure;
+    t = tiledlayout('flow');
+    for k = 1:5:length(pi_exits)
+        nexttile;
+        try
+            plotTFDrivenParams_3params(factive(:, :, k) ,...
+                mfpts(:, :, k),'params', params, 'nPoints', 1E3, 'fig', gcf);
+            %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
+            title(num2str(round2(pi_exits(k))))
         end
     end
     title(t, 'Effect of pi_exit on parameter space');
@@ -240,13 +216,32 @@ plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 
     figure;
     t = tiledlayout('flow');
-    for k = 1:1:length(pi2s)
+    for k = 1:5:length(pi_entries)
         nexttile;
-            try
-            plotTFDrivenParams2(factive(:, :, :, :, k),...
-                dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'params', params, 'fig', gcf,  'nPoints', 1E3);
-            end
+            plotTFDrivenParams_3params(factive(:,k,:),...
+                mfpts(:,k,:), 'params', params, 'fig', gcf,  'nPoints', 1E3);
         %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
-        title(num2str(round2(pi2s(k))))
+        title(num2str(round2(pi_entries(k))))
+    end
+    title(t, 'Effect of pi_entry on parameter space');
+    
+    
+      figure;
+    for k = 1:2:length(pi_entries)
+            plotTFDrivenParams_3params(factive(:,k,nearestIndex(pi_exits, 1)),...
+                mfpts(:,k,nearestIndex(pi_exits, 5)), 'params', params, 'fig', gcf,  'nPoints', 1E3);
+        %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
+        title(num2str(round2(pi_entries(k))))
+        hold on
+    end
+    title(t, 'Effect of pi_entry on parameter space');
+    
+        figure;
+    for k = 1:2:length(pi_entries)
+            plotTFDrivenParams_3params(factive(:,k,nearestIndex(pi_exits, 1)),...
+                mfpts(:,k,nearestIndex(pi_exits, 1)), 'params', params, 'fig', gcf,  'nPoints', 1E3);
+        %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
+        title(num2str(round2(pi_entries(k))))
+        hold on
     end
     title(t, 'Effect of pi_entry on parameter space');
