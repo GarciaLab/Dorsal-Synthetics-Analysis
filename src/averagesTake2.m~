@@ -25,12 +25,8 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompile
 %in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
 enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
 nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
-
-% ****IMPORTANT!!!**** this line uses the standard dorsal fluorescence, not the
-% arbitrary one at a given 'fiducial time'
+% IMPOR
 %nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
-
-
 
 binValues = linspace(0,4500,numBins);
 binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
