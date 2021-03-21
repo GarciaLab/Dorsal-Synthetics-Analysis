@@ -1,4 +1,4 @@
-function plotgreendata_slim()
+function plotgreendata_slim(varargin)
 
 if nargout > 0
     displayFigures = false;
