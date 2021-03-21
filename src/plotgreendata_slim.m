@@ -20,7 +20,7 @@ load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
 
 numBins = 20;
 
-fiducialTime = 6; %mins?
+fiducialTime = 6; %mins
 
 for i = 1:length(combinedCompiledProjects_allEnhancers)
     if isempty(combinedCompiledProjects_allEnhancers(i).dorsalFluoFeature)
