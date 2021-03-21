@@ -79,6 +79,7 @@ if nargout == 0
     y0(x0 < .05) = nan;
     
     %%
+    
     scatter(y0,x0,'o', 'MarkerFaceColor', [128 128 128]/255,...
         'MarkerEdgeColor', 'none')
     hold on
@@ -88,11 +89,11 @@ if nargout == 0
     hold on
     
     colormap(brewermap(dim_dl,'Greens'))
-    
-    i = nearestIndex(params.pibasics, 2);
-    j = nearestIndex(params.pi1s, .001);
-    k = nearestIndex(params.pi2s, 2);
-    
+  try  
+    i = nearestIndex(params.pi_basics, 2);
+    j = nearestIndex(params.pi_exits, .001);
+    k = nearestIndex(params.pi_entries, 2);
+  end
     
 %     f = @(t) reshape( t(i, j, k), [numel( t(i, j, k) ), 1]);
     
@@ -119,9 +120,9 @@ if nargout == 0
     
     set(gca, 'ColorScale', 'linear');
     ylim([0, 1]);
-    xlim([0, 10]);
-    ylabel('fraction of active nuclei')
-    xlabel('mean transcription onset time (min)')
+    xlim([0, 8.5]);
+%     ylabel('fraction of active nuclei')
+%     xlabel('mean transcription onset time (min)')
     
     
     %         set(topAxes,'xtick',[],'ytick',[]);
@@ -140,23 +141,23 @@ else
         
         in_temp_2D = inShape(hull_2D, factive0(:), mfpts0(:) );
         goodLinearIndices = find(in_temp_2D);
-        [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
-        goodMatrixIndices = [in1 in2 in3 in4 in5];
+        [in1, in2, in3] = ind2sub(size(mfpts0), goodLinearIndices);
+        goodMatrixIndices = [in1 in2 in3];
         
         
         
         %dls, kds, pi1s, cs, pi2s
         fields_params = fieldnames(params);
-        figure;
+        figure
         
         t = tiledlayout('flow');
         title(t, 'x axes all log10 scale')
-        
+        fields_params = {'pi_basics', 'pi_entries', 'pi_exits'};
         for k = 1:size(goodMatrixIndices, 2)
             nexttile;
-            try
+%             try
                 histogram(log10(params.(fields_params{k})(goodMatrixIndices(:, k))));
-            end
+%             end
             xlabel(fields_params{k});
             
         end
