@@ -1,4 +1,4 @@
-function [embryoRNA embryoRNAError] = averagesTake2(DataType,numBins,metric,fiducialTime,errorgroup,Color,ax)
+function [embryoRNA embryoRNAError] = averagesTake2(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
 % metric can be 'maxfluo', 'accumulatedfluo' or 'fraction'
 % errorgroup is over what the error is taken, 'embryos' or 'nuclei'. For
 % fraction the error over nuclei is bootstraped.
@@ -17,7 +17,16 @@ for i = 1:length(combinedCompiledProjects_allEnhancers)
     end
 end
 
-enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
+% define rules for what data we'll consider in the analysis and plots
+dataTypeIncludeRule = contains({combinedCompiledProjects_allEnhancers.dataSet},DataType);
+dataTypeExcludeRule = ~contains(lower({combinedCompiledProjects_allEnhancers.dataSet}),lower(NotEnhancerName));
+dataTypeRule = dataTypeIncludeRule & dataTypeExcludeRule;
+
+tempRule = ({combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_2xDl" |...
+      {combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_FFF"  );
+dataTypeRule = dataTypeRule & tempRule;
+
+enhancerStruct = combinedCompiledProjects_allEnhancers(dataTypeRule &...
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 % bin nuclei 
@@ -25,8 +34,12 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompile
 %in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
 enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
 nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
-% IMPOR
-%nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+
+% ****IMPORTANT!!!**** this line uses the standard dorsal fluorescence, not the
+% arbitrary one at a given 'fiducial time'
+% nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+
+
 
 binValues = linspace(0,4500,numBins);
 binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
@@ -34,7 +47,6 @@ for n = 1:length(enhancerStruct)
     enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
 end
 
-%plot([enhancerStruct.dorsalFluoFeature],[enhancerStruct.dorsalFluoBin2],'o')
 coveredBins = unique([enhancerStruct.dorsalFluoBin2]);
 binValues = binValues(coveredBins);
 
@@ -127,6 +139,8 @@ for b = 1:length(coveredBins)
      
 end
 
+% clean up the onset times: keep only values between 2 and 8 minutes
+
 
 %% bootstrap the fraction active across nuclei
 cObsP = @(x) (sum(x)/length(x)); %bootstrapped function: fraction
@@ -201,7 +215,7 @@ xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
 %set(gca,'XScale','log')
 ylim([0 1.1])
-xlim([0 3500])
+xlim([0 4000])
 
 
 elseif contains(lower(metric),'timeon')

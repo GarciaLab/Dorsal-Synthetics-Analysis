@@ -14,15 +14,15 @@ affinity_enhancers = {'1Dg11_2xDl','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 
-enhancers = affinity_enhancers;%{'1Dg11'};
+enhancers = {'1Dg11'};
 Palette = viridis(length(enhancers));
 scores = scores(1:length(enhancers));
 
 
 %% the traditional way, binning
 if contains(lower(method),'binning')
-    NotEnhancerName = 'export'; %this is a string that we want to exclude from the analysis
-    numBins = 20;
+
+    numBins = 15;
     embryoRNAs = [];
     embryoRNAErrors= [];
     errorgroup = 'embryos'; %whether error is calculated across nuclei or across embryos
@@ -36,7 +36,7 @@ if contains(lower(method),'binning')
         Color = Palette(e,:);
         %ax = nexttile; %comment this out to plot everything in one graph
         enhancerName = enhancers{e};
-        [embryoRNAs(e) embryoRNAErrors(e)] = averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
+        [embryoRNAs(e) embryoRNAErrors(e)] = averagesTake2(enhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
     end
     hold off
     legend(enhancers,'Location','northwest','interpreter','none')

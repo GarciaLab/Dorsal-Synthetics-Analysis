@@ -162,41 +162,45 @@ for b = 1:length(coveredBins)
 end
 
 %% scatter of mean onset times (time on) on X vs mean fraction active on Y, per embryo.
-plot(TimeOnsPerEmbryo(:),FractionsPerEmbryo(:),'ko','MarkerFaceColor','k','MarkerSize',4)
 
-dat_fraction_dl =  mean_fraction_acrossEmbryos_perBin;
-dat_onset_dl = mean_timeOn_acrossEmbryos_perBin;
+% plot(TimeOnsPerEmbryo(:),FractionsPerEmbryo(:),'ko','MarkerFaceColor','k','MarkerSize',8)
+% xlim([0 10])
 
-% %clean data: get rid of onset times that are earlier than 2 min and later
-% %than 8 min
-% dat_fraction_dl(dat_onset_dl<2) = nan;
-% dat_onset_dl(dat_onset_dl < 2) = nan;
-% dat_fraction_dl(dat_onset_dl>8) = nan;
-% dat_onset_dl(dat_onset_dl>8) = nan;
+% dat_fraction_dl =  mean_fraction_acrossEmbryos_perBin;
+% dat_onset_dl = mean_timeOn_acrossEmbryos_perBin;
 
-dat_fraction_dl_mean = nanmean(dat_fraction_dl,1);
-dat_fraction_dl_ste = nanstd(dat_fraction_dl,1)./sqrt(length(prefixes));
-
-dat_onset_dl_mean = nanmean(dat_onset_dl, 1);
-dat_onset_dl_ste = nanstd(dat_onset_dl, 1)./sqrt(length(prefixes));
+dat_fraction_dl =  FractionsPerEmbryo(:);
+dat_onset_dl = TimeOnsPerEmbryo(:);
+dat_onset_dl_noNan = dat_onset_dl(~isnan(dat_onset_dl(:)));
+dat_fraction_dl = dat_fraction_dl(~isnan(dat_onset_dl(:)));
+dat_onset_dl = dat_onset_dl_noNan;
 
 c = binValues; 
+Palette = brewermap(length(c),'Greens');
 
-dat_onset_dl_mean(isnan(dat_onset_dl_ste)) = []; 
-c(isnan(dat_onset_dl_ste)) = [];
-dat_fraction_dl_mean(isnan(dat_onset_dl_ste)) = []; 
-dat_fraction_dl_ste(isnan(dat_onset_dl_ste)) = []; 
-dat_onset_dl_ste(isnan(dat_onset_dl_ste)) = []; 
-
-
-
-%this is for scatter_ellipse. not a huge fan, but leaving this here for
-%future reference. 
-for k = 1:length(c)
-    cov(:, :, k) = diag([dat_fraction_dl_ste(k), dat_onset_dl_ste(k)]);
+for bin = 1:b
+    binFractionData = FractionsPerEmbryo(:,1);
+    binOnsetData = TimeOnsPerEmbryo(:,1);
+    Color = Palette(bin,:);
+    plot(binOnsetData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',9,'MarkerEdgeColor','k')
 end
- 
-P = [dat_fraction_dl_mean;dat_onset_dl_mean]';
+
+% dat_onset_dl_mean(isnan(dat_onset_dl_ste)) = []; 
+% c(isnan(dat_onset_dl_ste)) = [];
+% dat_fraction_dl_mean(isnan(dat_onset_dl_ste)) = []; 
+% dat_fraction_dl_ste(isnan(dat_onset_dl_ste)) = []; 
+% dat_onset_dl_ste(isnan(dat_onset_dl_ste)) = []; 
+% 
+
+
+% %this is for scatter_ellipse. not a huge fan, but leaving this here for
+% %future reference. 
+% for k = 1:length(c)
+%     cov(:, :, k) = diag([dat_fraction_dl_ste(k), dat_onset_dl_ste(k)]);
+% end
+%  
+
+P = [dat_fraction_dl;dat_onset_dl]';
 
 Ps = sortrows(P, 1);
 

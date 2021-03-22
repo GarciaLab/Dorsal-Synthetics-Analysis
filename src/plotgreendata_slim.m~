@@ -162,7 +162,8 @@ for b = 1:length(coveredBins)
 end
 
 %% scatter of mean onset times (time on) on X vs mean fraction active on Y, per embryo.
-plot(TimeOnsPerEmbryo(:),FractionsPerEmbryo(:),'ko','MarkerFaceColor','k','MarkerSize',4)
+plot(TimeOnsPerEmbryo(:),FractionsPerEmbryo(:),'ko','MarkerFaceColor','k','MarkerSize',8)
+xlim([0 10])
 
 dat_fraction_dl =  mean_fraction_acrossEmbryos_perBin;
 dat_onset_dl = mean_timeOn_acrossEmbryos_perBin;

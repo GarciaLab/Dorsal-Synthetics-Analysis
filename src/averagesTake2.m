@@ -1,4 +1,4 @@
-function [embryoRNA embryoRNAError] = averagesTake2(DataType,numBins,metric,fiducialTime,errorgroup,Color,ax)
+function [embryoRNA embryoRNAError] = averagesTake2(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
 % metric can be 'maxfluo', 'accumulatedfluo' or 'fraction'
 % errorgroup is over what the error is taken, 'embryos' or 'nuclei'. For
 % fraction the error over nuclei is bootstraped.
@@ -17,7 +17,16 @@ for i = 1:length(combinedCompiledProjects_allEnhancers)
     end
 end
 
-enhancerStruct = combinedCompiledProjects_allEnhancers(contains({combinedCompiledProjects_allEnhancers.dataSet},DataType)  &...
+% define rules for what data we'll consider in the analysis and plots
+dataTypeIncludeRule = contains({combinedCompiledProjects_allEnhancers.dataSet},DataType);
+dataTypeExcludeRule = ~contains(lower({combinedCompiledProjects_allEnhancers.dataSet}),lower(NotEnhancerName));
+dataTypeRule = dataTypeIncludeRule & dataTypeExcludeRule;
+
+% tempRule = ({combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_2xDl" |...
+%       {combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_FFF"  );
+% dataTypeRule = dataTypeRule & tempRule;
+
+enhancerStruct = combinedCompiledProjects_allEnhancers(dataTypeRule &...
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 % bin nuclei 
@@ -28,7 +37,7 @@ nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
 
 % ****IMPORTANT!!!**** this line uses the standard dorsal fluorescence, not the
 % arbitrary one at a given 'fiducial time'
-%nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
 
 
 
@@ -38,7 +47,6 @@ for n = 1:length(enhancerStruct)
     enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
 end
 
-%plot([enhancerStruct.dorsalFluoFeature],[enhancerStruct.dorsalFluoBin2],'o')
 coveredBins = unique([enhancerStruct.dorsalFluoBin2]);
 binValues = binValues(coveredBins);
 
@@ -46,6 +54,8 @@ binValues = binValues(coveredBins);
 % define some filters
 minEmbryosPerBin = 3;
 minNucleiPerEmbryoPerBin = 1;
+minOnset = 2; % (min) earliest possible spot detection time to be counted
+maxOnset = 8; %(min) latest possible spot detection time to be counted
 
 %store everything in these arrays
 mean_maxFluo_acrossNuclei_perBin = [];
@@ -74,8 +84,12 @@ for b = 1:length(coveredBins)
     mean_accFluo_acrossNuclei_perBin(b) =  nanmean([binStruct.particleAccumulatedFluo]);
     se_accFluo_acrossNuclei_perBin(b) = nanstd([binStruct.particleAccumulatedFluo])./sqrt(activeNuc_Bin);
     mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
-    mean_timeOn_acrossNuclei_perBin(b) = nanmean([binStruct.particleTimeOn]);
-    se_timeOn_acrossNuclei_perBin(b) = nanstd([binStruct.particleTimeOn])./sqrt(activeNuc_Bin);
+    %filter spurious time ons due to errors
+    particlesTimeOns = [binStruct.particleTimeOn];
+    particlesTimeOns = particlesTimeOns(particlesTimeOns>minOnset);
+    particlesTimeOns = particlesTimeOns(particlesTimeOns<maxOnset);
+    mean_timeOn_acrossNuclei_perBin(b) = nanmean(particlesTimeOns);
+    se_timeOn_acrossNuclei_perBin(b) = nanstd(particlesTimeOns)./sqrt(activeNuc_Bin);
     mean_duration_acrossNuclei_perBin(b) = nanmean([binStruct.particleDuration]);
     se_duration_acrossNuclei_perBin(b) = nanstd([binStruct.particleDuration])./sqrt(activeNuc_Bin);    
     totalRNA_acrossNuclei_perBin(b) = nansum([binStruct.particleAccumulatedFluo]);
@@ -106,7 +120,11 @@ for b = 1:length(coveredBins)
             maxFluo_perEmbryo(e) = nanmean([embryoStruct.particleFluo95]);
             accFluo_perEmbryo(e) =  nanmean([embryoStruct.particleAccumulatedFluo]);
             fraction_perEmbryo(e) = length([embryoStruct.particleTimeOn])/length(embryoStruct);
-            timeOn_perEmbryo(e) = nanmean([embryoStruct.particleTimeOn]);
+            % clean up the time ons to filter out outliers from errors
+            perEmbryoTimeOns = [embryoStruct.particleTimeOn];
+            perEmbryoTimeOns = perEmbryoTimeOns(perEmbryoTimeOns>minOnset);
+            perEmbryoTimeOns = perEmbryoTimeOns(perEmbryoTimeOns<maxOnset);
+            timeOn_perEmbryo(e) = nanmean(perEmbryoTimeOns);
             duration_perEmbryo(e) = nanmean([embryoStruct.particleDuration]);
             totalRNA_perEmbryo(e) =  nansum([embryoStruct.particleAccumulatedFluo]).*fraction_perEmbryo(e);
 %            end
@@ -130,6 +148,8 @@ for b = 1:length(coveredBins)
     %clear  nuclei_per_Embryo maxFluo_perEmbryo accFluo_perEmbryo fraction_perEmbryo timeOn_perEmbryo
      
 end
+
+% clean up the onset times: keep only values between 2 and 8 minutes
 
 
 %% bootstrap the fraction active across nuclei
@@ -205,7 +225,7 @@ xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
 %set(gca,'XScale','log')
 ylim([0 1.1])
-xlim([0 3500])
+xlim([0 4000])
 
 
 elseif contains(lower(metric),'timeon')
