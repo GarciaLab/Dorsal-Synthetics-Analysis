@@ -80,6 +80,9 @@ OffNucleiPerBin = [];
 
 FractionsPerEmbryo = nan(50,length(coveredBins));
 TimeOnsPerEmbryo = nan(50,length(coveredBins));
+MaxFluoPerEmbryo = nan(50,length(coveredBins));
+AccFluoPerEmbryo = nan(50,length(coveredBins));
+DurationPerEmbryo = nan(50,length(coveredBins));
 
 
 for b = 1:length(coveredBins)
@@ -156,18 +159,15 @@ for b = 1:length(coveredBins)
     
     %save the single embryo datum for later use
     FractionsPerEmbryo(1:length(fraction_perEmbryo),b) = fraction_perEmbryo;
-    TimeOnsPerEmbryo(1:length(fraction_perEmbryo),b) = timeOn_perEmbryo;
+    TimeOnsPerEmbryo(1:length(timeOn_perEmbryo),b) = timeOn_perEmbryo;
+    MaxFluoPerEmbryo(1:length(maxFluo_perEmbryo),b) = maxFluo_perEmbryo;
+    AccFluoPerEmbryo(1:length(accFluo_perEmbryo),b) = accFluo_perEmbryo;
+    DurationPerEmbryo(1:length(fraction_perEmbryo),b) = duration_perEmbryo;
     %clear  nuclei_per_Embryo maxFluo_perEmbryo accFluo_perEmbryo fraction_perEmbryo timeOn_perEmbryo
      
 end
 
 %% scatter of mean onset times (time on) on X vs mean fraction active on Y, per embryo.
-
-% plot(TimeOnsPerEmbryo(:),FractionsPerEmbryo(:),'ko','MarkerFaceColor','k','MarkerSize',8)
-% xlim([0 10])
-
-% dat_fraction_dl =  mean_fraction_acrossEmbryos_perBin;
-% dat_onset_dl = mean_timeOn_acrossEmbryos_perBin;
 
 dat_fraction_dl =  FractionsPerEmbryo(:);
 dat_onset_dl = TimeOnsPerEmbryo(:);
@@ -178,45 +178,47 @@ dat_onset_dl = dat_onset_dl_noNan;
 c = binValues; 
 Palette = brewermap(length(c),'Greens');
 
-for bin = 1:b
-    binFractionData = FractionsPerEmbryo(:,1);
-    binOnsetData = TimeOnsPerEmbryo(:,1);
-    Color = Palette(bin,:);
-    plot(binOnsetData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',9,'MarkerEdgeColor','k')
-end
-
-% dat_onset_dl_mean(isnan(dat_onset_dl_ste)) = []; 
-% c(isnan(dat_onset_dl_ste)) = [];
-% dat_fraction_dl_mean(isnan(dat_onset_dl_ste)) = []; 
-% dat_fraction_dl_ste(isnan(dat_onset_dl_ste)) = []; 
-% dat_onset_dl_ste(isnan(dat_onset_dl_ste)) = []; 
-% 
-
-
-% %this is for scatter_ellipse. not a huge fan, but leaving this here for
-% %future reference. 
-% for k = 1:length(c)
-%     cov(:, :, k) = diag([dat_fraction_dl_ste(k), dat_onset_dl_ste(k)]);
-% end
-%  
-
-P = [dat_fraction_dl;dat_onset_dl]';
-
-Ps = sortrows(P, 1);
-
-x = Ps(:, 1);
-y = Ps(:, 2);
-figure; 
-colormap(brewermap(length(c),'Greens'))
-scatter(y, x,[],c, 'o', 'filled', 'MarkerEdgeColor', 'k')
+figure
 hold on
-errorbar(y, x, dat_fraction_dl_ste, dat_fraction_dl_ste,...
-    dat_onset_dl_ste, dat_onset_dl_ste,...
-    'k', 'LineStyle', 'none', 'CapSize', 0)
-% h = scatter_ellipse(x, y, c, cov)
-ylim([0, 1])
-xlim([0, 8.5])
-xlabel('mean transcriptional onset time (min)')
+for bin = 1:b
+    binFractionData = FractionsPerEmbryo(:,bin);
+    binOnsetData = TimeOnsPerEmbryo(:,bin);
+    Xdata = binOnsetData(~isnan(binOnsetData));
+    Ydata = binFractionData(~isnan(binOnsetData));
+    Color = Palette(bin,:);
+    plot(binOnsetData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',11,'MarkerEdgeColor','k')
+end
+hold off
+xlim([0 10])
+ylim([0 1.1])
+xlabel('onset time (min)')
 ylabel('fraction of active nuclei')
-title('1Dg11_2xDl')
-colorbar;
+
+%% scatter of max fluo on X vs mean fraction active on Y, per embryo.
+
+dat_fraction_dl =  FractionsPerEmbryo(:);
+dat_maxfluo_dl = MaxFluoPerEmbryo(:);
+dat_maxfluo_dl_noNan = dat_maxfluo_dl(~isnan(dat_maxfluo_dl(:)));
+dat_fraction_dl = dat_fraction_dl(~isnan(dat_maxfluo_dl(:)));
+dat_maxfluo_dl = dat_maxfluo_dl_noNan;
+
+c = binValues; 
+Palette = brewermap(length(c),'Greens');
+
+figure
+hold on
+for bin = 1:b
+    binFractionData = FractionsPerEmbryo(:,bin);
+    binmaxfluoData = MaxFluoPerEmbryo(:,bin);
+    Xdata = binmaxfluoData(~isnan(binmaxfluoData));
+    Ydata = binFractionData(~isnan(binOnsetData));
+    Color = Palette(bin,:);
+    plot(binOnsetData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',11,'MarkerEdgeColor','k')
+end
+hold off
+%xlim([0 10])
+%ylim([0 1.1])
+xlabel('max fluo (a.u)')
+ylabel('fraction of active nuclei')
+
+
