@@ -195,12 +195,12 @@ xlabel('onset time (min)')
 ylabel('fraction of active nuclei')
 
 %% scatter of max fluo on X vs mean fraction active on Y, per embryo.
-
-dat_fraction_dl =  FractionsPerEmbryo(:);
-dat_maxfluo_dl = MaxFluoPerEmbryo(:);
-dat_maxfluo_dl_noNan = dat_maxfluo_dl(~isnan(dat_maxfluo_dl(:)));
-dat_fraction_dl = dat_fraction_dl(~isnan(dat_maxfluo_dl(:)));
-dat_maxfluo_dl = dat_maxfluo_dl_noNan;
+% 
+% dat_fraction_dl =  FractionsPerEmbryo(:);
+% dat_maxfluo_dl = MaxFluoPerEmbryo(:);
+% dat_maxfluo_dl_noNan = dat_maxfluo_dl(~isnan(dat_maxfluo_dl(:)));
+% dat_fraction_dl = dat_fraction_dl(~isnan(dat_maxfluo_dl(:)));
+% dat_maxfluo_dl = dat_maxfluo_dl_noNan;
 
 c = binValues; 
 Palette = brewermap(length(c),'Greens');
@@ -213,11 +213,11 @@ for bin = 1:b
     Xdata = binmaxfluoData(~isnan(binmaxfluoData));
     Ydata = binFractionData(~isnan(binOnsetData));
     Color = Palette(bin,:);
-    plot(binOnsetData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',11,'MarkerEdgeColor','k')
+    plot(binmaxfluoData,binFractionData,'o','MarkerFaceColor',Color,'MarkerSize',11,'MarkerEdgeColor','k')
 end
 hold off
-%xlim([0 10])
-%ylim([0 1.1])
+xlim([0 600])
+ylim([0 1.1])
 xlabel('max fluo (a.u)')
 ylabel('fraction of active nuclei')
 

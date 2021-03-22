@@ -14,15 +14,16 @@ affinity_enhancers = {'1Dg11_2xDl','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 
-enhancers = affinity_enhancers;%{'1Dg11'};
+enhancers = TwiPEOpto;
 Palette = viridis(length(enhancers));
 scores = scores(1:length(enhancers));
 
 
 %% the traditional way, binning
 if contains(lower(method),'binning')
-    NotEnhancerName = 'export'; %this is a string that we want to exclude from the analysis
-    numBins = 20;
+    
+    NotEnhancerName = 'TwiPEv5'; %this is a string that we want to exclude from the analysis
+    numBins = 25;
     embryoRNAs = [];
     embryoRNAErrors= [];
     errorgroup = 'embryos'; %whether error is calculated across nuclei or across embryos
@@ -31,7 +32,7 @@ if contains(lower(method),'binning')
     %tiledlayout(1,length(enhancers), 'TileSpacing', 'compact', 'Padding', 'compact')
     % tiledlayout('flow')
     hold on
-    fiducialTime = 6;
+    fiducialTime = [];
     for e = 1:length(enhancers)
         Color = Palette(e,:);
         %ax = nexttile; %comment this out to plot everything in one graph

@@ -30,16 +30,17 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(dataTypeRule &...
     [combinedCompiledProjects_allEnhancers.cycle]==12 & ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 % bin nuclei 
-%this function calculates the Dorsal fluorescence at some arbitrary time
-%in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
-enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
-nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
 
 % ****IMPORTANT!!!**** this line uses the standard dorsal fluorescence, not the
 % arbitrary one at a given 'fiducial time'
-nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
-
-
+if isempty(fiducialTime)
+    nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
+else
+    %this function calculates the Dorsal fluorescence at some arbitrary time
+    %in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
+    enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
+    nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
+end
 
 binValues = linspace(0,4500,numBins);
 binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
