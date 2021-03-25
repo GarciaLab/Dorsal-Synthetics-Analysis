@@ -1,9 +1,19 @@
 function results = fitKineticModels(varargin)
 
+% To do:
+% 1. DONE. Fit all points, not just the averages. 
+% 2. Fit multiple KDs simultaneously using batched fits. 
+% 3. Port to R Stan
+% 4. Re-do sims letting n states float and adjust parameter ranges,
+% especially Dl. 
+
 close all force;
 
 wb = true;
-nSims = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
+nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
+exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
+model = "entryexit"; %choices- entryexit, entry, exit, basic
+fun= "table"; %also 'sim'
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -13,38 +23,32 @@ for i = 1:2:(numel(varargin)-1)
     end
 end
 
-datPath = "C:\Users\owner\Dropbox\DorsalSyntheticsDropbox\manuscript\window\basic\dataForFitting\";
+[~, dropboxfolder] = getDorsalFolders;
+
+datPath = dropboxfolder + "manuscript\window\basic\dataForFitting\archive\";
 load(datPath + "DorsalFluoValues.mat", "DorsalFluoValues");
 load(datPath + "FractionsPerEmbryo.mat", "FractionsPerEmbryo");
 load(datPath + "TimeOnsPerEmbryo.mat", "TimeOnsPerEmbryo");
-FractionsPerEmbryo = nanmean(FractionsPerEmbryo,  1);
-TimeOnsPerEmbryo = nanmean(TimeOnsPerEmbryo, 1);
+
 
 %needs to be nobs x ny
-data.ydata = [DorsalFluoValues; FractionsPerEmbryo; TimeOnsPerEmbryo]';
+X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
+data.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
 
 %%
-model = "entryexit";
-exitOnlyDuringOffStates = true;
-[~, dropboxfolder] = getDorsalFolders;
 saveStr = model;
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
-sims = load(dropboxfolder + "\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
-%
-% dlbins = linspace(0,4500,20);
-% simsbinneddl = BinData(sims.params.dls, dlbins);
-% for k = 1:length(dlbins)
-%     sims.factive_binned(k) =
-%     sims.onset_binned(k) =
-% end
+% sims = load(dropboxfolder +  "\simulations\archive\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
+sims = load(dropboxfolder +  "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
 
 %%
-rng(1,'twister'); %set the rng seed so we get the same results every run of this function
-options.drscale = 5; % a high value (5) is important for multimodal parameter spaces
+rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
+options.drscale = 2; % a high value (5) is important for multimodal parameter spaces. 
+% options.drscale = 5;
 options.waitbar = wb; %the waitbar is rate limiting sometimes
-options.nsimu = nSims; %should be between 1E3 and 1E6
+options.nsimu = nSteps; %should be between 1E3 and 1E6
 options.updatesigma = 1; %honestly don't know what this does
 %
 names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit"];
@@ -71,22 +75,32 @@ for k = 1:length(names)
 end
 
 
-modelOpts = struct('sims', sims);
+if fun == "table"
+    modelOpts = struct('sims', sims);
+else
+    modelOpts.exitOnlyDuringOffStates = true;
+    modelOpts.nSims = 1E4;
+end
 
 model = struct;
-mdl = @(x, p) kineticFunForFits(x, p, modelOpts);
+if fun == "table"
+    mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
+elseif fun== "sim"
+    mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
+end
+% mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun
 model.ssfun = @(theta, data) sum( (data.ydata(:, 2:end) - mdl(data.ydata(:, 1), theta) ).^2, 'omitnan');
 
 results = [];
-[results,~,~,~]=mcmcrun(model,data,params,options,results);
+% [results,~,~,~]=mcmcrun(model,data,params,options,results);
 [results,~,~,~]=mcmcrun(model,data,params,options,results);
 [results,chain,s2chain,~]=mcmcrun(model,data,params,options,results);
 
 burnInTime = .25; %let's burn the first 25% of the chain just in case
-chain = chain(round(burnInTime*nSims):nSims, :);
+chain = chain(round(burnInTime*nSteps):nSteps, :);
 if ~isempty(s2chain)
-    s2chain = s2chain(round(.25*nSims):nSims, :);
+    s2chain = s2chain(round(.25*nSteps):nSteps, :);
 end
 
 chainfig = figure(); clf
@@ -102,36 +116,40 @@ chainstats(chain,results)
 %possible
 pairFig = figure; clf
 % mcmcplot(chain,[],results,'pairs', .5);
-mcmcplot(chain,[],results, 'pairs');
+mcmcplot(chain,[],results, 'pairs', 4);
 
 % 
 % figure;
 % out = mcmcpred(results,chain,[],data, mdl);
 % mcmcpredplot(out);
 
-figure;
-scatter(sims.factive(:), sims.mfpts(:))
-
-
+%%
 theta_mean = [results.mean(1:2), 5, 5, results.mean(3:4)];
-yy = mdl(data.ydata(:, 1), theta_mean); 
+yy = mdl(DorsalFluoValues, theta_mean); 
 
 figure;
 tiledlayout('flow')
 nexttile;
-plot(data.ydata(:, 1), data.ydata(:, 2))
+errorbar(DorsalFluoValues, nanmean(FractionsPerEmbryo, 1), nanstd(FractionsPerEmbryo, 1))
 hold on
-plot(data.ydata(:, 1), yy(:, 1))
+plot(DorsalFluoValues, yy(:, 1))
+
 ylabel('factive')
 xlabel('dl')
 legend('data', 'sim')
 nexttile;
-plot(data.ydata(:, 1), data.ydata(:, 3))
+errorbar(DorsalFluoValues, nanmean(TimeOnsPerEmbryo, 1), nanstd(TimeOnsPerEmbryo, 1))
+
 hold on
-plot(data.ydata(:, 1), yy(:, 2))
+plot(DorsalFluoValues, yy(:, 2))
+
 ylabel('onset')
 xlabel('dl')
 legend('data', 'sim')
+
+nexttile
+scatter(sims.factive(:), sims.mfpts(:))
+
 % nexttile;
 % plot(data.ydata(1, :), data.ydata(2, :), data.ydata(2, :))
 % ylabel('fraction')

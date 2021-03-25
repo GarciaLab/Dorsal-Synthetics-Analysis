@@ -15,11 +15,11 @@ for k = 1:length(x)
 end
 ind_kd = nearestIndex(sims.params.kds ,theta(2) );
 ind_c = nearestIndex(sims.params.cs, theta(1));
-ind_pientry = nearestIndex(sims.params.pi1s, theta(5));
-ind_piexit = nearestIndex(sims.params.pi2s, theta(6));
+ind_pientry = nearestIndex(sims.params.pi2s, theta(5));
+ind_piexit = nearestIndex(sims.params.pi1s, theta(6));
 
-factive = sims.factive(ind_dl, ind_kd, ind_pientry, ind_c, ind_piexit); 
-onset = sims.mfpts(ind_dl, ind_kd, ind_pientry, ind_c, ind_piexit); 
+factive = sims.factive(ind_dl, ind_kd, ind_piexit, ind_c, ind_pientry); 
+onset = sims.mfpts(ind_dl, ind_kd, ind_piexit, ind_c, ind_pientry); 
 % 
 % if any(factive > .5)
 %     'stop'
