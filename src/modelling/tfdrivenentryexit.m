@@ -51,8 +51,8 @@ dls = DorsalFluoValues;
 
 %% FAST
 exitOnlyDuringOffStates = true;
-nSims = 1E2;
-nPlots = 10;
+nSims = 1E4;
+nPlots = 20;
 
 % dls = logspace(0, log10(dmax), 20);
 % kds = logspace(2, 7, nPlots);
@@ -71,7 +71,6 @@ moffs = 1:3:12;
 switch model
     case "entry"
         pi_exits = 0;
-        nSilentStates = 0;
     case "basic"
         pi_exits = 0;
         pi_entries = 1E10;
@@ -89,8 +88,8 @@ end
 params.dls = dls;
 params.kds = kds;
 params.cs = cs;
-params.pi1s = pi_exits;
-params.pi2s = pi_entries;
+params.pi_exits = pi_exits;
+params.pi_entries = pi_entries;
 params.nentries = nentries;
 params.moffs = moffs;
 
@@ -114,8 +113,8 @@ fpts_std = mfpts;
 N_cs = length(params.cs);
 N_dls = length(params.dls);
 N_kds = length(params.kds);
-N_pi1s = length(params.pi1s);
-N_pi2s = length(params.pi2s);
+N_pi1s = length(params.pi_exits);
+N_pi2s = length(params.pi_entries);
 N_nentries = length(params.nentries);
 N_moffs = length(params.moffs);
 
@@ -150,7 +149,7 @@ for o = 1:N_nentries
             display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
             
             
-            for i = 1:N_dls
+            parfor i = 1:N_dls
                 for j = 1:N_kds
                     
                     %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
@@ -203,6 +202,10 @@ saveStr = model;
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
+if length(nentries) > 1 || length(moffs) > 1
+    saveStr = saveStr + "variableStateNumber";
+end
+
 params.saveStr = saveStr;
 
 goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, 'dim', 2, 'params', params);

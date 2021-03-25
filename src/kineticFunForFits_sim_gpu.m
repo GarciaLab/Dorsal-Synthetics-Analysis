@@ -1,4 +1,4 @@
-function y = kineticFunForFits_sim(x, theta, modelOpts)
+function y = kineticFunForFits_sim_gpu(x, theta, modelOpts)
 
 %sims- dls, kds, pi1s (piexit), cs, pi2s(pientry), nentries, moffs
 %theta- c, kd, n, m, pientry, piexit
@@ -25,8 +25,8 @@ end
 dls = x;
 kds = theta(2);
 cs = theta(1);
-nentries = theta(3);
-moffs = theta(4);
+nentries = round(theta(3));
+moffs = round(theta(4));
 pi_entries = theta(5);
 pi_exits = theta(6);
 
@@ -34,7 +34,11 @@ nSilentStates = 1;
 nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 
-tau_entry = exprnd(gpuArray(pi_entries^-1), [nentries, nSims]);
+if nentries > 0 
+    tau_entry = exprnd(gpuArray(pi_entries^-1), [nentries, nSims]);
+else
+    tau_entry = [];
+end
 
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 % occupancy2 = @(d,kd) d.*kd

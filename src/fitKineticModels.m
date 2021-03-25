@@ -25,7 +25,7 @@ end
 
 [~, dropboxfolder] = getDorsalFolders;
 
-datPath = dropboxfolder + "manuscript\window\basic\dataForFitting\archive\";
+datPath = dropboxfolder + "\manuscript\window\basic\dataForFitting\archive\";
 load(datPath + "DorsalFluoValues.mat", "DorsalFluoValues");
 load(datPath + "FractionsPerEmbryo.mat", "FractionsPerEmbryo");
 load(datPath + "TimeOnsPerEmbryo.mat", "TimeOnsPerEmbryo");
@@ -45,8 +45,8 @@ sims = load(dropboxfolder +  "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat"
 
 %%
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
-options.drscale = 2; % a high value (5) is important for multimodal parameter spaces. 
-% options.drscale = 5;
+% options.drscale = 2; % a high value (5) is important for multimodal parameter spaces. 
+options.drscale = 5;
 options.waitbar = wb; %the waitbar is rate limiting sometimes
 options.nsimu = nSteps; %should be between 1E3 and 1E6
 options.updatesigma = 1; %honestly don't know what this does
@@ -54,7 +54,7 @@ options.updatesigma = 1; %honestly don't know what this does
 names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit"];
 % p0 = [1E5, 1E5, 5, 5, .1, 3];
 p0 = [10, 1E3, 5, 5, 1, 1];
-lb = [1E-6, 1E2, 1, 1, 1E-2, 0];
+lb = [1E-1, 1E2, 0, 1, 1E-2, 0];
 ub = [1E6, 1E6, 12, 12, 1E3, 1E1];
 
 params = cell(1, length(p0));
@@ -65,7 +65,7 @@ localflag = 0; %is this local to this dataset or shared amongst batches?
 
 for k = 1:length(names)
     
-    if contains(names(k), "states")
+    if contains(names(k), "states") && fun=="table"
         targetflag = 0;
     else
         targetflag = 1; %is this optimized or not? if this is set to 0, the parameter stays at a constant value equal to the initial value.
@@ -80,13 +80,14 @@ if fun == "table"
 else
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E4;
+    gpurng(1, "ThreeFry"); %fastest gpu rng
 end
 
 model = struct;
 if fun == "table"
     mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
 elseif fun== "sim"
-    mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
+    mdl = @(x, p) kineticFunForFits_sim_gpu(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun
