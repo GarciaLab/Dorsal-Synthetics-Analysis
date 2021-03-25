@@ -34,17 +34,17 @@ nSilentStates = 1;
 nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 
-tau_entry = exprnd(gpuArray(pi_entries^-1), [nentries, nSims]);
+tau_entry = exprnd( (pi_entries^-1), [nentries, nSims]);
 
 occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 % occupancy2 = @(d,kd) d.*kd
 
-tau_on = zeros(moffs + 1, nSims, length(dls), 'gpuArray');
+tau_on = zeros(moffs + 1, nSims, length(dls), 'double');
 for k = 1:length(dls)
-    tau_on(:, :, k) = exprnd(  gpuArray((cs.*occupancy(dls(k), kds)).^-1), [moffs+1, nSims]);
+    tau_on(:, :, k) = exprnd(   ((cs.*occupancy(dls(k), kds)).^-1), [moffs+1, nSims]);
 end
 
-tau_exit = exprnd(gpuArray(pi_exits^-1), [nStates-1, nSims]);
+tau_exit = exprnd( (pi_exits^-1), [nStates-1, nSims]);
 
 factive = nan(length(dls), 1, 'gpuArray');
 onset = factive;

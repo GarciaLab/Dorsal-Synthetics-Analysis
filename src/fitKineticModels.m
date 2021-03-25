@@ -12,8 +12,9 @@ close all force;
 wb = true;
 nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
-model = "entryexit"; %choices- entryexit, entry, exit, basic
+modelType = "entry"; %choices- entryexit, entry, exit, basic
 fun= "table"; %also 'sim'
+t_cycle = 8;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -36,7 +37,7 @@ X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
 data.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
 
 %%
-saveStr = model;
+saveStr = modelType;
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
@@ -62,13 +63,17 @@ pri_mu = NaN; %default prior gaussian mean
 pri_sig = Inf; %default prior gaussian variance
 localflag = 0; %is this local to this dataset or shared amongst batches?
 
-
 for k = 1:length(names)
+    
+    targetflag = 1;
     
     if contains(names(k), "states") && fun=="table"
         targetflag = 0;
-    else
-        targetflag = 1; %is this optimized or not? if this is set to 0, the parameter stays at a constant value equal to the initial value.
+    end
+    
+    if modelType == "entry" && names(k) == "pexit"
+        targetflag = 0;
+        p0(k) = 0;
     end
     
     params{1, k}= {names(k), p0(k), lb(k), ub(k), pri_mu, pri_sig, targetflag, localflag};
@@ -77,6 +82,7 @@ end
 
 if fun == "table"
     modelOpts = struct('sims', sims);
+    modelOpts.model = modelType;
 else
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E4;
@@ -84,10 +90,15 @@ else
 end
 
 model = struct;
-if fun == "table"
-    mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
-elseif fun== "sim"
-    mdl = @(x, p) kineticFunForFits_sim_gpu(x, p, modelOpts);
+
+if modelType == "entryexit"
+    if fun == "table"
+        mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
+    elseif fun== "sim"
+        mdl = @(x, p) kineticFunForFits_sim_gpu(x, p, modelOpts);
+    end
+elseif modelType == "entry"
+    mdl = @(x, p) entryAnalytical(x, p, t_cycle);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun
@@ -125,7 +136,11 @@ mcmcplot(chain,[],results, 'pairs', 4);
 % mcmcpredplot(out);
 
 %%
-theta_mean = [results.mean(1:2), 5, 5, results.mean(3:4)];
+if modelType == "entryexit"
+    theta_mean = [results.mean(1:2), 5, 5, results.mean(3:4)];
+elseif modelType == "entry"
+    theta_mean = [results.mean(1:2), 5, 5, results.mean(3), 0];
+end
 yy = mdl(DorsalFluoValues, theta_mean); 
 
 figure;
