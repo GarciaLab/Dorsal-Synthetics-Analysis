@@ -52,7 +52,7 @@ for i=1:nbatch
 
   datai = data{i};  
   
-  ysave = zeros(nsample, size(datai, 1), size(datai, 2)); %AR 10/21/20 this preallocation might be wrong for some datasets. can be modified though. 
+%   ysave = zeros(nsample, size(datai, 1), size(datai, 2)); %AR 10/21/20 this preallocation might be wrong for some datasets. can be modified though. 
   
   for iisample = 1:nsample;
     theta(parind) = chain(isample(iisample),:)';

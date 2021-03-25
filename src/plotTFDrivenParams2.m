@@ -147,14 +147,18 @@ if nargout == 0
                 m = nearestIndex(params.cs, 10);
                 l = nearestIndex(params.pi1s, .001);
                 n = nearestIndex(params.pi2s, 2);
+                o = 1;
+                p = 1;
             else
                 j = nearestIndex(params.kds, 1E4);
                 m = nearestIndex(params.cs, 10);
                 l = nearestIndex(params.pi1s, .001);
                 n = nearestIndex(params.pi2s, 2.5);
+                o = 1;
+                p = 1;
             end
         
-        f = @(t) reshape(t(:, j, l, m, n), [numel(t(:, j, l, m, n)), 1]);
+        f = @(t) reshape(t(:, j, l, m, n, o, p), [numel(t(:, j, l, m, n, o, p)), 1]);
         
         
         %            scatter( f(factive0), f(mfpts0), [],params.dls, 'o', 'filled');
@@ -209,14 +213,14 @@ else
             
             in_temp = inShape(hull,factive0(:), mfpts0(:), dt0(:));
             goodLinearIndices = find(in_temp);
-            [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
-            goodMatrixIndices = [in1 in2 in3 in4 in5];
+            [in1, in2, in3, in4, in5, in6, in7] = ind2sub(size(mfpts0), goodLinearIndices);
+            goodMatrixIndices = [in1 in2 in3 in4 in5 in6 in7];
         elseif dim==2
             
             in_temp_2D = inShape(hull_2D, factive0(:), mfpts0(:) );
             goodLinearIndices = find(in_temp_2D);
-            [in1, in2, in3, in4, in5] = ind2sub(size(mfpts0), goodLinearIndices);
-            goodMatrixIndices = [in1 in2 in3 in4 in5];
+            [in1, in2, in3, in4, in5, in6, in7] = ind2sub(size(mfpts0), goodLinearIndices);
+            goodMatrixIndices = [in1 in2 in3 in4 in5 in6 in7];
             
         end
         
