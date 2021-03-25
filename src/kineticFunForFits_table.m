@@ -18,6 +18,10 @@ ind_c = nearestIndex(sims.params.cs, theta(1));
 ind_pientry = nearestIndex(sims.params.pi2s, theta(5));
 ind_piexit = nearestIndex(sims.params.pi1s, theta(6));
 
+if modelOpts.model == "entry"
+    ind_piexit = 1;
+end
+
 factive = sims.factive(ind_dl, ind_kd, ind_piexit, ind_c, ind_pientry); 
 onset = sims.mfpts(ind_dl, ind_kd, ind_piexit, ind_c, ind_pientry); 
 % 
