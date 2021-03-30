@@ -36,15 +36,17 @@ nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 
 
-tau_entry = exprnd( (pi_entries^-1), [nentries, nSims], 'gpuArray');
+tau_entry = exprnd( gpuArray(pi_entries^-1), [nentries, nSims]);
 tau_entry = repmat(tau_entry, 1, 1, n_dls);
+
+pi_on_inv = gpuArray( (cs .* ( (dls./kds) ./ (1 + dls./kds) ) ).^-1)';
 
 tau_on = zeros(moffs + 1, nSims, n_dls, 'gpuArray');
 for k = 1:n_dls
-    tau_on(:, :, k) = exprnd(   ((cs .* ( (dls(k)./kds) ./ (1 + dls(k)./kds) ) ).^-1), [moffs+1, nSims]);
+    tau_on(:, :, k) = exprnd( pi_on_inv(k), [moffs+1, nSims]);
 end
 
-tau_exit = exprnd( (pi_exits^-1), [nStates-1, nSims], 'gpuArray');
+tau_exit = exprnd( gpuArray(pi_exits^-1), [nStates-1, nSims]);
 tau_exit = repmat(tau_exit, 1, 1, n_dls);
 
 

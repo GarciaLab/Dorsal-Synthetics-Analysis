@@ -11,6 +11,7 @@ close all force;
 
 wb = true;
 nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
+nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps). 
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
 modelType = "entryexit"; %choices- entryexit, entry, exit, basic
 fun= "table"; %also 'sim'
@@ -92,7 +93,7 @@ if fun == "table"
     modelOpts.model = modelType;
 else
     modelOpts.exitOnlyDuringOffStates = true;
-    modelOpts.nSims = 1E4;
+    modelOpts.nSims = nSims;
     gpurng(1, "ThreeFry"); %fastest gpu rng
 end
 
@@ -102,7 +103,7 @@ if modelType == "entryexit"
     if fun == "table"
         mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
     elseif fun== "sim"
-        mdl = @(x, p) kineticFunForFits_sim_gpu(x, p, modelOpts);
+        mdl = @(x, p) kineticFunForFits_sim_vec_gpu(x, p, modelOpts);
     end
 elseif modelType == "entry"
     mdl = @(x, p) entryAnalytical(x, p, t_cycle);
