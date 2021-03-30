@@ -12,10 +12,10 @@ close all force;
 wb = true;
 nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
-modelType = "entry"; %choices- entryexit, entry, exit, basic
+modelType = "entryexit"; %choices- entryexit, entry, exit, basic
 fun= "table"; %also 'sim'
 t_cycle = 8;
-
+variableStateNumber = false;
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
 for i = 1:2:(numel(varargin)-1)
@@ -41,6 +41,9 @@ saveStr = modelType;
 if exitOnlyDuringOffStates
     saveStr = saveStr + "_exitOnlyOnOffStates";
 end
+if variableStateNumber
+    saveStr = saveStr + "variableStateNumber";
+end
 % sims = load(dropboxfolder +  "\simulations\archive\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
 sims = load(dropboxfolder +  "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
 
@@ -58,6 +61,10 @@ p0 = [10, 1E3, 5, 5, 1, 1];
 lb = [1E-1, 1E2, 1, 1, 1E-2, 0];
 ub = [1E6, 1E6, 12, 12, 1E3, 1E1];
 
+if variableStateNumber
+    lb(1) = 10;
+end
+
 params = cell(1, length(p0));
 pri_mu = NaN; %default prior gaussian mean
 pri_sig = Inf; %default prior gaussian variance
@@ -67,7 +74,7 @@ for k = 1:length(names)
     
     targetflag = 1; %is this optimized or not? if this is set to 0, the parameter stays at a constant value equal to the initial value.
 
-    if contains(names(k), "states")
+    if  contains(names(k), "states") && ~variableStateNumber
         targetflag = 0;
     end
     
@@ -104,7 +111,7 @@ model.ssfun = @(theta, data) sum( (data.ydata(:, 2:end) - mdl(data.ydata(:, 1), 
 
 results = [];
 % [results,~,~,~]=mcmcrun(model,data,params,options,results);
-[results,~,~,~]=mcmcrun(model,data,params,options,results);
+% [results,~,~,~]=mcmcrun(model,data,params,options,results);
 [results,chain,s2chain,~]=mcmcrun(model,data,params,options,results);
 
 burnInTime = .25; %let's burn the first 25% of the chain just in case

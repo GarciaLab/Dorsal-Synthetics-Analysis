@@ -61,8 +61,8 @@ kds = logspace(2, 5.5, nPlots);
 cs = logspace(-1, 6, nPlots);
 pi_exits = logspace(-3, 2, nPlots);
 pi_entries = logspace(-1, 2, nPlots);
-nentries = 0:3:12;
-moffs = 1:3:12;
+nentries = 0:1:12;
+moffs = 1:1:12;
 % nentries= 5;
 % moffs = 5;
 
@@ -93,6 +93,7 @@ params.pi1s = pi_exits;
 params.pi2s = pi_entries;
 params.nentries = nentries;
 params.moffs = moffs;
+params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 
 params.model = model;
 
@@ -100,7 +101,6 @@ if length(params.nentries)==1 && length(params.moffs) == 1
     params.nEntryStates = nentries;
     params.nOffStates = moffs;
     params.nStates = nStates;
-    params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 end
 
 
@@ -290,13 +290,13 @@ plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 
 figure;
 t = tiledlayout('flow');
-for k = 1:1:length(params.piexits)
+for k = 1:1:length(params.pi_exits)
     nexttile;
     try
         plotTFDrivenParams2(factive(:, :, :, :, k, :, :),...
             dt(:, :, :, :, k, :, :), mfpts(:, :, :, :, k, :, :), 'params', params, 'fig', gcf,  'nPoints', 1E3);
     end
     %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
-    title(num2str(round2(params.piexits(k))))
+    title(num2str(round2(params.pi_exits(k))))
 end
 title(t, 'Effect of pi_entry on parameter space');

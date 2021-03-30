@@ -74,7 +74,8 @@ for k = 1:length(dls)
     onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
     trunc = onsets_sim < t_cycle;
     
-    factive(k) = sum(reachedOn(trunc))/nSims;
+%     factive(k) = sum(reachedOn(trunc))/nSims;
+    factive(k) = sum(trunc) /nSims;
     onset(k) =  mean(onsets_sim(trunc));
 end
 
