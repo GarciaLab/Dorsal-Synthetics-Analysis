@@ -148,12 +148,13 @@ for o = 1:N_nentries
             
             display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
             
-            
+%             for i = 1:N_dls
             parfor i = 1:N_dls
                 for j = 1:N_kds
                     
                     %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-                    tau_on = exprnd((cs(m).*occupancy(dls(i), kds(j)))^-1, [moffs(p)+1, nSims]);
+                    tau_on = exprnd( ( cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j))) )^-1,...
+                        [moffs(p)+1, nSims]);
                     
                     for n = 1:N_pi2s
                         
@@ -178,7 +179,7 @@ for o = 1:N_nentries
                             onsets_sim = sum(tau_entry_off(1:nOffEntryStates, reachedOn), 1);
                             trunc = onsets_sim < t_cycle;
                             
-                            factive(i,j,k,m,n, o, p) = sum(reachedOn(trunc))/nSims;
+                            factive(i,j,k,m,n, o, p) = sum(trunc) / nSims;
                             mfpts(i, j, k, m, n, o, p) = mean(onsets_sim(trunc));
                             %                     fpts_std(i, j, k, m, n, o, p) = std(onsets_sim(trunc));
                             
