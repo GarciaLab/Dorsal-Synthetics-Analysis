@@ -14,7 +14,7 @@ affinity_enhancers = {'1Dg11_2xDl','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 
-enhancers = TwiPEOpto;
+enhancers = {'1Dg11_2xDl','1DgVVW3'}%affinity_enhancers;
 Palette = viridis(length(enhancers));
 scores = scores(1:length(enhancers));
 
@@ -22,8 +22,8 @@ scores = scores(1:length(enhancers));
 %% the traditional way, binning
 if contains(lower(method),'binning')
     
-    NotEnhancerName = 'TwiPEv5'; %this is a string that we want to exclude from the analysis
-    numBins = 25;
+    NotEnhancerName = 'export'; %this is a string that we want to exclude from the analysis
+    numBins = 20;
     embryoRNAs = [];
     embryoRNAErrors= [];
     errorgroup = 'embryos'; %whether error is calculated across nuclei or across embryos
@@ -32,21 +32,33 @@ if contains(lower(method),'binning')
     %tiledlayout(1,length(enhancers), 'TileSpacing', 'compact', 'Padding', 'compact')
     % tiledlayout('flow')
     hold on
-    fiducialTime = [];
+    fiducialTime = []; %if this is empty we'll use Armando's dorsalFluoFeature values
     for e = 1:length(enhancers)
         Color = Palette(e,:);
         %ax = nexttile; %comment this out to plot everything in one graph
         enhancerName = enhancers{e};
-        [embryoRNAs(e) embryoRNAErrors(e)] = averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
+        [embryoRNAs(e) embryoRNAErrors(e)  embryoMetric(e) embryoMetricError(e)] = ...
+            averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
     end
     hold off
     legend(enhancers,'Location','northwest','interpreter','none')
-%     figure
-%     errorbar(scores,embryoRNAs,embryoRNAErrors,'ro-','CapSize',0,'MarkerSize',8,'MarkerFaceColor','r','MarkerEdgeColor','none')
-%     ylabel('mRNA produced per embryo')
-%     xlabel('binding site affinity (patser score)')
-
-
+    
+    figure %accumulated mRNA across the whole embryo (i.e over all DV bins)
+    errorbar(scores,embryoRNAs,embryoRNAErrors,'ro-','CapSize',0,'MarkerSize',8,'MarkerFaceColor','r','MarkerEdgeColor','none')
+    ylabel('mRNA produced per embryo')
+    xlabel('binding site affinity (patser score)')
+    
+    figure %metric across the whole embryo (i.e over all DV bins)
+    errorbar(scores,embryoMetric,embryoMetricError,'ro-','CapSize',0,'MarkerSize',8,'MarkerFaceColor','r','MarkerEdgeColor','none')
+    ylabel(['metric per embryo:' metric])
+    xlabel('binding site affinity (patser score)')
+    
+    for e = 1:length(enhancers)
+        Color = Palette(e,:);
+        enhancerName = enhancers{e};
+        fluoOverTimePerBin(enhancerName,NotEnhancerName,Color,fiducialTime,numBins)
+    end
+    
 %% moving average
 elseif contains(lower(method),'movingaverage')
     embryoMeanOverAll = [];

@@ -1,4 +1,4 @@
-function [embryoRNA embryoRNAError] = averagesTake2(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
+function [embryoRNA embryoRNAError embryoMetric embryoMetricError] = averagesTake2(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
 % metric can be 'maxfluo', 'accumulatedfluo' or 'fraction'
 % errorgroup is over what the error is taken, 'embryos' or 'nuclei'. For
 % fraction the error over nuclei is bootstraped.
@@ -57,6 +57,7 @@ minEmbryosPerBin = 3;
 minNucleiPerEmbryoPerBin = 1;
 minOnset = 2; % (min) earliest possible spot detection time to be counted
 maxOnset = 8; %(min) latest possible spot detection time to be counted
+maxMaxFluo = 1500; % (a.u)
 
 %store everything in these arrays
 mean_maxFluo_acrossNuclei_perBin = [];
@@ -72,6 +73,10 @@ se_accFluo_acrossEmbryos_perBin = [];
 mean_fraction_acrossEmbryos_perBin = [];
 se_fraction_acrossEmbryos_perBin = [];
 
+numEmbryos = 60; %some arbitrarily large number
+fractionPerEmbryoPerBin = nan(numEmbryos,length(coveredBins));
+fractionPerEmbryoPerBin_cellarray = {};
+
 OnNucleiPerBin = [];
 OffNucleiPerBin = [];
 for b = 1:length(coveredBins)
@@ -79,8 +84,12 @@ for b = 1:length(coveredBins)
     binStruct = enhancerStruct([enhancerStruct.dorsalFluoBin2]== binID);
     activeNuc_Bin = length([binStruct.particleTimeOn]);
     inactiveNuc_Bin = length(binStruct) - activeNuc_Bin;
-    % take the means and errors across nuclei first because it's easy      
-    mean_maxFluo_acrossNuclei_perBin(b) = nanmean([binStruct.particleFluo95]);
+    % take the means and errors across nuclei first because it's easy 
+    %filter spots that are way too bright to be real spots
+    particlesMaxFluos = [binStruct.particleFluo95];
+    particlesMaxFluos = particlesMaxFluos(particlesMaxFluos<maxMaxFluo);
+    particlesMaxFluos = particlesMaxFluos(particlesMaxFluos>0);
+    mean_maxFluo_acrossNuclei_perBin(b) = nanmean(particlesMaxFluos);
     se_maxFluo_acrossNuclei_perBin(b) = nanstd([binStruct.particleFluo95])./sqrt(activeNuc_Bin);
     mean_accFluo_acrossNuclei_perBin(b) =  nanmean([binStruct.particleAccumulatedFluo]);
     se_accFluo_acrossNuclei_perBin(b) = nanstd([binStruct.particleAccumulatedFluo])./sqrt(activeNuc_Bin);
@@ -118,7 +127,11 @@ for b = 1:length(coveredBins)
 %            if qualityEmbryos(e) %if this prefix has enough nuclei
             embryoStruct = binStruct(strcmpi({binStruct.prefix},embryoPrefix));
             nuclei_perEmbryo(e) = length(embryoStruct);
-            maxFluo_perEmbryo(e) = nanmean([embryoStruct.particleFluo95]);
+            % filter out spots that are too bright
+            particlesMaxFluos = [embryoStruct.particleFluo95];
+            particlesMaxFluos = particlesMaxFluos(particlesMaxFluos<maxMaxFluo);
+            particlesMaxFluos = particlesMaxFluos(particlesMaxFluos>0);
+            maxFluo_perEmbryo(e) = nanmean(particlesMaxFluos);
             accFluo_perEmbryo(e) =  nanmean([embryoStruct.particleAccumulatedFluo]);
             fraction_perEmbryo(e) = length([embryoStruct.particleTimeOn])/length(embryoStruct);
             % clean up the time ons to filter out outliers from errors
@@ -144,9 +157,13 @@ for b = 1:length(coveredBins)
     mean_duration_acrossEmbryos_perBin(b) = nanmean(duration_perEmbryo);
     se_duration_acrossEmbryos_perBin(b) = nanstd(duration_perEmbryo)./sqrt(numEmbryos);
     mean_totalRNA_acrossEmbryos_perBin(b) = nanmean(totalRNA_perEmbryo);
-    se__totalRNA_acrossEmbryos_perBin(b) = nanstd(totalRNA_perEmbryo)./sqrt(numEmbryos);
+    se_totalRNA_acrossEmbryos_perBin(b) = nanstd(totalRNA_perEmbryo)./sqrt(numEmbryos);
     
     %clear  nuclei_per_Embryo maxFluo_perEmbryo accFluo_perEmbryo fraction_perEmbryo timeOn_perEmbryo
+    
+    fractionPerEmbryoPerBin(1:length(fraction_perEmbryo),b) = fraction_perEmbryo;
+    fractionPerEmbryoPerBin_cellarray{b} = fraction_perEmbryo;
+
      
 end
 
@@ -171,11 +188,13 @@ for b = 1:length(coveredBins)
     btsrp_error_fraction_perBin(b) = std(bootObsOn);
 end
 
-%% Integrate the mean total mRNA produced per nucleus (inactive and active ones) across DV
+%% Integrate the mean total mRNA produced per nucleus (inactive and active ones) across dorsal fluo bins
 % to show the total mRNA produced per embryo
 
 embryoRNA = nansum(mean_totalRNA_acrossEmbryos_perBin);
-embryoRNAError = sqrt(nansum(se__totalRNA_acrossEmbryos_perBin).^2);
+embryoRNAError = sqrt(nansum(se_totalRNA_acrossEmbryos_perBin).^2); % propagated error
+
+%% Average the metric across Dorsal fluo bins
 
 
 
@@ -197,6 +216,8 @@ ylabel('maximum spot fluorescence')
 ylim([0,600])
 xlim([0 3800])
 %legend('across nuclei','across embryos')
+embryoMetric = nanmean(mean_maxFluo_acrossEmbryos_perBin);
+embryoMetricError = nanstd(mean_maxFluo_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_maxFluo_acrossEmbryos_perBin)));
 
 
 elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
@@ -212,6 +233,9 @@ ylabel('accumulated fluorescence')
 %set(gca,'XScale','log')
 xlim([0 3800])
 ylim([0 1200])
+embryoMetric = nanmean(mean_accFluo_acrossEmbryos_perBin);
+embryoMetricError = nanstd(mean_accFluo_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_accFluo_acrossEmbryos_perBin)));
+
 
 
 elseif contains(lower(metric),'fraction')
@@ -221,12 +245,19 @@ elseif contains(lower(metric),'fraction')
     elseif strcmpi(errorgroup,'embryos')
         errorbar(ax,binValues,mean_fraction_acrossEmbryos_perBin,se_fraction_acrossEmbryos_perBin,'ko-','CapSize',0,'LineWidth',1.5,...
             'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
+        
+        %plot(ax,binValues,fractionPerEmbryoPerBin,'o','MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
+    
+        %plotSpread(fractionPerEmbryoPerBin_cellarray)
     end
 xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
 %set(gca,'XScale','log')
 ylim([0 1.1])
 xlim([0 4000])
+embryoMetric = nanmean(mean_fraction_acrossEmbryos_perBin);
+embryoMetricError = nanstd(mean_fraction_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_fraction_acrossEmbryos_perBin)));
+
 
 
 elseif contains(lower(metric),'timeon')
@@ -242,13 +273,17 @@ ylabel('turn on time')
 %set(gca,'XScale','log')
 ylim([0 10])
 xlim([0 3800])
+embryoMetric = nanmean(mean_timeOn_acrossEmbryos_perBin);
+embryoMetricError = nanstd(mean_timeOn_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_timeOn_acrossEmbryos_perBin)));
+
+
 
 elseif contains(lower(metric),'total')
     if strcmpi(errorgroup,'nuclei')
         errorbar(ax,binValues,totalRNA_acrossNuclei_perBin,se_timeOn_acrossNuclei_perBin,'o-','CapSize',0,'LineWidth',1.5,...
         'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     elseif strcmpi(errorgroup,'embryos')
-        errorbar(ax,binValues,mean_totalRNA_acrossEmbryos_perBin,se__totalRNA_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
+        errorbar(ax,binValues,mean_totalRNA_acrossEmbryos_perBin,se_totalRNA_acrossEmbryos_perBin,'o-','CapSize',0,'LineWidth',1.5,...
             'Color',Color,'MarkerFaceColor',Color,'MarkerEdgeColor','none','MarkerSize',8)
     end
 xlabel('Dorsal concentration (AU)')
@@ -256,6 +291,10 @@ ylabel('total produced mRNA')
 %ylim([0 1800])
 xlim([0 3800])
 %set(gca,'YScale','log')
+embryoMetric = nanmean(mean_totalRNA_acrossEmbryos_perBin);
+embryoMetricError = nanstd(mean_totalRNA_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_totalRNA_acrossEmbryos_perBin)));
+
+
 
 elseif contains(lower(metric),'duration')
     if strcmpi(errorgroup,'nuclei')
@@ -270,7 +309,8 @@ ylabel('spot duration (min)')
 ylim([0 6])
 xlim([0 3800])
 %set(gca,'YScale','log')
-
+embryoMetric = nanmean(mean_duration_acrossEmbryos_perBin);
+embryoMetricError = nanmean(mean_duration_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_duration_acrossEmbryos_perBin)));
     
 
 end
