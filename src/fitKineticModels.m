@@ -95,6 +95,15 @@ else
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = nSims;
     gpurng(1, "ThreeFry"); %fastest gpu rng
+    
+    if ~variableStateNumber
+        nSilentStates = 1;
+        nentries = p0(3);
+        moffs = p0(4);
+        nStates = nentries + moffs + 1 + nSilentStates;
+        n_dls = length(DorsalFluoValues);
+        modelOpts.r_vec = rand(1, nentries*nSims + ( (moffs+1) * nSims * n_dls ) + ( (nStates-1) * nSims), 'gpuArray');
+    end
 end
 
 model = struct;
@@ -103,7 +112,7 @@ if modelType == "entryexit"
     if fun == "table"
         mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
     elseif fun== "sim"
-        mdl = @(x, p) kineticFunForFits_sim_vec_gpu(x, p, modelOpts);
+        mdl = @(x, p) kineticFunForFits_sim_vec_gpu_customrnd(x, p, modelOpts);
     end
 elseif modelType == "entry"
     mdl = @(x, p) entryAnalytical(x, p, t_cycle);

@@ -36,33 +36,29 @@ nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 
 %generate enough random numbers up front for the whole sim
-r_vec = rand(1, nentries*nSims + ( (moffs+1) * nSims * n_dls ) + ( (nStates-1) * nSims), 'gpuArray');
+if ~isfield(modelOpts, 'r_vec')
+    modelOpts.r_vec = rand(1, nentries*nSims + ( (moffs+1) * nSims * n_dls ) + ( (nStates-1) * nSims), 'gpuArray');
+end
 
 mu = pi_entries^-1;
 sizeOut = [nentries, nSims];
 n1 = sizeOut(1) * sizeOut(2); 
-r_mat = reshape(r_vec( 1: sizeOut(1)*sizeOut(2) ), sizeOut);
+r_mat = reshape(modelOpts.r_vec( 1: sizeOut(1)*sizeOut(2) ), sizeOut);
 tau_entry = repmat(-mu .* log(r_mat), 1, 1, n_dls);
 
-% tau_entry = exprnd( (pi_entries^-1), [nentries, nSims]);
 
 mu = pi_exits^-1;
 sizeOut = [nStates-1, nSims];
 n2 = sizeOut(1) * sizeOut(2); 
-r_mat = reshape(r_vec( n1 + 1: n1+ n2 ), sizeOut);
+r_mat = reshape(modelOpts.r_vec( n1 + 1: n1+ n2 ), sizeOut);
 tau_exit = repmat(-mu .* log(r_mat), 1, 1, n_dls);
 
 
-pi_on_inv = ( (cs .* ( (dls./kds) ./ (1 + dls./kds) ) ).^-1)';
-tau_on = zeros(moffs + 1, nSims, n_dls, 'double');
-for k = 1:n_dls   
-    mu =  pi_on_inv(k);
-    sizeOut = [moffs+1, nSims];
-    n3 = sizeOut(1) * sizeOut(2); 
-    r_mat = reshape(r_vec( n1 + n2 + 1: n1 + n2+ n3 ), sizeOut);
-    tau_on(:, :, k) = -mu .* log(r_mat);
-end
-
+mu =  permute(( (cs .* ( (dls./kds) ./ (1 + dls./kds) ) ).^-1), [2, 3, 1]);
+sizeOut = [moffs+1, nSims];
+n3 = sizeOut(1) * sizeOut(2); 
+r_mat = reshape(modelOpts.r_vec( n1 + n2 + 1: n1 + n2+ n3 ), sizeOut);
+tau_on = repmat(-mu, sizeOut(1), sizeOut(2), 1) .* repmat(log(r_mat), 1, 1, n_dls);
 
 tau_entry_off = cat(1, tau_entry, tau_on);
 
@@ -91,7 +87,7 @@ factive = sum(trunc, 1) /nSims;
 temp = (onsets_sim .* trunc);
 temp(temp==0) = nan;
 onset =  mean(temp, 1, 'omitnan');
-    
-y = [factive', onset'];
+   
+y = gather([factive', onset']);
 
 end

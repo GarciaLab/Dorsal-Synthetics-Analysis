@@ -66,7 +66,7 @@ reachedOn = sum(whichTransition(1:nOffEntryStates, :, :), 1) ==...
 
 %let's get the total duration of the successful trajectories up to
 %the on state
-onsets_sim= squeeze(sum(tau_entry_off(1:nOffEntryStates, :, :) .*  repmat(reachedOn, nOffEntryStates, 1, 1), 1));
+onsets_sim = squeeze(sum(tau_entry_off(1:nOffEntryStates, :, :) .*  repmat(reachedOn, nOffEntryStates, 1, 1), 1));
 onsets_sim(onsets_sim == 0) = nan; 
 trunc = onsets_sim < t_cycle;
  
