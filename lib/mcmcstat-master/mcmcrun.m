@@ -548,6 +548,7 @@ for isimu=2:nsimu % simulation loop
       if any(z.p<low(parind)) || any(z.p>upp(parind))
         z.a   = 0;
         z.pri = 0;
+
         z.ss  = Inf;
         trypath = {trypath{:},z};
         outbound = 1;

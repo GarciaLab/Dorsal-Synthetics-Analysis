@@ -19,7 +19,7 @@ moffs = 5;
 nentries = 5;
 nSilentStates = 1;
 
-% occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
+occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 [~, dropboxfolder] = getDorsalFolders;
 load([dropboxfolder, '\manuscript\window\basic\dataForFitting\DorsalFluoValues.mat'], 'DorsalFluoValues')
@@ -105,7 +105,7 @@ end
 
 %%
 mfpts = nan( length(dls), length(kds), length(pi_exits),...
-    length(cs), length(pi_entries), length(nentries),length(moffs) );
+    length(cs), length(pi_entries), length(nentries),length(moffs), 'gpuArray' );
 factive = mfpts;
 fpts_std = mfpts;
 
@@ -122,7 +122,8 @@ N_moffs = length(params.moffs);
 
 for o = 1:N_nentries
     
-    tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'double');
+    tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'gpuArray');
+    
     for k = 1:length(pi_entries)
         tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nentries(o), nSims]);
     end
@@ -135,7 +136,7 @@ for o = 1:N_nentries
         silentstate = onstate+1;
         nStates = nentries(o) + moffs(p) + 1 + nSilentStates;
         
-        tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'double');
+        tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'gpuArray');
         for k = 1:length(pi_exits)
             tau_exit(:, :, k) = exprnd(pi_exits(k)^-1, [nStates-1, nSims]);
         end
@@ -145,11 +146,11 @@ for o = 1:N_nentries
             display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
             
 %             for i = 1:N_dls
-            parfor i = 1:N_dls
+            for i = 1:N_dls
                 for j = 1:N_kds
                     
                     %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-                    tau_on = exprnd( ( cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j))) )^-1,...
+                    tau_on = exprnd( ( gpuArray(cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j)))) )^-1,...
                         [moffs(p)+1, nSims]);
                     
                     for n = 1:N_pi2s
@@ -186,6 +187,10 @@ for o = 1:N_nentries
         end %for c
     end %for moffs
 end% for nentries
+
+factive = gather(factive);
+mfpts = gather(mfpts);
+
 dt = mfpts(:, nearestIndex(kds, 1E4), :, :, :, :, :) -...
     mfpts(:, nearestIndex(kds, 400), :, :, :, :, :);
 

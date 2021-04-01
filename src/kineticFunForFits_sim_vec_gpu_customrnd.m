@@ -10,48 +10,62 @@ function y = kineticFunForFits_sim_vec_gpu_customrnd(x, theta, modelOpts)
 if isempty(modelOpts)
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E3;
+    modelOpts.modelType = 'entryexit';
+    modelOpts.t_cycle = 8; %min
 end
 
 
 nSims = modelOpts.nSims;
 exitOnlyDuringOffStates = modelOpts.exitOnlyDuringOffStates;
-t_cycle = 8; %min
+t_cycle = modelOpts.t_cycle; %min
 
 %mcmcpred feeds in x as a struct. otherwise it's an array
 if isstruct(x)
     x = x.ydata(:, 1);
 end
 
-dls = x;
+dls = x(:); 
 n_dls = length(dls);
 kds = theta(2);
 cs = theta(1);
-nentries = theta(3);
-moffs = theta(4);
+nentries = round(theta(3));
+moffs = round(theta(4));
 pi_entries = theta(5);
 pi_exits = theta(6);
 
-nSilentStates = 1;
+nSilentStates = contains(modelOpts.modelType, 'exit');
 nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 
 %generate enough random numbers up front for the whole sim
 if ~isfield(modelOpts, 'r_vec')
-    modelOpts.r_vec = rand(1, nentries*nSims + ( (moffs+1) * nSims * n_dls ) + ( (nStates-1) * nSims), 'gpuArray');
+    modelOpts.r_vec = rand(1, nentries*nSims +...
+        ( (moffs+1) * nSims * n_dls ) +...
+        nSilentStates*( (nStates-1) * nSims), 'gpuArray');
 end
 
-mu = pi_entries^-1;
-sizeOut = [nentries, nSims];
-n1 = sizeOut(1) * sizeOut(2); 
-r_mat = reshape(modelOpts.r_vec( 1: sizeOut(1)*sizeOut(2) ), sizeOut);
-tau_entry = repmat(-mu .* log(r_mat), 1, 1, n_dls);
+if nentries ~= 0
+    mu = pi_entries^-1;
+    sizeOut = [nentries, nSims];
+    n1 = sizeOut(1) * sizeOut(2); 
+    r_mat = reshape(modelOpts.r_vec( 1: sizeOut(1)*sizeOut(2) ), sizeOut);
+    tau_entry = repmat(-mu .* log(r_mat), 1, 1, n_dls);
+else
+    tau_entry = [];
+    n1 = 0;
+end
 
 
-mu = pi_exits^-1;
-sizeOut = [nStates-1, nSims];
-n2 = sizeOut(1) * sizeOut(2); 
-r_mat = reshape(modelOpts.r_vec( n1 + 1: n1+ n2 ), sizeOut);
-tau_exit = repmat(-mu .* log(r_mat), 1, 1, n_dls);
+if contains(modelOpts.modelType, 'exit')
+    mu = pi_exits^-1;
+    sizeOut = [nStates-1, nSims];
+    n2 = sizeOut(1) * sizeOut(2); 
+    r_mat = reshape(modelOpts.r_vec( n1 + 1: n1+ n2 ), sizeOut);
+    tau_exit = repmat(-mu .* log(r_mat), 1, 1, n_dls);
+else
+    tau_exit = [];
+    n2 = 0;
+end
 
 
 mu =  permute(( (cs .* ( (dls./kds) ./ (1 + dls./kds) ) ).^-1), [2, 3, 1]);
@@ -64,15 +78,21 @@ tau_entry_off = cat(1, tau_entry, tau_on);
 
 %let's determine if the transition is to the silent
 %state or other.
-[~, whichTransition] = min(cat(4,tau_entry_off,tau_exit), [], 4);
-if exitOnlyDuringOffStates
-    whichTransition(1:nentries, :, :) = 1;
+if contains(modelOpts.modelType, 'exit')
+    [~, whichTransition] = min(cat(4,tau_entry_off,tau_exit), [], 4);
+    if exitOnlyDuringOffStates
+        whichTransition(1:nentries, :, :) = 1;
+        %the simulations that reached "on" are the ones that
+        %never reached silent.
+        reachedOn = sum(whichTransition(1:nOffEntryStates, :, :), 1) ==...
+                nOffEntryStates;
+    end
+else
+    whichTransition = ones(size(tau_entry_off), 'like', tau_entry_off);
+    reachedOn = ones([1, size(whichTransition, 2), size(whichTransition,3)], 'like', whichTransition);
 end
 
-%the simulations that reached "on" are the ones that
-%never reached silent.
-reachedOn = sum(whichTransition(1:nOffEntryStates, :, :), 1) ==...
-        nOffEntryStates;
+
 
 %let's get the total duration of the successful trajectories up to
 %the on state
@@ -87,7 +107,11 @@ factive = sum(trunc, 1) /nSims;
 temp = (onsets_sim .* trunc);
 temp(temp==0) = nan;
 onset =  mean(temp, 1, 'omitnan');
-   
+
+%below this threshold, the onsets are unreliable since you can't sample
+%that deeply.
+% onset(factive < .01) = t_cycle; 
+
 y = gather([factive', onset']);
 
 end

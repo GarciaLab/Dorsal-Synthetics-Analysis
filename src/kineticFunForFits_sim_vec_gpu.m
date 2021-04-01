@@ -10,28 +10,30 @@ function y = kineticFunForFits_sim_vec_gpu(x, theta, modelOpts)
 if isempty(modelOpts)
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E3;
+    modelOpts.modelType = 'entryexit';
+    modelOpts.t_cycle = 8; %min
 end
 
 
 nSims = modelOpts.nSims;
 exitOnlyDuringOffStates = modelOpts.exitOnlyDuringOffStates;
-t_cycle = 8; %min
+t_cycle = modelOpts.t_cycle; %min
 
 %mcmcpred feeds in x as a struct. otherwise it's an array
 if isstruct(x)
     x = x.ydata(:, 1);
 end
 
-dls = x;
+dls = x(:);
 n_dls = length(dls);
 kds = theta(2);
 cs = theta(1);
-nentries = theta(3);
-moffs = theta(4);
+nentries = round(theta(3));
+moffs = round(theta(4));
 pi_entries = theta(5);
 pi_exits = theta(6);
 
-nSilentStates = 1;
+nSilentStates = contains(modelOpts.modelType, 'exit');
 nOffEntryStates = moffs + nentries;
 nStates = nentries + moffs+ 1 + nSilentStates;
 

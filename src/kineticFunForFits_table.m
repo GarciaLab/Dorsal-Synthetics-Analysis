@@ -25,7 +25,7 @@ end
 ind_nentries = nearestIndex(sims.params.nentries, theta(3) );
 ind_moffs = nearestIndex(sims.params.moffs, theta(4) );
 
-if modelOpts.model == "entry"
+if modelOpts.modelType == "entry"
     ind_piexit = 1;
 end
 
