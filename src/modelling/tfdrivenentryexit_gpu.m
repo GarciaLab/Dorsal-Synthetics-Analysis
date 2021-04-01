@@ -1,22 +1,25 @@
-%leaving this here for to remember for testing
-%setpref('profiler','showJitLines',1);
-%profile -memory on;
+function tfdrivenentryexit_gpu(varargin)
 
-tic
+model = "entryexit"; %choices- entryexit, entry, exit, basic
+nSims = 1E3; %number of simulations for the kinetic window model
+nPlots = 40;
+exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
+t_cycle = 8;
+variableStateNumber = false;
+fixKD = false;
 
-% model = "basic";
-% model = "entry";
-% model = "exit";
-model = "entryexit";
+%options must be specified as name, value pairs. unpredictable errors will
+%occur, otherwise.
+for i = 1:2:(numel(varargin)-1)
+    if i ~= numel(varargin)
+        eval([varargin{i} '=varargin{i+1};']);
+    end
+end
 
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
+gpurng(1, "ThreeFry"); %fastest gpu rng
+
 dmax = 4000;
-
-
-t_cycle = 8; %min
-
-moffs = 5;
-nentries = 5;
 nSilentStates = 1;
 
 
@@ -49,22 +52,25 @@ dls = DorsalFluoValues;
 % %%
 
 %% FAST
-exitOnlyDuringOffStates = true;
-nSims = 1E4;
-nPlots = 40;
 
-% dls = logspace(0, log10(dmax), 20);
+dls = logspace(0, log10(dmax), 40);
 % kds = logspace(2, 7, nPlots);
 % cs = logspace(-5, 2, nPlots);
-% kds = logspace(2, 5.5, nPlots);
-kds = 1E3;
+if fixKD
+    kds = 1E3;
+else
+    kds = logspace(2, 5.5, nPlots);
+end
 cs = logspace(-1, 3, nPlots);
 pi_exits = logspace(-3, 2, nPlots);
 pi_entries = logspace(-1, 2, nPlots);
-nentries = [0, 1:2:10];
-moffs = 1:2:10;
-% nentries= 5;
-% moffs = 5;
+if variableStateNumber
+    nentries = [0, 1:2:10];
+    moffs = 1:2:10;
+else
+    nentries = 1;
+    moffs = 1;
+end
 
 %%
 
@@ -97,6 +103,13 @@ params.exitOnlyDuringOffStates = exitOnlyDuringOffStates;
 params.model = model;
 
 if length(params.nentries)==1 && length(params.moffs) == 1
+    o = 1;
+    p = 1;
+    nOffEntryStates = moffs(p) + nentries(o);
+    firstoffstate = nentries(o)+1;
+    onstate = nentries(o) + moffs(p) +1;
+    silentstate = onstate+1;
+    nStates = nentries(o) + moffs(p) + 1 + nSilentStates;
     params.nEntryStates = nentries;
     params.nOffStates = moffs;
     params.nStates = nStates;
@@ -118,13 +131,18 @@ N_pi_entries = length(params.pi_entries);
 N_nentries = length(params.nentries);
 N_moffs = length(params.moffs);
 
+% progressCounter = 0;
+% nParams = numel(factive);
+% progress = 0;
+% display_interval = round(nParams / 20);
+
 %dls, kds, pi_exits, cs, pi_entries, nentries, moffs
 
 for o = 1:N_nentries
     
     if nentries(o) ~= 0
         tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'gpuArray');
-
+        
         for k = 1:length(pi_entries)
             tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nentries(o), nSims]);
         end
@@ -135,9 +153,6 @@ for o = 1:N_nentries
     for p = 1:N_moffs
         
         nOffEntryStates = moffs(p) + nentries(o);
-        firstoffstate = nentries(o)+1;
-        onstate = nentries(o) + moffs(p) +1;
-        silentstate = onstate+1;
         nStates = nentries(o) + moffs(p) + 1 + nSilentStates;
         
         tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'gpuArray');
@@ -147,9 +162,10 @@ for o = 1:N_nentries
         
         for m = 1:N_cs
             
+            
             display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
             
-%             for i = 1:N_dls
+            %             for i = 1:N_dls
             parfor i = 1:N_dls
                 for j = 1:N_kds
                     
@@ -188,8 +204,8 @@ for o = 1:N_nentries
                             mfpts(i, j, k, m, n, o, p) = mean(onsets_sim(trunc));
                             %                     fpts_std(i, j, k, m, n, o, p) = std(onsets_sim(trunc));
                             
-                        end %for pi2
-                    end %for pi1
+                        end %for pi_entries
+                    end %for pi_exits
                 end% for kd
             end %for dl
         end %for c
@@ -303,7 +319,7 @@ plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 
 figure;
 t = tiledlayout('flow');
-for k = 1:1:length(params.pi_exits)
+for k = 1:3:length(params.pi_exits)
     nexttile;
     try
         plotTFDrivenParams2(factive(:, :, :, :, k, :, :),...
@@ -313,3 +329,7 @@ for k = 1:1:length(params.pi_exits)
     title(num2str(round2(params.pi_exits(k))))
 end
 title(t, 'Effect of pi_entry on parameter space');
+
+
+disp('debug stop')
+end

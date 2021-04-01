@@ -14,6 +14,7 @@ fun= "table"; %also 'sim'
 t_cycle = 8;
 variableStateNumber = false;
 fixKD = false;
+
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
 for i = 1:2:(numel(varargin)-1)
