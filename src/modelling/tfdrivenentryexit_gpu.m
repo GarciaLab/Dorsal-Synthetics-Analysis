@@ -19,7 +19,6 @@ moffs = 5;
 nentries = 5;
 nSilentStates = 1;
 
-occupancy = @(d, kd) ( (d./kd) ./ (1 + d./kd) );
 
 [~, dropboxfolder] = getDorsalFolders;
 load([dropboxfolder, '\manuscript\window\basic\dataForFitting\DorsalFluoValues.mat'], 'DorsalFluoValues')
@@ -33,8 +32,8 @@ dls = DorsalFluoValues;
 % dls = logspace(0, log10(dmax), 80);
 % kds = logspace(2, 7, nPlots);
 % cs = logspace(-5, 2, nPlots);
-% pi1s = logspace(-3, 2, nPlots);
-% pi2s = logspace(-1, 2, nPlots);
+% pi_exits = logspace(-3, 2, nPlots);
+% pi_entries = logspace(-1, 2, nPlots);
 
 % %% MEDIUM
 % exitOnlyDuringOffStates = true;
@@ -44,25 +43,26 @@ dls = DorsalFluoValues;
 % dls = logspace(0, log10(dmax), 20);
 % kds = logspace(2, 7, nPlots);
 % cs = logspace(-5, 2, nPlots);
-% pi1s = logspace(-3, 2, nPlots);
-% pi2s = logspace(-1, 2, nPlots);
+% pi_exits = logspace(-3, 2, nPlots);
+% pi_entries = logspace(-1, 2, nPlots);
 %
 % %%
 
 %% FAST
 exitOnlyDuringOffStates = true;
 nSims = 1E4;
-nPlots = 20;
+nPlots = 40;
 
 % dls = logspace(0, log10(dmax), 20);
 % kds = logspace(2, 7, nPlots);
 % cs = logspace(-5, 2, nPlots);
-kds = logspace(2, 5.5, nPlots);
-cs = logspace(-1, 6, nPlots);
+% kds = logspace(2, 5.5, nPlots);
+kds = 1E3;
+cs = logspace(-1, 3, nPlots);
 pi_exits = logspace(-3, 2, nPlots);
 pi_entries = logspace(-1, 2, nPlots);
-nentries = 0:1:12;
-moffs = 1:1:12;
+nentries = [0, 1:2:10];
+moffs = 1:2:10;
 % nentries= 5;
 % moffs = 5;
 
@@ -113,19 +113,23 @@ fpts_std = mfpts;
 N_cs = length(params.cs);
 N_dls = length(params.dls);
 N_kds = length(params.kds);
-N_pi1s = length(params.pi_exits);
-N_pi2s = length(params.pi_entries);
+N_pi_exits = length(params.pi_exits);
+N_pi_entries = length(params.pi_entries);
 N_nentries = length(params.nentries);
 N_moffs = length(params.moffs);
 
-%dls, kds, pi1s, cs, pi2s, nentries, moffs
+%dls, kds, pi_exits, cs, pi_entries, nentries, moffs
 
 for o = 1:N_nentries
     
-    tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'gpuArray');
-    
-    for k = 1:length(pi_entries)
-        tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nentries(o), nSims]);
+    if nentries(o) ~= 0
+        tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'gpuArray');
+
+        for k = 1:length(pi_entries)
+            tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nentries(o), nSims]);
+        end
+    else
+        tau_entry = [];
     end
     
     for p = 1:N_moffs
@@ -146,18 +150,22 @@ for o = 1:N_nentries
             display("tfdrivenentryexit progress: "+ num2str(( (m-1) / N_cs)*100)+"%" )
             
 %             for i = 1:N_dls
-            for i = 1:N_dls
+            parfor i = 1:N_dls
                 for j = 1:N_kds
                     
                     %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
                     tau_on = exprnd( ( gpuArray(cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j)))) )^-1,...
                         [moffs(p)+1, nSims]);
                     
-                    for n = 1:N_pi2s
+                    for n = 1:N_pi_entries
                         
-                        tau_entry_off = [tau_entry(:, :, n); tau_on];
+                        if ~isempty(tau_entry)
+                            tau_entry_off = [tau_entry(:, :, n); tau_on];
+                        else
+                            tau_entry_off = tau_on;
+                        end
                         
-                        for k = 1:N_pi1s
+                        for k = 1:N_pi_exits
                             
                             %let's determine if the transition is to the silent
                             %state or other.
@@ -264,13 +272,13 @@ plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 %
 % figure;
 % t = tiledlayout('flow');
-% for k = 1:1:length(pi1s)
+% for k = 1:1:length(pi_exits)
 %     nexttile;
 %     try
 %         plotTFDrivenParams2(factive(:, :, k, :, :) ,...
 %             dt(:, :, k, :, :), mfpts(:, :, k, :, :),'params', params, 'nPoints', 1E3, 'fig', gcf);
-%         %          title(['\pi_{exit} = ', num2str(round2(pi1s(k))), ' min^{-1}'])
-%         title(num2str(round2(pi1s(k))))
+%         %          title(['\pi_{exit} = ', num2str(round2(pi_exits(k))), ' min^{-1}'])
+%         title(num2str(round2(pi_exits(k))))
 %     end
 % end
 % title(t, 'Effect of pi_exit on parameter space');
@@ -279,14 +287,14 @@ plotGoodCurves(factive, dt, mfpts, params, goodMatrixIndices)
 %
 % figure;
 % t = tiledlayout('flow');
-% for k = 1:1:length(pi2s)
+% for k = 1:1:length(pi_entries)
 %     nexttile;
 %     try
 %         plotTFDrivenParams2(factive(:, :, :, :, k),...
 %             dt(:, :, :, :, k), mfpts(:, :, :, :, k), 'params', params, 'fig', gcf,  'nPoints', 1E3);
 %     end
-%     %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
-%     title(num2str(round2(pi2s(k))))
+%     %         title(['\pi_{entry} = ', num2str(round2(pi_entries(k))), ' min^{-1}'])
+%     title(num2str(round2(pi_entries(k))))
 % end
 % title(t, 'Effect of pi_entry on parameter space');
 %
@@ -301,7 +309,7 @@ for k = 1:1:length(params.pi_exits)
         plotTFDrivenParams2(factive(:, :, :, :, k, :, :),...
             dt(:, :, :, :, k, :, :), mfpts(:, :, :, :, k, :, :), 'params', params, 'fig', gcf,  'nPoints', 1E3);
     end
-    %         title(['\pi_{entry} = ', num2str(round2(pi2s(k))), ' min^{-1}'])
+    %         title(['\pi_{entry} = ', num2str(round2(pi_entries(k))), ' min^{-1}'])
     title(num2str(round2(params.pi_exits(k))))
 end
 title(t, 'Effect of pi_entry on parameter space');

@@ -1,6 +1,6 @@
 function plotGoodCurves(factive, dt, mfpts, params, varargin)
 
- %dls, kds, pi1s, cs, pi2s
+ %dls, kds, pi_exits, cs, pi_entries
 
 if length(varargin)==1
     goodMatrixIndices = varargin{1};

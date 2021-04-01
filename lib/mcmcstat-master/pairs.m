@@ -28,7 +28,7 @@ for j=2:p
     else
       h=subplot(p-1,p-1,(j-2)*(p-1)+i);
     end
-    plot(x(inds,i),x(inds,j),'.');
+    plot(x(inds,i),x(inds,j),'.', 'MarkerSize', 4, 'Color', [.4 .4 1]);
     
     if j~=p
       set(h,'xtick',[])

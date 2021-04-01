@@ -57,9 +57,12 @@ options.updatesigma = 1; %honestly don't know what this does
 names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit"];
 % p0 = [1E5, 1E5, 5, 5, .1, 3];
 if modelType == "entryexit"
-    p0 = [10, 1E3, 5, 5, 1, 1];
-    lb = [1E-1, 1E2, 0, 1, 1E-2, 0];
-    ub = [1E6, 1E6, 12, 12, 1E3, 1E1];
+%     p0 = [10, 1E3, 5, 5, 1, 1];
+%     lb = [1E-1, 1E2, 0, 1, 1E-1, 0];
+%     ub = [1E6, 1E6, 12, 12, 1E3, 1E1];
+    p0 = [1, 1E3, 5, 5, 1, 1];
+    lb = [1E-1, 1E2, 0, 1, 1E-1, 1E-2];
+    ub = [1E2, 1E6, 12, 12, 1E3, 1E1];
 elseif modelType == "entry"
     p0 = [1, 1E3, 5, 5, 1, 0];
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0];%pentry lower than .1 causes crash
@@ -183,12 +186,16 @@ if isempty(results.mean)
     warning('Results mean was empty. Using chain mean.')
 end
 if modelType == "entryexit"
-    theta_mean = [results.mean(1:2), 5, 5, results.mean(3:4)];
+    if ~fixKD
+        theta_mean = [results.mean(1:2), p0(3), p0(4), results.mean(3:4)];
+    else
+        theta_mean = [results.mean(1), p0(2), p0(3), p0(4), results.mean(2:3)];
+    end
 elseif modelType == "entry"
     if ~fixKD
-        theta_mean = [results.mean(1:2), 5, 5, results.mean(3), 0];
+        theta_mean = [results.mean(1:2), p0(3), p0(4) results.mean(3), 0];
     else
-        theta_mean = [results.mean(1), p0(2), 5, 5, results.mean(2), 0];
+        theta_mean = [results.mean(1), p0(2), p0(3), p0(4) results.mean(2), 0];
     end
 end
 yy = mdl(DorsalFluoValues, theta_mean);
@@ -246,11 +253,11 @@ yyy_o = squeeze(yyy(:, 2, :));
 scatter(yyy_f(:), yyy_o(:));
 xlim([0, 1.1])
 ylim([0, 8.2])
-
-nexttile;
-scatter(sims.factive(:), sims.mfpts(:))
-xlim([0, 1.1])
-ylim([0, 8.2])
+% 
+% nexttile;
+% % scatter(sims.factive(:), sims.mfpts(:))
+% xlim([0, 1.1])
+% ylim([0, 8.2])
 
 
 

@@ -125,7 +125,7 @@ if nargout == 0
         dt0(factive0 < .05) = nan;
         factive0(factive0 < .05) = nan;
         
-        %dls, kds, pi1s, cs, pi2s
+        %dls, kds, pi_exits, cs, pi_entries
 
         
         x0 = x;
@@ -134,7 +134,7 @@ if nargout == 0
         y0(x0 < .05) = nan;
         
         %%
-        %dls, kds, pi1s, cs, pi2s
+        %dls, kds, pi_exits, cs, pi_entries
         
         scatter(y0(in),x0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
             'MarkerEdgeColor', 'none')
@@ -145,15 +145,15 @@ if nargout == 0
             if ~params.exitOnlyDuringOffStates
                 j = nearestIndex(params.kds, 1E4);
                 m = nearestIndex(params.cs, 10);
-                l = nearestIndex(params.pi1s, .001);
-                n = nearestIndex(params.pi2s, 2);
+                l = nearestIndex(params.pi_exits, .001);
+                n = nearestIndex(params.pi_entries, 2);
                 o = 1;
                 p = 1;
             else
                 j = nearestIndex(params.kds, 1E4);
                 m = nearestIndex(params.cs, 10);
-                l = nearestIndex(params.pi1s, .001);
-                n = nearestIndex(params.pi2s, 2.5);
+                l = nearestIndex(params.pi_exits, .001);
+                n = nearestIndex(params.pi_entries, 2.5);
                 o = 1;
                 p = 1;
             end
@@ -225,7 +225,7 @@ else
         end
         
         
-        %dls, kds, pi1s, cs, pi2s
+        %dls, kds, pi_exits, cs, pi_entries
         fields_params = fieldnames(params);
         figure;
         
