@@ -14,7 +14,7 @@ affinity_enhancers = {'1Dg11_2xDl','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 
-enhancers = {'TwiPEv5','TwiPE_noExportControl','TwiPE_exportFirst4min'} %affinity_enhancers;
+enhancers = {'TwiPE_noExportControl','TwiPE_exportFirst4min'} %affinity_enhancers;
 Palette = viridis(length(enhancers));
 scores = scores(1:length(enhancers));
 

@@ -51,7 +51,14 @@ end
 coveredBins = unique([enhancerStruct.dorsalFluoBin2]);
 binValues = binValues(coveredBins);
 
-% now make one struct per bin
+%% get the dorsal fluo over time for each dorsal fluo bin
+
+
+
+
+
+
+%% now make one struct per embryo per bin 
 % define some filters
 minEmbryosPerBin = 3;
 minNucleiPerEmbryoPerBin = 1;
