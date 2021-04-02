@@ -3,6 +3,7 @@ function [fraction_active, mean_onset] = timesim(varargin)
 dt = 10/60; %s time resolution
 c = 1;
 t_cycle = 8;
+time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
 kd = 1E3;
 dls =  kd*ones(length(ceil(t_cycle/dt)))';
 nSims = 20;
@@ -16,7 +17,6 @@ for i = 1:2:(numel(varargin)-1)
     end
 end
 
-time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
 
 
 onState = nOffStates + 1;
