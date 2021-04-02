@@ -2,7 +2,7 @@ function tfdrivenentryexit_gpu(varargin)
 
 model = "entryexit"; %choices- entryexit, entry, exit, basic
 nSims = 1E3; %number of simulations for the kinetic window model
-nPlots = 40;
+nPlots = 30;
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
 t_cycle = 8;
 variableStateNumber = false;
@@ -117,9 +117,10 @@ end
 
 
 %%
-mfpts = nan( length(dls), length(kds), length(pi_exits),...
-    length(cs), length(pi_entries), length(nentries),length(moffs), 'gpuArray' );
-factive = mfpts;
+mfpts = gpuArray(nan( length(dls), length(kds), length(pi_exits),...
+    length(cs), length(pi_entries), length(nentries),length(moffs), 'single'));
+factive = gpuArray(zeros( length(dls), length(kds), length(pi_exits),...
+    length(cs), length(pi_entries), length(nentries),length(moffs), 'single'));
 fpts_std = mfpts;
 
 %i'm doing this calculation here to avoid computational overhead in the sim loop
@@ -141,7 +142,7 @@ N_moffs = length(params.moffs);
 for o = 1:N_nentries
     
     if nentries(o) ~= 0
-        tau_entry = nan(nentries(o), nSims, numel(pi_entries), 'gpuArray');
+        tau_entry = gpuArray(zeros(nentries(o), nSims, numel(pi_entries)));
         
         for k = 1:length(pi_entries)
             tau_entry(:, :, k) = exprnd(pi_entries(k)^-1, [nentries(o), nSims]);
@@ -155,7 +156,7 @@ for o = 1:N_nentries
         nOffEntryStates = moffs(p) + nentries(o);
         nStates = nentries(o) + moffs(p) + 1 + nSilentStates;
         
-        tau_exit = nan(nStates-1, nSims, numel(pi_exits), 'gpuArray');
+        tau_exit = gpuArray(zeros(nStates-1, nSims, numel(pi_exits), 'single'));
         for k = 1:length(pi_exits)
             tau_exit(:, :, k) = exprnd(pi_exits(k)^-1, [nStates-1, nSims]);
         end
@@ -170,7 +171,7 @@ for o = 1:N_nentries
                 for j = 1:N_kds
                     
                     %pi0 = cs(m).*occupancy(dls(i), kds(j)); %min-1
-                    tau_on = exprnd( ( gpuArray(cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j)))) )^-1,...
+                    tau_on = exprnd( ( gpuArray(single(cs(m).* ((dls(i)./kds(j)) ./ (1 + dls(i)./kds(j))))) )^-1,...
                         [moffs(p)+1, nSims]);
                     
                     for n = 1:N_pi_entries
@@ -201,7 +202,7 @@ for o = 1:N_nentries
                             trunc = onsets_sim < t_cycle;
                             
                             factive(i,j,k,m,n, o, p) = sum(trunc) / nSims;
-                            mfpts(i, j, k, m, n, o, p) = mean(onsets_sim(trunc));
+                            mfpts(i, j, k, m, n, o, p) = mean(onsets_sim(trunc), 'omitnan');
                             %                     fpts_std(i, j, k, m, n, o, p) = std(onsets_sim(trunc));
                             
                         end %for pi_entries
@@ -234,7 +235,11 @@ end
 
 params.saveStr = saveStr;
 
-goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, 'dim', 2, 'params', params);
+try
+    goodMatrixIndices = plotTFDrivenParams2(factive, dt, mfpts, 'dim', 2, 'params', params);
+catch
+    goodMatrixIndices = [];
+end
 %
 save(dropboxfolder + "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat",...
     'params', 'mfpts', 'dt', 'factive' , 'goodMatrixIndices')
