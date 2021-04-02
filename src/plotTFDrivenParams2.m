@@ -133,7 +133,7 @@ if nargout == 0
         x0(x0 < .05) = nan;
         y0(x0 < .05) = nan;
         
-        %%
+       %%
         %dls, kds, pi_exits, cs, pi_entries
         
         scatter(y0(in),x0(in),'o', 'MarkerFaceColor', [128 128 128]/255,...
