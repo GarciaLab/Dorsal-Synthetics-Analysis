@@ -55,19 +55,19 @@ options.nsimu = nSteps; %should be between 1E3 and 1E6
 options.updatesigma = 1; %honestly don't know what this does
 % options.method = 'mh';
 %
-names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit"];
-% p0 = [1E5, 1E5, 5, 5, .1, 3];
+names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
+% p0 = [1E5, 1E5, 5, 5, .1, 3, 8];
 if modelType == "entryexit"
-%     p0 = [10, 1E3, 5, 5, 1, 1];
-%     lb = [1E-1, 1E2, 0, 1, 1E-1, 0];
-%     ub = [1E6, 1E6, 12, 12, 1E3, 1E1];
-    p0 = [1, 1E3, 5, 5, 1, 1];
-    lb = [1E-1, 1E2, 0, 1, 1E-1, 1E-2];
-    ub = [1E2, 1E6, 12, 12, 1E3, 1E1];
+%     p0 = [10, 1E3, 5, 5, 1, 1, 8];
+%     lb = [1E-1, 1E2, 0, 1, 1E-1, 0, 5];
+%     ub = [1E6, 1E6, 12, 12, 1E3, 1E1, 10];
+    p0 = [1, 1E3, 5, 5, 1, 1, 8];
+    lb = [1E-1, 1E2, 0, 1, 1E-1, 1E-2, 5];
+    ub = [1E2, 1E6, 12, 12, 1E3, 1E1, 10];
 elseif modelType == "entry"
-    p0 = [1, 1E3, 5, 5, 1, 0];
-    lb = [1E-2, 1E0, 0, 1, 1E-1, 0];%pentry lower than .1 causes crash
-    ub = [1E3, 1E6, 12, 12, 1E1, 0];
+    p0 = [1, 1E3, 5, 5, 1, 0, 8];
+    lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
+    ub = [1E3, 1E6, 12, 12, 1E1, 0, 10];
 end
 
 if variableStateNumber

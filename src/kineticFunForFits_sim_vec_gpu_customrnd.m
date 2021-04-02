@@ -1,9 +1,9 @@
 function y = kineticFunForFits_sim_vec_gpu_customrnd(x, theta, modelOpts)
 
-%sims- dls, kds, pi1s (piexit), cs, pi2s(pientry), nentries, moffs
-%theta- c, kd, n, m, pientry, piexit
+%sims- dls, kds, pi1s (piexit), cs, pi2s(pientry), nentries, moffs, t_cycle
+%theta- c, kd, n, m, pientry, piexit, t_cycle
 %example input:
-%y = kineticFunForFits_sim(10:250:4000,  [2.5E5, 3300, 5, 5, 13.5, .87], []);
+%y = kineticFunForFits_sim(10:250:4000,  [2.5E5, 3300, 5, 5, 13.5, .87, 8], []);
 
 % rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 
@@ -11,13 +11,11 @@ if isempty(modelOpts)
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E3;
     modelOpts.modelType = 'entryexit';
-    modelOpts.t_cycle = 8; %min
 end
 
 
 nSims = modelOpts.nSims;
 exitOnlyDuringOffStates = modelOpts.exitOnlyDuringOffStates;
-t_cycle = modelOpts.t_cycle; %min
 
 %mcmcpred feeds in x as a struct. otherwise it's an array
 if isstruct(x)
@@ -32,6 +30,7 @@ nentries = round(theta(3));
 moffs = round(theta(4));
 pi_entries = theta(5);
 pi_exits = theta(6);
+t_cycle = theta(7);
 
 nSilentStates = contains(modelOpts.modelType, 'exit');
 nOffEntryStates = moffs + nentries;
