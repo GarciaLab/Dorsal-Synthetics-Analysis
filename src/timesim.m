@@ -4,7 +4,7 @@ dt = 10/60; %s time resolution
 c = 1;
 t_cycle = 8;
 kd = 1E3;
-dls =  kd*ones(length(time_vec), 1);
+dls =  kd*ones(length(ceil(t_cycle/dt)))';
 nSims = 20;
 nOffStates = 5;
 
@@ -17,6 +17,7 @@ for i = 1:2:(numel(varargin)-1)
 end
 
 time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
+
 
 onState = nOffStates + 1;
 
