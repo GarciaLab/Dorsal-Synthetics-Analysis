@@ -3,7 +3,7 @@ function [fraction_active, mean_onset] = timesim(time_vec,dls,varargin)
 % numBins is the total number of bins to partition the Dorsal fluorescence;
 % bin is which Dorsal fluorescence bin we're simulating
 
-dt = 10/60; %s time resolution, should be the same as in time_vec
+dt = 10/60; %s time resolution
 c = 1.5;
 t_cycle = 8;
 %time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
@@ -64,7 +64,6 @@ end
 
 fraction_active = numel(onsets(~isnan(onsets)))/nSims;
 mean_onset = mean(onsets, 'omitnan');
-%figure
 
 %disp('debug stop')
 end

@@ -18,7 +18,7 @@ end
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
 
-numBins = 20;
+numBins = 17;
 
 fiducialTime = 6; %mins
 
@@ -31,8 +31,8 @@ end
 %just gonna grab 1dg11_2xDl data
 enhancerStruct = combinedCompiledProjects_allEnhancers(...
     [combinedCompiledProjects_allEnhancers.cycle]==12 &...
-    ({combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_2xDl" |...
-      {combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_FFF"  )&...
+    ({combinedCompiledProjects_allEnhancers.dataSet} == "1DG_VW_2xDl_FFF" |...
+      {combinedCompiledProjects_allEnhancers.dataSet} == "1DG_VW_2xDl_FFF"  )&...
     ~isnan([combinedCompiledProjects_allEnhancers.dorsalFluoFeature]));
 
 
@@ -46,7 +46,7 @@ nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
 % arbitrary one at a given 'fiducial time' obtained from DorsalFluoArbitraryTime
 nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
 
-binValues = linspace(0,4500,numBins);
+binValues = linspace(0,3789.5,numBins);
 binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
 for n = 1:length(enhancerStruct)
     enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
