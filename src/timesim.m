@@ -9,7 +9,7 @@ t_cycle = 8;
 %time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
 kd = 1E3;
 %dls =  kd*ones(length(ceil(t_cycle/dt)))';
-nSims = 5000;
+nSims = 1E4;
 nOffStates = 5;
 
 % grab the Dorsal fluos over time 
@@ -29,6 +29,12 @@ end
 dls = dls(time_vec < t_cycle);
 time_vec = time_vec(time_vec < t_cycle); 
 
+
+x = DorsalFluoStruct(1).absoluteTime;
+y = DorsalFluoStruct(1).meanDorsalFluo;
+tq = min(time_vec):.01:max(time_vec);
+dq = makima(x,y,tq);
+
 onState = nOffStates + 1;
 
 
@@ -38,20 +44,20 @@ for n = 1:nSims
     
     state = ones(length(time_vec), 1);
     
-    tau_offs = exprnd( (c*(dls./kd) ./ (1 + dls./kd) ).^-1, [length(dls), 1]);
-    
+%     tau_offs = exprnd( (c*(dls./kd) ./ (1 + dls./kd) ).^-1, [length(dls), 1]);
+       s_offs = poissrnd( (c*(dls./kd) ./ (1 + dls./kd) ), [length(dls), 1]);
    
     %jump_times = [];
     
     for t = 1:length(time_vec)
+%         
+%         if tau_offs(t) < dt
+%             state(t:end) = state(t) + 1;
+%         end
         
-        if tau_offs(t) < dt
-            state(t:end) = state(t) + 1;
-           %jump_times = [jump_times, tau_offs(t)];
-        end
-        
-        if state(t) == onState
-           % onsets(n) = sum(jump_times);
+        state(t+1:end) = state(t) + s_offs(t);
+
+        if state(t) >= onState
            onsets(n) = time_vec(t);
            break;
         end
