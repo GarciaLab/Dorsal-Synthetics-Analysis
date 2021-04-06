@@ -98,7 +98,7 @@ for bin = 1:numBins-1
     
     meanNucleusFluo = nanmean(DorsalFluoArray,2);
     errorNucleusFluo = nanstd(DorsalFluoArray,[],2)./sqrt(numNuclei);
-    errorbar(absTime/60,meanNucleusFluo,errorNucleusFluo,'CapSize',0,'Color',Palette(bin,:),'LineWidth',2)
+%     errorbar(absTime/60,meanNucleusFluo,errorNucleusFluo,'CapSize',0,'Color',Palette(bin,:),'LineWidth',2)
     
     DorsalFluoTraces(bin).absoluteTime = absTime;
     DorsalFluoTraces(bin).meanDorsalFluo = smooth(meanNucleusFluo);

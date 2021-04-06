@@ -9,11 +9,10 @@ t_cycle = 8;
 %time_vec = linspace(0, t_cycle, ceil(t_cycle/dt))';
 kd = 1E3;
 %dls =  kd*ones(length(ceil(t_cycle/dt)))';
-nSims = 2E4;
-nOffStates = 5;
-
-% grab the Dorsal fluos over time 
-
+nSims = 5E3;
+nOffStates = 2;
+nEntryStates = 2;
+pi_entry = 1;
 
 
 %%
@@ -27,20 +26,20 @@ end
 
 
 dls = dls(time_vec < t_cycle);
-time_vec = time_vec(time_vec < t_cycle); 
+time_vec = time_vec(time_vec < t_cycle);
 
 
 
-q = .01;
+q = .1;
 tq = min(time_vec):q:max(time_vec);
 try
     dq = makima(time_vec, dls, tq)';
 catch
-    dq = dls(1)*ones(length(tq), 1); 
+    dq = dls(1)*ones(length(tq), 1);
 end
 % figure; plot(time_vec, dls,'o',tq,dq,'.')
 
-onState = nOffStates + 1;
+onState = nEntryStates + nOffStates + 1;
 
 
 onsets = nan(nSims, 1);
@@ -50,17 +49,21 @@ for n = 1:nSims
     state = 1;
     while t < t_cycle
         
-        current_time_index = nearestIndex(tq, t); 
-                
-        holding_time = exprnd( (c*(dq(current_time_index)./kd) ./ (1 + dq(current_time_index)./kd) ).^-1);
-        t = t + holding_time; 
+        current_time_index = nearestIndex(tq, t);
+        
+        if state > nEntryStates + 1
+            holding_time = exprnd( pi_entry.^-1);
+        else
+            holding_time = exprnd( (c*(dq(current_time_index)./kd) ./ (1 + dq(current_time_index)./kd) ).^-1);
+        end
+        t = t + holding_time;
         state = state + 1;
         
         if state >= onState
-           onsets(n) = t;
-           break;
+            onsets(n) = t;
+            break;
         end
-
+        
     end
     
 end
