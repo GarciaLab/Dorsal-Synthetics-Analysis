@@ -43,44 +43,33 @@ binValues = binValues(coveredBins);
 
 %% bin nuclei in another way
 binLimits = linspace(0,4000,numBins);
-% for b = 1:length(binLimits)-1
-%     maxBinFluo = binLimits(b+1);
-%     minBinFluo = binLimits(b);
 for n = 1:length(allEnhancersNC12)
     FluoFeature = allEnhancersNC12(n).dorsalFluoFeature;
     bin = find(FluoFeature-binLimits<0,1,'first')-1;
     allEnhancersNC12(n).dorsalFluoBin3 = bin;
-%     
-%     for b = 1:length(binLimits)-1
-%         maxBinFluo = binLimits(b+1);
-%         minBinFluo = binLimits(b);
-%         if (FluoFeature < maxBinFluo) & (FluoFeature > minBinFluo+1)
-%             allEnhancersNC12(n).dorsalFluoBin3 = b;
-%         end
-%     end
 end
-% end
 
         
     
 %% populate the output struct
-ncDuration = 14; %min
+ncDuration = 12; %min
 frameRate = 10; %seconds
 interpPoints = 100;
 timeSteps = ceil((ncDuration*60)./frameRate);
 numNuclei = 100;
 absTime = 0:frameRate:timeSteps*frameRate;
-Palette = cbrewer('seq', 'YlGn', numBins);
+% Palette = cbrewer('seq', 'YlGn', numBins);
+Palette = viridis(numBins);
 
 figure
 hold on
 for bin = 1:numBins-1
     
-    n = 0;
+    n = 1;
     for k = 1:length(allEnhancersNC12)
         if allEnhancersNC12(k).dorsalFluoBin3 == bin
-            n = n + 1;
             binStruct(n) =  allEnhancersNC12(k);
+            n = n + 1;
         end
     end
     
@@ -109,13 +98,15 @@ for bin = 1:numBins-1
     
     meanNucleusFluo = nanmean(DorsalFluoArray,2);
     errorNucleusFluo = nanstd(DorsalFluoArray,[],2)./sqrt(numNuclei);
-    errorbar(absTime/60,meanNucleusFluo,errorNucleusFluo,'CapSize',0,'Color',Palette(bin,:),'LineWidth',2)
+%     errorbar(absTime/60,meanNucleusFluo,errorNucleusFluo,'CapSize',0,'Color',Palette(bin,:),'LineWidth',2)
     
     DorsalFluoTraces(bin).absoluteTime = absTime;
     DorsalFluoTraces(bin).meanDorsalFluo = smooth(meanNucleusFluo);
     DorsalFluoTraces(bin).originalFluoFeature = mean([binStruct.dorsalFluoFeature]);
     DorsalFluoTraces(bin).bin = bin;
-
+    DorsalFluoTraces(bin).binValues = binValues;
+    
+    clear binStruct
     
 end
 hold off
