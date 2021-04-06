@@ -10,7 +10,7 @@ nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 fo
 nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps).
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
 modelType = "entryexit"; %choices- entryexit, entry, exit, basic
-fun= "table"; %also 'sim'
+fun= "table"; %also 'sim', 'imhomo', 'master'
 t_cycle = 8;
 variableStateNumber = false;
 fixKD = false;
@@ -134,6 +134,8 @@ if fun == "table"
     mdl = @(x, p) kineticFunForFits_table(x, p, modelOpts);
 elseif fun== "sim"
     mdl = @(x, p) kineticFunForFits_sim_vec_gpu_customrnd(x, p, modelOpts);
+elseif fun == "inhomo"
+    mdl = @(x, p)  timesim_interp_alldl(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun

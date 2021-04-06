@@ -1,7 +1,6 @@
 function [fraction,meanonset] = BasicModel_masterEq(c,kd,dorsalVals)
 
-%Solve the master equation for the production and degradation of mRNA
-%molecules
+%Solve the master equation for state of promoter before transcription onset
 
 %% set up problem
 % Model parameters:
