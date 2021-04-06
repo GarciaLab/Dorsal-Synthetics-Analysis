@@ -58,7 +58,8 @@ interpPoints = 100;
 timeSteps = ceil((ncDuration*60)./frameRate);
 numNuclei = 100;
 absTime = 0:frameRate:timeSteps*frameRate;
-Palette = cbrewer('seq', 'YlGn', numBins);
+% Palette = cbrewer('seq', 'YlGn', numBins);
+Palette = viridis(numBins);
 
 figure
 hold on

@@ -27,7 +27,8 @@ binValues = DorsalFluoStruct(1).binValues;
 % legend()
 
 %% now loop over Kds
-KDs = [15000,10000,8500,7000,5000,3000,2500,1000,500,100];
+% KDs = [15000,10000,8500,7000,5000,3000,2500,1000,500,100];
+KDs = 10:1000:10000;
 fraction_actives = nan(length(KDs),length(DorsalFluoStruct));
 mean_onsets = nan(length(KDs),length(DorsalFluoStruct));
 
@@ -42,7 +43,7 @@ mean_onsets = nan(length(KDs),length(DorsalFluoStruct));
                 dls = ones(length(DorsalFluoStruct(bin).meanDorsalFluo),1).*DorsalFluoStruct(bin).originalFluoFeature;
             end
             
-            [fraction_actives(counter,bin), mean_onsets(counter,bin)] = timesim(time_vec,dls,'kd',k);
+            [fraction_actives(counter,bin), mean_onsets(counter,bin)] = timesim_interp(time_vec,dls,'kd', k, 'c', 1.5, 'nOffStates', 5, 't_cycle', 8);
         end
         counter=counter+1;
     end
@@ -67,8 +68,9 @@ ylim([0 1])
 figure
 hold on
 for k = 1:length(KDs)
-    plot(XvalsForPlot,mean_onsets(k,:),'Color',Palette(k,:),'LineWidth',2, 'DisplayName', 'onset')
+    plot(XvalsForPlot,mean_onsets(k,:),'Color',Palette(k,:),'LineWidth',2, 'DisplayName', num2str(KDs(k)))
 end
 ylabel('onset')
-ylim([0 10])
+ylim([0 9]);
+xlim([100, 4000]);
 legend()
