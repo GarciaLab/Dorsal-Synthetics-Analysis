@@ -2,6 +2,7 @@ function fraction_onset = fiveOffSteps(dorsalVals,c,kd,n_entry,n_off,piEntry,piE
 
 t = linspace(0,12,120);
 k = (c*(dls./kd) ./ (1 + dls./kd));
+tot
 
 for i = 1:length(k)
     k1=k(i);
