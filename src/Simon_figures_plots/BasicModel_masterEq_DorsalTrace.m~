@@ -1,6 +1,5 @@
 function fraction_onset = BasicModel_masterEq_DorsalTrace(dorsalVals,c,kd,n_entry,n_off,piEntry,piExit,tCycle,options)
 
-
 % Solve the master equation for state of promoter before transcription onset
 
 % compared to BasicModel_masterEq, in this function dorsalVals is still an array of one value per bin, 
@@ -35,19 +34,16 @@ M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
 M(1,1)=numCells;    %everyone is at state 1 initially
 
 %% Do the calculation
-for d = 1:(length(dorsalVals)-1)
-    
+for d = 1:length(dorsalVals)
     dorsalTraceFluo = TimeVariantDorsalValues(:,d);
 
     for t=2:TotalTime/dt % loop over time steps
-        
         actualTimeInSec = t*dt*60; 
-        [delta, idx] = min(abs(TimeVariantAbsoluteTimes-actualTimeInSec));
-        dls = dorsalTraceFluo(idx);
+        [delta, idxfind(min(abs(TimeVariantAbsoluteTimes-actualTimeInSec)))
+        
         k = (c*(dls./kd) ./ (1 + dls./kd));
 
         %Calculate the evolution of all boxes minus the ones at the edges
-        
         for s=2:NOffStates % loop over states
             stay = M(t-1,s);
             leave = k*dt*M(t-1,s);

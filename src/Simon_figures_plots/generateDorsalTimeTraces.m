@@ -1,5 +1,6 @@
 function dorsalTimeTraces = generateDorsalTimeTraces(dorsalVals)
-
+% for consistency, use this
+% dorsalVals = linspace(0,3800,18)
 %% load everything
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])

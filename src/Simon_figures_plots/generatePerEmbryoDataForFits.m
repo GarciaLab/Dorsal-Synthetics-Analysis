@@ -1,6 +1,6 @@
 function [FractionsPerEmbryoAll,OnsetsPerEmbryoAll,enhancerNames,binLimits] = generatePerEmbryoDataForFits(numBins)
 
-binLimits = linspace(0,4000,numBins);
+binLimits = linspace(0,3800,numBins);
 
 % AffinityDataTypes = unique({'1Dg11_2xDl_FFF','1Dg11_2xDl','1DgW_2x_Leica','1DgW_FFF',...
 % '1DgVW_FFF', '1Dg11_FFF','1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1DgSVW2_2xDl',...
