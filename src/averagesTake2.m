@@ -61,7 +61,7 @@ binValues = binValues(coveredBins);
 %% now make one struct per embryo per bin 
 % define some filters
 minEmbryosPerBin = 3;
-minNucleiPerEmbryoPerBin = 1;
+minNucleiPerEmbryoPerBin = 2;
 minOnset = 2; % (min) earliest possible spot detection time to be counted
 maxOnset = 8; %(min) latest possible spot detection time to be counted
 maxMaxFluo = 1500; % (a.u)
