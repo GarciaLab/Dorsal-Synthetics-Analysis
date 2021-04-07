@@ -38,34 +38,33 @@ M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at state 1 initially
 
+time_vec_2 = 0:dt:TotalTime-dt;
+
 fraction_onset = nan(length(dorsalVals), 2);
 
 %% Do the calculation
-for d = 1:length(dorsalVals)
+parfor d = 1:length(dorsalVals)
     dls = dorsalVals(d);
     k = (c*(dls./kd) ./ (1 + dls./kd));
+    kdt = k*dt;
+    
     for t=2:TotalTime/dt % loop over time steps
 
         %Calculate the evolution of all boxes minus the ones at the edges
         for s=2:NOffStates % loop over states
-            stay = M(t-1,s);
-            leave = k*dt*M(t-1,s);
-            enter = k*dt*M(t-1,s-1);
-
-            M(t,s) = stay + enter - leave;        
+            M(t,s) = (1-kdt)*M(t-1,s) + kdt*M(t-1,s-1); %stay + enter - leave
         end
 
         %Calculate the first box
-        M(t,1) = M(t-1,1) - k*dt*M(t-1,1);
+        M(t,1) = (1-kdt)*M(t-1,1);
 
         %Calculate the last box
-        M(t,NOffStates+1) = M(t-1,NOffStates+1) + k*dt*M(t-1,NOffStates);
+        M(t,NOffStates+1) = M(t-1,NOffStates+1) + kdt*M(t-1,NOffStates);
     end
 
     fraction_onset(d,1) = M(end,end)/numCells;
     y6 = M(:,end); %number of nuclei in the last state as a function of time
-    t = 0:dt:TotalTime-dt;
-    fraction_onset(d,2) = sum(diff(y6).*t(1:end-1)')/sum(diff(y6)); %expected value
+    fraction_onset(d,2) = sum(diff(y6).*time_vec_2(1:end-1)')/sum(diff(y6)); %expected value
     
     
 end

@@ -79,17 +79,18 @@ for d = 1:n_dls
         
         dls = dorsalTraceFluo(idx(t-1));
         k = (c*(dls./kd) ./ (1 + dls./kd));
-        
+            kdt = k*dt;
+
         %Calculate the evolution of all boxes minus the ones at the edges
         for s=2:NOffStates % loop over states           
-            M(t,s) = M(t-1,s) + k*dt*M(t-1,s-1) - k*dt*M(t-1,s); %stay + enter - leave
+            M(t,s) = (1-kdt)*M(t-1,s) + kdt*M(t-1,s-1); %stay + enter - leave
         end
         
-        %Calculate the first box
-        M(t,1) = M(t-1,1) - k*dt*M(t-1,1);
+         %Calculate the first box
+        M(t,1) = (1-kdt)*M(t-1,1);
         
         %Calculate the last box
-        M(t,NOffStates+1) = M(t-1,NOffStates+1) + k*dt*M(t-1,NOffStates);
+        M(t,NOffStates+1) = M(t-1,NOffStates+1) + kdt*M(t-1,NOffStates);
     end
     
     fraction_onset(d,1) = M(end,end)/numCells;

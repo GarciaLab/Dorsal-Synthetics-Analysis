@@ -44,7 +44,7 @@ if batchedAffinities
     for k = 1:numel(enhancers)
         %needs to be nobs x ny
         FractionsPerEmbryo = FractionsPerEmbryoAll{k};
-        OnsetsPerEmbryo = OnsetsPerEmbryo{k};
+        OnsetsPerEmbryo = OnsetsPerEmbryoAll{k};
         
         
         X = repmat(binMidValues, 1, max(size(FractionsPerEmbryo)));
