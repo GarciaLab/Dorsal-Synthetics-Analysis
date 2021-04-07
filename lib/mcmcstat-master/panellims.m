@@ -36,8 +36,10 @@ if smo(2)>0
   [xo,yo,z,p]=plims2d([x,y],lms,smo(2:end),rho);
 
   h=gca; hp=findobj(h,'Type','line');
-  set(hp,'MarkerSize',1);
-  set(hp(1),'Color',ccolor);
+  set(hp,'MarkerSize',3);
+%   set(hp(1),'Color',ccolor);
+  set(hp(1),'Color',[.4 .4 1]);
+
   hold on
   [c,hc]=contour(xo,yo,z,p);
   %get(hc(1))

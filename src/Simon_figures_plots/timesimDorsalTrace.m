@@ -43,7 +43,7 @@ mean_onsets = nan(length(KDs),length(DorsalFluoStruct));
                 dls = ones(length(DorsalFluoStruct(bin).meanDorsalFluo),1).*DorsalFluoStruct(bin).originalFluoFeature;
             end
             
-            [fraction_actives(counter,bin), mean_onsets(counter,bin)] = timesim_interp(time_vec,dls,'kd', k, 'c', 10, 'nOffStates', 5, 't_cycle', 8);
+            [fraction_actives(counter,bin), mean_onsets(counter,bin)] = timesim_interp(time_vec,dls,'kd', k, 'c', 1.5, 'nOffStates', 5, 't_cycle', 8);
         end
         counter=counter+1;
     end

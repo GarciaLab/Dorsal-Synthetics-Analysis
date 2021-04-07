@@ -10,9 +10,10 @@ t_cycle = 8;
 kd = 1E3;
 %dls =  kd*ones(length(ceil(t_cycle/dt)))';
 nSims = 5E3;
-nOffStates = 2;
-nEntryStates = 2;
-pi_entry = 1;
+nOffStates = 5;
+nEntryStates = 0;
+pi_entry = 15;
+pi_exit = 0;
 
 
 %%
@@ -40,7 +41,7 @@ end
 % figure; plot(time_vec, dls,'o',tq,dq,'.')
 
 onState = nEntryStates + nOffStates + 1;
-
+exitState = onState + 1;
 
 onsets = nan(nSims, 1);
 for n = 1:nSims
@@ -51,15 +52,32 @@ for n = 1:nSims
         
         current_time_index = nearestIndex(tq, t);
         
-        if state > nEntryStates + 1
+        if state < nEntryStates + 1
             holding_time = exprnd( pi_entry.^-1);
         else
-            holding_time = exprnd( (c*(dq(current_time_index)./kd) ./ (1 + dq(current_time_index)./kd) ).^-1);
+            
+            if pi_exit ~= 0
+                
+                holding_time = exprnd( (c*(dq(current_time_index)./kd) ./ (1 + dq(current_time_index)./kd) ).^-1);
+                exit_time = exprnd( pi_exit.^-1);
+                
+                t = t + min(holding_time, exit_time); 
+                
+                if exit_time < holding_time 
+                    state = exitState;
+                    break;
+                end
+                
+            else
+                holding_time = exprnd( (c*(dq(current_time_index)./kd) ./ (1 + dq(current_time_index)./kd) ).^-1);
+                t = t + holding_time;
+                state = state + 1;
+            end
+            
         end
-        t = t + holding_time;
-        state = state + 1;
         
-        if state >= onState
+        
+        if state == onState
             onsets(n) = t;
             break;
         end
