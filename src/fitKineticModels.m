@@ -26,9 +26,9 @@ end
 
 %1Dg data (highest affinity)
 datPath = dropboxfolder + "\manuscript\window\basic\dataForFitting\archive\";
-load(datPath + "DorsalFluoValues.mat", "DorsalFluoValues");
-load(datPath + "FractionsPerEmbryo.mat", "FractionsPerEmbryo");
-load(datPath + "TimeOnsPerEmbryo.mat", "TimeOnsPerEmbryo");
+load(datPath + "binMidValues.mat", "binMidValues");
+load(datPath + "FractionsPerEmbryoAll.mat", "FractionsPerEmbryoAll");
+load(datPath + "OnsetsPerEmbryoAll.mat", "OnsetsPerEmbryoAll");
 
 
 if batchedAffinities
@@ -36,55 +36,38 @@ if batchedAffinities
     %this setting being true wouldn't make sense, so let's fix it.
     fixKD = false;
     
-    DorsalFluoValues0 = DorsalFluoValues;
-    FractionsPerEmbryo0 = FractionsPerEmbryo;
-    TimeOnsPerEmbryo0 = TimeOnsPerEmbryo;
-    
     enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
     scores = [6.23, 5.81, 5.39, 5.13, 4.80, 4.73, 4.29]';
     data_batch = {};
     
     
     for k = 1:numel(enhancers)
-        %         datPath = dropboxfolder + "\manuscript\window\basic\dataForFitting\archive\";
-        %         load(datPath + "DorsalFluoValues.mat", "DorsalFluoValues");
-        %         load(datPath + "FractionsPerEmbryo.mat", "FractionsPerEmbryo");
-        %         load(datPath + "TimeOnsPerEmbryo.mat", "TimeOnsPerEmbryo");
-        
         %needs to be nobs x ny
+        FractionsPerEmbryo = FractionsPerEmbryoAll{k};
+        OnsetsPerEmbryo = OnsetsPerEmbryoAll{k};
         
-        %         X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
-        %         data{k}.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
-        %       X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
         
-        %     data{k}.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
+        X = repmat(binMidValues, 1, max(size(FractionsPerEmbryo)));
+        F = FractionsPerEmbryo(:)';
+        T = OnsetsPerEmbryo(:)';
+        X(isnan(F)) = [];
+        T(isnan(F)) = [];
+        F(isnan(F)) = [];
+        data{k}.ydata = [X; F; T]';
     end
-    %1Dg data (highest affinity)
-    %     datPath = dropboxfolder + "\manuscript\window\basic\dataForFitting\archive\";
-    %     load(datPath + "DorsalFluoValues.mat", "DorsalFluoValues");
-    datf1 = load(datPath + "FractionsPerEmbryo.mat", "FractionsPerEmbryo");
-    datt1 = load(datPath + "TimeOnsPerEmbryo.mat", "TimeOnsPerEmbryo");
-    X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
-    data{1}.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
-    
-    clear FractionsPerEmbryo
-    clear TimeOnsPerEmbryo
-    FractionsPerEmbryo{1} = datf1.FractionsPerEmbryo;
-    TimeOnsPerEmbryo{1} = datt1.TimeOnsPerEmbryo;
-    
-    datf2 = load(datPath + "FractionsPerEmbryo_1DgVW.mat", "FractionsPerEmbryo");
-    datt2 = load(datPath + "TimeOnsPerEmbryo_1DgVW.mat", "TimeOnsPerEmbryo");
-    FractionsPerEmbryo{2} = datf2.FractionsPerEmbryo;
-    TimeOnsPerEmbryo{2} = datt2.TimeOnsPerEmbryo;
-    X2 = repmat(DorsalFluoValues, 1, max(size(datf2.FractionsPerEmbryo)));
-    data{2}.ydata = [X2; datf2.FractionsPerEmbryo(:)'; datt2.TimeOnsPerEmbryo(:)']';
-    
     
 else
     
+    FractionsPerEmbryo = FractionsPerEmbryoAll{1};
+    OnsetsPerEmbryo = OnsetsPerEmbryoAll{1};
     %needs to be nobs x ny
-    X = repmat(DorsalFluoValues, 1, max(size(FractionsPerEmbryo)));
-    data.ydata = [X; FractionsPerEmbryo(:)'; TimeOnsPerEmbryo(:)']';
+    X = repmat(binMidValues, 1, max(size(FractionsPerEmbryo)));
+    F = FractionsPerEmbryo(:)';
+    T = OnsetsPerEmbryo(:)';
+    X(isnan(F)) = [];
+    T(isnan(F)) = [];
+    F(isnan(F)) = [];
+    data.ydata = [X; F; T]';
 end
 
 
@@ -126,7 +109,7 @@ elseif modelType == "entry"
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
     ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
-    p0 = [100, 1E3, 0, 1, 1E10, 0, 8];
+    p0 = [100, 1E3, 0, 5, 1E10, 0, 8];
     lb = [1E-2, 1E0, 0, 1, 1E10, 0, 5];
     ub = [1E3, 1E6, 0, 12, 1E10, 0, 15];
 end
@@ -184,12 +167,12 @@ modelOpts = struct;
 modelOpts.modelType = modelType;
 modelOpts.t_cycle = 8;
 modelOpts.nSims = nSims;
-    
+
 if fun == "table"
     modelOpts.sims = sims;
 elseif ~contains(fun,"master")
     modelOpts.exitOnlyDuringOffStates = true;
-
+    
     gpurng(1, "ThreeFry"); %fastest gpu rng
     
     nSilentStates = contains(modelType, 'exit');
@@ -201,7 +184,7 @@ elseif ~contains(fun,"master")
         moffs = p0(4);
     end
     nStates = nentries + moffs + 1 + nSilentStates;
-    n_dls = length(DorsalFluoValues);
+    n_dls = length(binMidValues);
     modelOpts.r_vec = gpuArray(rand(1, nentries*nSims +...
         ( (moffs+1) * nSims * n_dls ) +...
         nSilentStates*((nStates-1) * nSims), 'single'));
@@ -218,11 +201,12 @@ elseif fun == "inhomo"
 elseif fun == "master" && modelType == "basic"
     mdl = @(x, p)  BasicModel_masterEq(x, p, modelOpts);
 elseif fun=="masterInhomo" && modelType == "basic"
-    Path = 'C:\Users\owner\Dropbox\DorsalSyntheticsDropbox\manuscript\window/basic/dataForFitting/archive';
-    fullMatFileName = [Path '/DorsalFluoTraces.mat'];
+    ARPath = 'C:\Users\owner\Dropbox\DorsalSyntheticsDropbox\manuscript\window/basic/dataForFitting/archive';
+    fullMatFileName = [ARPath '/DorsalFluoTraces.mat'];
     load(fullMatFileName);
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
+    modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
     mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
@@ -247,7 +231,7 @@ end
 
 
 %%
-close all force;
+% close all force;
 
 chainfig = figure(); clf
 mcmcplot(chain,[],results,'chainpanel')
@@ -283,58 +267,12 @@ end
 
 theta_mean = getAllThetas(names, results);
 
-% if modelType == "entryexit"
-%     if ~fixKD
-%         if ~batchedAffinities
-%             
-%             theta_mean = results.mean;
-%         else
-%             for k = 1:length(data)
-%                 if ~variableStateNumber
-%                     theta_mean{k} = [results.mean(1), results.mean(k+1),p0(4), p0(5),...
-%                         results.mean(end-2:end)];
-%                 else
-%                     %                     theta_mean{k} = [results.mean(1), results.mean(k+1),...
-%                     %                         results.
-%                 end
-%             end
-%             
-%         end
-%     else
-%         theta_mean = [results.mean(1), p0(2), results.mean(2:end)];
-%     end
-% elseif modelType == "entry"
-%     if ~fixKD
-%         if ~batchedAffinities
-%             theta_mean = [results.mean(1:5) 0, results.mean(6)];
-%         else
-%             for k = 1:length(data)
-%                 if ~variableStateNumber
-%                     theta_mean{k} = [results.mean(1), results.mean(k+1),p0(4), p0(5),...
-%                         results.mean(end-1), 0, results.mean(end)];
-%                 else
-%                     theta_mean{k} = [results.mean(1), results.mean(k+1),...
-%                         results.mean(end-3), results.mean(end-2), results.mean(end-1), 0, results.mean(end)];
-%                 end
-%             end
-%         end
-%     else
-%         theta_mean = [results.mean(1), p0(2), results.mean(2:4) 0, results.mean(5)];
-%     end
-% elseif modelType == "basic"
-%     %c kd nentry moff pientry piexit tcycle
-%     if ~fixKD
-%         theta_mean = [results.mean(1:2) 0, results.mean(3) results.mean(5)];
-%     else
-%         theta_mean = [results.mean(1), p0(2), 0, results.mean(2), 1E10, 0, results.mean(3)];
-%     end
-% end
 
 if ~iscell(theta_mean)
-    yy = results.modelfun(DorsalFluoValues, theta_mean);
+    yy = results.modelfun(binMidValues, theta_mean);
 else
     for k = 1:length(theta_mean)
-        yy{k} = results.modelfun(DorsalFluoValues, theta_mean{k});
+        yy{k} = results.modelfun(binMidValues, theta_mean{k});
     end
 end
 
@@ -342,18 +280,18 @@ if ~iscell(yy)
     figure;
     tiledlayout('flow')
     nexttile;
-    errorbar(DorsalFluoValues, nanmean(FractionsPerEmbryo, 1), nanstd(FractionsPerEmbryo, 1))
+    errorbar(binMidValues, nanmean(FractionsPerEmbryo, 1), nanstd(FractionsPerEmbryo, 1))
     hold on
-    plot(DorsalFluoValues, yy(:, 1))
+    plot(binMidValues, yy(:, 1))
     
     ylabel('factive')
     xlabel('dl')
     legend('data', 'sim')
     nexttile;
-    errorbar(DorsalFluoValues, nanmean(TimeOnsPerEmbryo, 1), nanstd(TimeOnsPerEmbryo, 1))
+    errorbar(binMidValues, nanmean(OnsetsPerEmbryo, 1), nanstd(OnsetsPerEmbryo, 1))
     
     hold on
-    plot(DorsalFluoValues, yy(:, 2))
+    plot(binMidValues, yy(:, 2))
     
     ylabel('onset')
     xlabel('dl')
@@ -375,18 +313,18 @@ else
         figure;
         tiledlayout('flow')
         nexttile;
-        errorbar(DorsalFluoValues, nanmean(FractionsPerEmbryo{k}, 1), nanstd(FractionsPerEmbryo{k}, 1))
+        errorbar(binMidValues, nanmean(FractionsPerEmbryo{k}, 1), nanstd(FractionsPerEmbryo{k}, 1))
         hold on
-        plot(DorsalFluoValues, yy{k}(:, 1))
+        plot(binMidValues, yy{k}(:, 1))
         
         ylabel('factive')
         xlabel('dl')
         legend('data', 'sim')
         nexttile;
-        errorbar(DorsalFluoValues, nanmean(TimeOnsPerEmbryo{k}, 1), nanstd(TimeOnsPerEmbryo{k}, 1))
+        errorbar(binMidValues, nanmean(OnsetsPerEmbryo{k}, 1), nanstd(OnsetsPerEmbryo{k}, 1))
         
         hold on
-        plot(DorsalFluoValues, yy{k}(:, 2))
+        plot(binMidValues, yy{k}(:, 2))
         
         ylabel('onset')
         xlabel('dl')
@@ -406,9 +344,9 @@ try
     piexits = results.theta(6)*ones(n, 1);
     theta = horzcat(chain(:, 1), kd, nentries, moffs, chain(:, 2), piexits);
     
-    yyy = nan(length(DorsalFluoValues),length(results.mean),n);
+    yyy = nan(length(binMidValues),length(results.mean),n);
     for k = 1:n
-        yyy(:, :, k) = results.modelfun(DorsalFluoValues, theta(k, :));
+        yyy(:, :, k) = results.modelfun(binMidValues, theta(k, :));
     end
 end
 

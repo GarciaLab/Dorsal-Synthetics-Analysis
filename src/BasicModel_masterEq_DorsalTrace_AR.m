@@ -14,9 +14,9 @@ if isempty(modelOpts.TimeVariantDorsalValues)
     %SAPath = '/Users/simon_alamos/Dropbox/DorsalSyntheticsDropbox/manuscript/window/basic/dataForFitting/archive';
     fullMatFileName = [ARPath '/DorsalFluoTraces.mat'];
     load(fullMatFileName);
-    TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
-    TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
-    middleBinValues = [DorsalFluoTraces.binValue];
+    modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
+    modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
+    modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
 end
 
 %% set up problem
@@ -43,6 +43,8 @@ TotalTime =  theta(7);   % end of the simulation
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
 NOffStates = round(theta(4));   %number of states
 
+% min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
+
 
 c = theta(1);
 kd = theta(2);
@@ -56,40 +58,44 @@ M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at state 1 initially
 
+time_vec = 2:TotalTime/dt; 
+[~, idx] = min(abs(repmat(modelOpts.TimeVariantAbsoluteTimes, length(time_vec), 1)'- time_vec*dt*60 )); %t*dt*60 is actualtimeinsecs
+
+
+time_vec_2 = 0:dt:TotalTime-dt;
+
+n_dls = length(dorsalVals);
+
 fraction_onset = nan(length(dorsalVals), 2);
 
 %% Do the calculation
-for d = 1:length(dorsalVals)
+for d = 1:n_dls
+    
     dorsalFluo = dorsalVals(d);
-    [~,nearestBin] = min(abs(middleBinValues - dorsalFluo));
+    [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalFluo));
     dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
     
-    for t=2:TotalTime/dt % loop over time steps
+    for t = time_vec % loop over time steps
         
-        [~, idx] = min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) )); %t*dt*60 is actualtimeinsecs
-        dls = dorsalTraceFluo(idx);
+        dls = dorsalTraceFluo(idx(t-1));
         k = (c*(dls./kd) ./ (1 + dls./kd));
-        
+            kdt = k*dt;
+
         %Calculate the evolution of all boxes minus the ones at the edges
-        for s=2:NOffStates % loop over states
-            stay = M(t-1,s);
-            leave = k*dt*M(t-1,s);
-            enter = k*dt*M(t-1,s-1);
-            
-            M(t,s) = stay + enter - leave;
+        for s=2:NOffStates % loop over states           
+            M(t,s) = (1-kdt)*M(t-1,s) + kdt*M(t-1,s-1); %stay + enter - leave
         end
         
-        %Calculate the first box
-        M(t,1) = M(t-1,1) - k*dt*M(t-1,1);
+         %Calculate the first box
+        M(t,1) = (1-kdt)*M(t-1,1);
         
         %Calculate the last box
-        M(t,NOffStates+1) = M(t-1,NOffStates+1) + k*dt*M(t-1,NOffStates);
+        M(t,NOffStates+1) = M(t-1,NOffStates+1) + kdt*M(t-1,NOffStates);
     end
     
     fraction_onset(d,1) = M(end,end)/numCells;
     y6 = M(:,end); %number of nuclei in the last state as a function of time
-    t = 0:dt:TotalTime-dt;
-    fraction_onset(d,2) = sum(diff(y6).*t(1:end-1)')/sum(diff(y6)); %expected value
+    fraction_onset(d,2) = sum(diff(y6).*time_vec_2(1:end-1)')/sum(diff(y6)); %expected value
 end
 
 % %% Make a movie
