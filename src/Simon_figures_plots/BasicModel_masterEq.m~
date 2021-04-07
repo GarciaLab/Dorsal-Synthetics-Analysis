@@ -1,57 +1,62 @@
+function fraction_onset = BasicModel_masterEq(dorsalVals,c,kd,n_entry,n_off,piEntry,piExit,tCycle,options)
+
 %Solve the master equation for the production and degradation of mRNA
 %molecules
 
-%Model parameters:
-c=1;    % transition rate 1/min
+%% set up problem
+% Model parameters:
+% c=1;    % transition rate 1/min
+% kd = 1E3;
+% dls = 1000;
 
 %Simulation paramaters
 numCells = 100;   % the total number of nuclei in the simulation
-dt = 0.01;        %Smaller than all time scales in the system
-TotalTime = 15;   %Larger than 1/gamma, which is the time to steady state
-NumStates = 6;    %number of states
+dt = 0.1;        %Smaller than all time scales in the system
+TotalTime = 8;   % end of the simulation
+NOffStates = n_off;    %number of states
 
 %Create the matrix to store the results
-M(1:TotalTime/dt,1:NumStates+1) = 0; %initialize to zero everywhenre
+M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
 
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at state 1 initially
 
-%Do the calculation
-for i=2:TotalTime/dt % loop over time steps
-    
-    %Calculate the evolution of all boxes minus the ones at the edges
-    for j=2:NumStates % loop over states
-        M(i,j) = M(i-1,j) - c*dt*M(i-1,j) - r*dt*M(i-1,j)-...
-            gamma*dt*(j-1)*M(i-1,j)+gamma*dt*j*M(i-1,j+1);        
+%% Do the calculation
+for d = 1:length(dorsalVals)
+    dls = dorsalVals(d);
+    k = (c*(dls./kd) ./ (1 + dls./kd));
+    for t=2:TotalTime/dt % loop over time steps
+
+        %Calculate the evolution of all boxes minus the ones at the edges
+        for s=2:NOffStates % loop over states
+            stay = M(t-1,s);
+            leave = k*dt*M(t-1,s);
+            enter = k*dt*M(t-1,s-1);
+
+            M(t,s) = stay + enter - leave;        
+        end
+
+        %Calculate the first box
+        M(t,1) = M(t-1,1) - k*dt*M(t-1,1);
+
+        %Calculate the last box
+        M(t,NOffStates+1) = M(t-1,NOffStates+1) + k*dt*M(t-1,NOffStates);
     end
-    
-    %Calculate the first bin
-    M(i,1)=M(i-1,1)-r*dt*M(i-1,1)+gamma*dt*M(i-1,2);
-    %Calculate the last bin
-    M(i,MaxM+1)=M(i-1,MaxM+1)+r*dt*M(i-1,MaxM)-gamma*dt*MaxM*M(i-1,MaxM+1);
-end
-    
-   
-%Make a movie
-MVector=0:MaxM;     %This is the vector of bins for the histogram
-figure(1)
-for i=1:TotalTime/dt
-   bar(MVector,M(i,:))
-   ylim([0,0.3])
-   drawnow          %Force Matlab to draw the plot 
+
+    fraction_onset(d,1) = M(end,end)/100;
+    y6 = M(:,end); %number of nuclei in the last state as a function of time
+    t = 0:dt:TotalTime-dt;
+    fraction_onset(d,2) = sum(diff(y6).*t(1:end-1)')/sum(diff(y6)); %expected value
 end
 
-
-%Compare the last frame of our distribution to the Poisson distribution
-figure(2)
-bar(MVector,M(TotalTime/dt,:))
-hold on
-plot(MVector,1./factorial(MVector).*(r/gamma).^MVector*exp(-r/gamma),'-r')
-hold off
-%We had to use the dots to match dimensions
-
-
-
+% %% Make a movie
+% MVector=0:NumStates;     %This is the vector of bins for the histogram
+% figure(1)
+% for t=1:TotalTime/dt
+%    bar(MVector,M(t,:))
+%    ylim([0,100])
+%    drawnow          %Force Matlab to draw the plot 
+% end
 
 
 

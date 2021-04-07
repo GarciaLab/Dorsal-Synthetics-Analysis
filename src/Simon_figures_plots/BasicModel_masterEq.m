@@ -1,4 +1,4 @@
-function [fraction,meanonset] = BasicModel_masterEq(c,kd,dorsalVals)
+function fraction_onset = BasicModel_masterEq(dorsalVals,c,kd,n_entry,n_off,piEntry,piExit,tCycle,options)
 
 %Solve the master equation for the production and degradation of mRNA
 %molecules
@@ -11,12 +11,12 @@ function [fraction,meanonset] = BasicModel_masterEq(c,kd,dorsalVals)
 
 %Simulation paramaters
 numCells = 100;   % the total number of nuclei in the simulation
-dt = 0.0005;        %Smaller than all time scales in the system
-TotalTime = 8;   % end of the simulation
-NumStates = 5;    %number of states
+dt = 0.1;        %Smaller than all time scales in the system
+TotalTime = tCycle;   % end of the simulation
+NOffStates = n_off;    %number of states
 
 %Create the matrix to store the results
-M(1:TotalTime/dt,1:NumStates+1) = 0; %initialize to zero everywhenre
+M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
 
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at state 1 initially
@@ -28,7 +28,7 @@ for d = 1:length(dorsalVals)
     for t=2:TotalTime/dt % loop over time steps
 
         %Calculate the evolution of all boxes minus the ones at the edges
-        for s=2:NumStates % loop over states
+        for s=2:NOffStates % loop over states
             stay = M(t-1,s);
             leave = k*dt*M(t-1,s);
             enter = k*dt*M(t-1,s-1);
@@ -40,13 +40,13 @@ for d = 1:length(dorsalVals)
         M(t,1) = M(t-1,1) - k*dt*M(t-1,1);
 
         %Calculate the last box
-        M(t,NumStates+1) = M(t-1,NumStates+1) + k*dt*M(t-1,NumStates);
+        M(t,NOffStates+1) = M(t-1,NOffStates+1) + k*dt*M(t-1,NOffStates);
     end
 
-    fraction(d) = M(end,end)/100;
+    fraction_onset(d,1) = M(end,end)/100;
     y6 = M(:,end); %number of nuclei in the last state as a function of time
     t = 0:dt:TotalTime-dt;
-    meanonset(d) = sum(diff(y6).*t(1:end-1)')/sum(diff(y6)); %expected value
+    fraction_onset(d,2) = sum(diff(y6).*t(1:end-1)')/sum(diff(y6)); %expected value
 end
 
 % %% Make a movie
