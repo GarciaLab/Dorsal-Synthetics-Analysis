@@ -16,7 +16,7 @@ if isempty(modelOpts.TimeVariantDorsalValues)
     load(fullMatFileName);
     TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
-    middleBinValues = [DorsalFluoTraces.binValue];
+    middleBinValues = DorsalFluoTraces(1).binValue;
 end
 
 %% set up problem
@@ -61,8 +61,8 @@ fraction_onset = nan(length(dorsalVals), 2);
 %% Do the calculation
 for d = 1:length(dorsalVals)
     dorsalFluo = dorsalVals(d);
-    [~,nearestBin] = min(abs(middleBinValues - dorsalFluo));
-    dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
+    correspondingBin = 
+    dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,d);
     
     for t=2:TotalTime/dt % loop over time steps
         
