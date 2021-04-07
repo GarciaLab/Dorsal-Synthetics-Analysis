@@ -1,8 +1,6 @@
 function [results, chain, s2chain, data, modelOpts] = fitKineticModels(varargin)
 
 % To do:
-% 2. Get variable state number walkers to walk properly
-% 3. Fit multiple KDs simultaneously using batched fits.
 
 
 wb = true;
@@ -10,12 +8,11 @@ nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 fo
 nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps).
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
 modelType = "entryexit"; %choices- entryexit, entry, exit, basic
-fun= "table"; %also 'sim', 'imhomo', 'master'
-t_cycle = 8;
+fun= "table"; %also 'sim', 'imhomo', 'master', 'masterInhomo'
 variableStateNumber = false;
 fixKD = false;
 batchedAffinities = false;
-
+fixTCycle = false;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -131,7 +128,7 @@ elseif modelType == "entry"
 elseif modelType == "basic"
     p0 = [100, 1E3, 0, 1, 1E10, 0, 8];
     lb = [1E-2, 1E0, 0, 1, 1E10, 0, 5];
-    ub = [1E3, 1E6, 0, 12, 1E10, 0, 10];
+    ub = [1E3, 1E6, 0, 12, 1E10, 0, 15];
 end
 
 if variableStateNumber
@@ -169,6 +166,10 @@ for k = 1:length(names)
         targetflag = 0;
     end
     
+    if fixTCycle && names(k) == "tcycle"
+        targetflag = 0;
+    end
+    
     %we allow each enhancer to have a different kd but share every other
     %param
     if batchedAffinities && names(k) == "kd"
@@ -181,13 +182,14 @@ end
 
 modelOpts = struct;
 modelOpts.modelType = modelType;
-modelOpts.t_cycle = t_cycle;
-
+modelOpts.t_cycle = 8;
+modelOpts.nSims = nSims;
+    
 if fun == "table"
     modelOpts.sims = sims;
-else
+elseif ~contains(fun,"master")
     modelOpts.exitOnlyDuringOffStates = true;
-    modelOpts.nSims = nSims;
+
     gpurng(1, "ThreeFry"); %fastest gpu rng
     
     nSilentStates = contains(modelType, 'exit');
@@ -213,6 +215,15 @@ elseif fun== "sim"
     mdl = @(x, p) kineticFunForFits_sim_vec_gpu_customrnd(x, p, modelOpts);
 elseif fun == "inhomo"
     mdl = @(x, p)  timesim_interp_alldl(x, p, modelOpts);
+elseif fun == "master" && modelType == "basic"
+    mdl = @(x, p)  BasicModel_masterEq(x, p, modelOpts);
+elseif fun=="masterInhomo" && modelType == "basic"
+    Path = 'C:\Users\owner\Dropbox\DorsalSyntheticsDropbox\manuscript\window/basic/dataForFitting/archive';
+    fullMatFileName = [Path '/DorsalFluoTraces.mat'];
+    load(fullMatFileName);
+    modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
+    modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
+    mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun
