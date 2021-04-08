@@ -13,6 +13,7 @@ variableStateNumber = false;
 fixKD = false;
 batchedAffinities = false;
 fixTCycle = false;
+preRun = false;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -201,8 +202,7 @@ elseif fun == "inhomo"
 elseif fun == "master" && modelType == "basic"
     mdl = @(x, p)  BasicModel_masterEq(x, p, modelOpts);
 elseif fun=="masterInhomo" && modelType == "basic"
-    ARPath = 'C:\Users\owner\Dropbox\DorsalSyntheticsDropbox\manuscript\window/basic/dataForFitting/archive';
-    fullMatFileName = [ARPath '/DorsalFluoTraces.mat'];
+    fullMatFileName = datPath + '/DorsalFluoTraces.mat';
     load(fullMatFileName);
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
@@ -219,13 +219,16 @@ end
 
 results = [];
 % [results,~,~,~]=mcmcrun(model,data,params,options,results);
-% [results,~,~,~]=mcmcrun(model,data,params,options,results);
+if preRun
+    [results,~,~,~]=mcmcrun(model,data,params,options,results);
+end
 [results,chain,s2chain,~]=mcmcrun(model,data,params,options,results);
 
 burnInTime = .25; %let's burn the first 25% of the chain just in case
-chain = chain(round(burnInTime*nSteps):nSteps, :);
+chainLen = size(chain, 1);
+chain = chain(round(burnInTime*chainLen):chainLen, :);
 if ~isempty(s2chain)
-    s2chain = s2chain(round(.25*nSteps):nSteps, :);
+    s2chain = s2chain(round(.25*chainLen):chainLen, :);
 end
 
 
@@ -313,7 +316,7 @@ else
         figure;
         tiledlayout('flow')
         nexttile;
-        errorbar(binMidValues, nanmean(FractionsPerEmbryo{k}, 1), nanstd(FractionsPerEmbryo{k}, 1))
+        errorbar(binMidValues, nanmean(FractionsPerEmbryoAll{k}, 1), nanstd(FractionsPerEmbryoAll{k}, 1))
         hold on
         plot(binMidValues, yy{k}(:, 1))
         
@@ -321,7 +324,7 @@ else
         xlabel('dl')
         legend('data', 'sim')
         nexttile;
-        errorbar(binMidValues, nanmean(OnsetsPerEmbryo{k}, 1), nanstd(OnsetsPerEmbryo{k}, 1))
+        errorbar(binMidValues, nanmean(OnsetsPerEmbryoAll{k}, 1), nanstd(OnsetsPerEmbryoAll{k}, 1))
         
         hold on
         plot(binMidValues, yy{k}(:, 2))
@@ -364,6 +367,8 @@ ylim([0, 8.2])
 % ylim([0, 8.2])
 
 
+save(dropboxfolder + "\simulations\" +modelType+fun+nSteps+"_"+datestr8601+".mat")
 
 disp('debug stop')
+keyboard;
 end
