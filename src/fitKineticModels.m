@@ -283,7 +283,8 @@ if ~iscell(yy)
     figure;
     tiledlayout('flow')
     nexttile;
-    errorbar(binMidValues, nanmean(FractionsPerEmbryo, 1), nanstd(FractionsPerEmbryo, 1))
+    nFVals = sqrt(length(FractionsPerEmbryo(~isnan(FractionsPerEmbryo))));
+    errorbar(binMidValues, nanmean(FractionsPerEmbryo, 1), nanstd(FractionsPerEmbryo, 1)/nFVals)
     hold on
     plot(binMidValues, yy(:, 1))
     
@@ -291,7 +292,8 @@ if ~iscell(yy)
     xlabel('dl')
     legend('data', 'sim')
     nexttile;
-    errorbar(binMidValues, nanmean(OnsetsPerEmbryo, 1), nanstd(OnsetsPerEmbryo, 1))
+    nOVals = sqrt(length(OnsetsPerEmbryo(~isnan(OnsetsPerEmbryo))));
+    errorbar(binMidValues, nanmean(OnsetsPerEmbryo, 1), nanstd(OnsetsPerEmbryo, 1)/nOVals)
     
     hold on
     plot(binMidValues, yy(:, 2))
@@ -312,54 +314,59 @@ if ~iscell(yy)
     % xlabel('dl')
     % zlabel('onset')
 else
+    figure;
+    tiledlayout('flow')
     for k = 1:length(yy)
-        figure;
-        tiledlayout('flow')
         nexttile;
-        errorbar(binMidValues, nanmean(FractionsPerEmbryoAll{k}, 1), nanstd(FractionsPerEmbryoAll{k}, 1))
+        nFVals = sqrt(length(FractionsPerEmbryoAll{k}(~isnan(FractionsPerEmbryoAll{k}))));
+        errorbar(binMidValues, nanmean(FractionsPerEmbryoAll{k}, 1), nanstd(FractionsPerEmbryoAll{k}./nFVals, 1))
         hold on
         plot(binMidValues, yy{k}(:, 1))
-        
+        ylim([0, 1.1])
+       
         ylabel('factive')
         xlabel('dl')
-        legend('data', 'sim')
+%         legend('data', 'sim')
+        title(enhancers{k})
         nexttile;
-        errorbar(binMidValues, nanmean(OnsetsPerEmbryoAll{k}, 1), nanstd(OnsetsPerEmbryoAll{k}, 1))
+        nOVals = sqrt(length(OnsetsPerEmbryoAll{k}(~isnan(OnsetsPerEmbryoAll{k}))));
+        errorbar(binMidValues, nanmean(OnsetsPerEmbryoAll{k}, 1), nanstd(OnsetsPerEmbryoAll{k}, 1)./nOVals)
         
         hold on
         plot(binMidValues, yy{k}(:, 2))
         
         ylabel('onset')
         xlabel('dl')
-        legend('data', 'sim')
+%         legend('data', 'sim')
+        title(enhancers{k})
         
     end
 end
 
 
 
-%%
-try
-    n = size(chain, 1);
-    kd = results.theta(2)*ones(n, 1);
-    nentries = results.theta(3)*ones(n, 1);
-    moffs = results.theta(4)*ones(n, 1);
-    piexits = results.theta(6)*ones(n, 1);
-    theta = horzcat(chain(:, 1), kd, nentries, moffs, chain(:, 2), piexits);
-    
-    yyy = nan(length(binMidValues),length(results.mean),n);
-    for k = 1:n
-        yyy(:, :, k) = results.modelfun(binMidValues, theta(k, :));
-    end
-end
-
-nexttile;
-yyy_f = squeeze(yyy(:, 1, :));
-yyy_o = squeeze(yyy(:, 2, :));
-
-scatter(yyy_f(:), yyy_o(:));
-xlim([0, 1.1])
-ylim([0, 8.2])
+% %%
+% try
+%     n = size(chain, 1);
+%     kd = results.theta(2)*ones(n, 1);
+%     nentries = results.theta(3)*ones(n, 1);
+%     moffs = results.theta(4)*ones(n, 1);
+%     piexits = results.theta(6)*ones(n, 1);
+%     theta = horzcat(chain(:, 1), kd, nentries, moffs, chain(:, 2), piexits);
+%     
+%     yyy = nan(length(binMidValues),length(results.mean),n);
+%     for k = 1:n
+%         yyy(:, :, k) = results.modelfun(binMidValues, theta(k, :));
+%     end
+% end
+% 
+% nexttile;
+% yyy_f = squeeze(yyy(:, 1, :));
+% yyy_o = squeeze(yyy(:, 2, :));
+% 
+% scatter(yyy_f(:), yyy_o(:));
+% xlim([0, 1.1])
+% ylim([0, 8.2])
 %
 % nexttile;
 % % scatter(sims.factive(:), sims.mfpts(:))
