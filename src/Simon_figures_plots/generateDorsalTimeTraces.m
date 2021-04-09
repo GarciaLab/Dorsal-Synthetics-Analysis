@@ -1,4 +1,5 @@
 function dorsalTimeTraces = generateDorsalTimeTraces(dorsalVals)
+
 % for consistency, use this
 % dorsalVals = linspace(0,3800,18)
 %% load everything

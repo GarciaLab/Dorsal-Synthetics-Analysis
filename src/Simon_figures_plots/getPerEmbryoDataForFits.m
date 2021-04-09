@@ -39,7 +39,7 @@ coveredBins = unique([enhancerStruct.dorsalFluoBin3]);
 
 % define some filters
 minEmbryosPerBin = 3;
-minNucleiPerEmbryoPerBin = 1;
+minNucleiPerEmbryoPerBin = 2;
 minOnset = 2; % (min) earliest possible spot detection time to be counted
 maxOnset = 8; %(min) latest possible spot detection time to be counted
 
