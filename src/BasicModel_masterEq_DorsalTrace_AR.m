@@ -2,6 +2,7 @@ function fraction_onset = BasicModel_masterEq_DorsalTrace_AR(dorsalVals,theta, m
 
 % Solves the master equation for state of promoter before transcription
 % onset. It can handle active and inactive states
+% theta = [c,kd,nInactive,nOff,piEntry,piExit,tcycle]
 
 % To compare with data, we generated per embryo fraction active and onset
 % times using generatePerEmbryoDataForFits(numBins) with numBins = 18. The
@@ -51,6 +52,7 @@ dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcod
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
+errorTolerance = 0.0001;
 
 % min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
 
@@ -62,7 +64,7 @@ pi_entry = theta(5);
 pi_exit = theta(6);
 
 %Create the matrix to store the results
-M(1:TotalTime/dt,1:(NInactiveStates+NOffStates+1)) = 0; %initialize to zero everywhenre
+M(1:TotalTime/dt,1:(NInactiveStates+NOffStates+1)) = 0; %initialize to zero everywhere
 
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at the first state initially
@@ -87,42 +89,47 @@ for d = 1:n_dls %loop over dorsal bins
     
     for t = time_vec % loop over time steps
         
-        dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
-        
-        %dls = dorsalTraceFluo(400); % this is in case we want constant Dorsal
+        %[t sum(M(t-1,:))]
+        assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')
+    
+        dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace      
+        dls = dorsalFluo + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal
         
         k = (c*(dls./kd) ./ (1 + dls./kd));
-            kdt_off = k*dt;
-        kdt_inac = pi_entry*dt;
-
-        %Calculate the evolution of all boxes minus the ones at the edges
-        
-        % loop over inactive states         
+        kdt_off = k*dt; % transition rate between off states
+        kdt_inac = pi_entry*dt;% transition rate between inactive states and from inactive to off states
+               
+        %Calculate the first state
+        if NInactiveStates % if the first state is an inactive one
+            M(t,1) = (1-kdt_inac)*M(t-1,1); % it transitions with a rate of kdt_inac
+        else % if the first state is an off one
+            M(t,1) = (1-kdt_off)*M(t-1,1); % it transitions with a rate of kdt_off
+        end
+            
+        %Calculate the evolution of all states minus the ones at the edges
+               
+        % loop over inactive states 
         for s = 2:NInactiveStates           
-            M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); %stay + enter - leave
+            M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); % (stay-leave) + enter 
         end
         
-        % loop over off states
-        for s = (NInactiveStates+2):(NInactiveStates+NOffStates)            
-            M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1); %stay + enter - leave
-        end
-
-        
-        %Calculate the first box
+        % do the off state that comes immediatly after the last inactive state
         if NInactiveStates
-            M(t,1) = (1-kdt_inac)*M(t-1,1);
-        else
-            M(t,1) = (1-kdt_off)*M(t-1,1);
+            M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates); 
         end
-                
+        
+        % loop over the rest of the off states 
+        for s = (NInactiveStates+2):(NInactiveStates+NOffStates)
+            M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1); 
+        end
+            
         %Calculate the last box
         M(t,end) = M(t-1,end) + kdt_off*M(t-1,end-1);
-        
     end
     
     fraction_onset(d,1) = M(end,end)/numCells;
-    y6 = M(:,end); %number of nuclei in the last state as a function of time
-    fraction_onset(d,2) = sum(diff(y6).*time_vec_2(1:end-1)')/sum(diff(y6)); %expected value
+    yEnd = M(:,end); %number of nuclei in the last state as a function of time
+    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
 end
 
 

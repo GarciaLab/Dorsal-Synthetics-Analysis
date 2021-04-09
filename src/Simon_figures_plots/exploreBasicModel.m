@@ -1,5 +1,11 @@
 function exploreBasicModel(c,nInactive,nOff,piEntry,tCycle,KDs)
 
+% exploreBasicModel(1.5,0,5,0,8,logspace(3.2,5,8))
+fiveOffSteps(linspace(0,3800,18),1.5,KDs(1),nInactive,nOff,piEntry,[],tCycle,[])
+
+
+
+
 piExit = 0;
 dorsalVals = linspace(0,3800,18);
 dorsalMidBin = dorsalVals(1:end-1) + diff(dorsalVals(1:2));
@@ -14,8 +20,8 @@ OnsetPalette = cbrewer('seq', 'OrRd', length(KDs));
 % 
 % hold(axFrac,'on')
 % hold(axOn,'on')
-figure
-hold on
+% figure
+% hold on
 Fractions = [];
 Onsets = [];
 for i = 1:length(KDs)
@@ -33,12 +39,12 @@ for i = 1:length(KDs)
     Onsets(i,:) = fraction_onset(:,2);
     
     yyaxis left
-    plot(dorsalMidBin,Fractions,'-','Color',fractionColor,'LineWidth',2)
+    plot([0 dorsalMidBin],[zeros(i,1) Fractions],'o','Color',fractionColor,'LineWidth',2)
     ylim([0 1])
     ylabel('fraction')
 
     yyaxis right
-    plot(dorsalMidBin,Onsets,'-','Color',onsetColor,'LineWidth',2)
+    plot(dorsalMidBin,Onsets,'o','Color',onsetColor,'LineWidth',2)
     ylim([0 8])
     ylabel('onset')
     

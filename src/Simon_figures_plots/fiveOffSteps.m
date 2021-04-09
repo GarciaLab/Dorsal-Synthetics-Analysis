@@ -1,5 +1,6 @@
-function fraction_onset = fiveOffSteps(dorsalVals,c,kd,n_entry,n_off,piEntry,piExit,tCycle,options)
+function fraction_onset2 = fiveOffSteps(dorsalVals,c,kd,n_entry,n_off,piEntry,piExit,tCycle,options)
 
+midBindorsalValues = dorsalVals(1:end-1) + diff(dorsalVals(1:2));
 totalCycleTime = 12; %minutes
 timeStepsPerMin = 10;
 timeArraySize = totalCycleTime.*timeStepsPerMin;
@@ -39,5 +40,22 @@ fraction_onset2(:,1) = y6State(:,endOfCycle);
 Truncatedy6 = y6State(:,1:endOfCycle+1);
 fraction_onset2(:,2) = sum(diff(Truncatedy6,1,2).*t(1:endOfCycle),2)./sum(diff(Truncatedy6,1,2),2);
 
+figure
+hold on
+yyaxis left
+plot(dorsalVals,fraction_onset2(:,1),'b')
+ylim([0 1])
+
+yyaxis right
+plot(dorsalVals,fraction_onset2(:,2),'r')
+ylim([0 8])
+
+% yyaxis left
+% plot([0 midBindorsalValues],[0;fraction_onset2(:,1)],'b')
+% ylim([0 1])
+% 
+% yyaxis right
+% plot(midBindorsalValues,fraction_onset2(:,2),'r')
+% ylim([0 8])
 
    
