@@ -63,11 +63,12 @@ kd = theta(2);
 pi_entry = theta(5);
 % pi_exit = theta(6);
 
-if nInactiveStates
+if NInactiveStates
     kdt_inac = pi_entry*dt;% transition rate between inactive states and from inactive to off states
 end
 %Create the matrix to store the results
-M(1:TotalTime/dt,1:(NInactiveStates+NOffStates+1)) = 0; %initialize to zero everywhere
+M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize to zero everywhere
+
 
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at the first state initially
@@ -78,9 +79,9 @@ time_vec = 2:TotalTime/dt;
 
 time_vec_2 = 0:dt:TotalTime-dt;
 
-n_dls = length(dorsalVals)-1;
+n_dls = length(dorsalVals);
 
-fraction_onset = nan(length(dorsalVals)-1, 2);
+fraction_onset = nan(length(dorsalVals), 2);
 
 
 %% Do the calculation now
@@ -100,7 +101,7 @@ for d = 1:n_dls %loop over dorsal bins
         kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
         
         %Calculate the first state
-        if NInactiveStates % if the first state is an inactive one
+        if NInactiveStates ~= 0 % if the first state is an inactive one
             
             M(t,1) = (1-kdt_inac)*M(t-1,1); % it transitions with a rate of kdt_inac
             
