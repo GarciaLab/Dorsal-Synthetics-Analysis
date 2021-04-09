@@ -114,11 +114,12 @@ for d = 1:n_dls %loop over dorsal bins
 
         %Calculate the evolution of all boxes minus the ones at the edges
                 
-        for s=2:NInactiveStates % loop over inactive states           
+        for s = 2:NInactiveStates % loop over inactive states           
             M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); %stay + enter - leave
         end
         
-        for s=NInactiveStates+1:NInactiveStates+NOffStates % loop over off states           
+        
+        for s = (NInactiveStates+2):(NInactiveStates+NOffStates) % loop over off states           
             M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1); %stay + enter - leave
         end
 

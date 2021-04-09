@@ -10,6 +10,8 @@ fraction_onset = BasicModel_masterEq_DorsalTrace_AR(dorsalVals,theta, modelOpts)
 
 yyaxis left
 plot(dorsalVals,fraction_onset(:,1))
+ylim([0 1])
 
 yyaxis right
 plot(dorsalVals,fraction_onset(:,2))
+ylim([0 8])
