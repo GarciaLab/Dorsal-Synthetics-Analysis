@@ -110,9 +110,9 @@ elseif modelType == "entry"
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
     ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
-    p0 = [100, 1E3, 0, 5, 1E10, 0, 8];
-    lb = [1E-2, 1E0, 0, 1, 1E10, 0, 5];
-    ub = [1E3, 1E6, 0, 12, 1E10, 0, 15];
+    p0 = [1, 1E3, 0, 5, 1E10, 0, 8];
+    lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
+    ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
 end
 
 if variableStateNumber
@@ -166,7 +166,6 @@ end
 
 modelOpts = struct;
 modelOpts.modelType = modelType;
-modelOpts.t_cycle = 8;
 modelOpts.nSims = nSims;
 
 if fun == "table"
