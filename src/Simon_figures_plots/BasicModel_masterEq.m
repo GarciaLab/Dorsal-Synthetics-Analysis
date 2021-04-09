@@ -43,7 +43,7 @@ time_vec_2 = 0:dt:TotalTime-dt;
 fraction_onset = nan(length(dorsalVals), 2);
 
 %% Do the calculation
-parfor d = 1:length(dorsalVals)
+for d = 1:length(dorsalVals)
     dls = dorsalVals(d);
     k = (c*(dls./kd) ./ (1 + dls./kd));
     kdt = k*dt;
