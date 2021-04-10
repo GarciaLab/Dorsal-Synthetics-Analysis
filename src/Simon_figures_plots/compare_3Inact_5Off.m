@@ -14,9 +14,10 @@ nOff = 5;
 %KDs = logspace(3.2,5,8);
 
 theta = [c,KDs(1),nInactive,nOff,piEntry,0,tCycle];
-fraction_onset = BasicModel_masterEq_DorsalTrace_AR(dorsalVals,theta, modelOpts);
+% theta = [c,kd,nInactive,nOff,piEntry,piExit,tcycle]
 
-ThreeInactStepsFiveOffSteps(dorsalVals,c,KDs(1),nInactive,nOff,piEntry,0,tCycle,modelOpts)
+fraction_onset = BasicModel_masterEq_DorsalTrace_AR(dorsalVals,theta, modelOpts);
+ThreeInactStepsFiveOffSteps(dorsalVals,theta,modelOpts)
 
 hold on
 yyaxis left
