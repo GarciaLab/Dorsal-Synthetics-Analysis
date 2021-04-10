@@ -129,7 +129,9 @@ for d = 1:n_dls %loop over dorsal bins
     fraction_onset(d,1) = M(end,end)/numCells;
     yEnd = M(:,end); %number of nuclei in the last state as a function of time
     fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
-end
+    end
+    
+
 
 
 %plot(linspace(1,TotalTime,size(M,1)),M,'LineWidth',2)
