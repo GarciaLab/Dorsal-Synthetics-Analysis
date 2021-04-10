@@ -9,7 +9,7 @@ function fraction_onset = BasicModel_masterEq_DorsalTrace_AR(dorsalVals,theta, m
 % output is stored in Dropbox:
 % '/Users/simon_alamos/Dropbox/DorsalSyntheticsDropbox/manuscript/window/basic/dataForFitting/archive';
 
-% An analytical solution to a subset of this model can be generated using the function 
+% An analytical solution to a subset of this model can be generated using the function
 % fiveOffSteps
 
 % Theta contains parameters in this order: c, kd, Ninactive, Noff, piEntry, piExit, tCycle
@@ -52,6 +52,7 @@ dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcod
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
+NInactiveStatesPlus2 = NInactiveStates+2;
 errorTolerance = 0.0001;
 
 % min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
@@ -59,70 +60,69 @@ errorTolerance = 0.0001;
 
 c = theta(1);
 kd = theta(2);
-nEntryStates = round(theta(3));
 pi_entry = theta(5);
-pi_exit = theta(6);
+% pi_exit = theta(6);
 
+if NInactiveStates
+    kdt_inac = pi_entry*dt;% transition rate between inactive states and from inactive to off states
+end
 %Create the matrix to store the results
-M(1:TotalTime/dt,1:(NInactiveStates+NOffStates+1)) = 0; %initialize to zero everywhere
+M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize to zero everywhere
+
 
 %Initial conditions:
 M(1,1)=numCells;    %everyone is at the first state initially
 
-time_vec = 2:TotalTime/dt; 
+time_vec = 2:TotalTime/dt;
 [~, idx] = min(abs(repmat(modelOpts.TimeVariantAbsoluteTimes, length(time_vec), 1)'- time_vec*dt*60 )); %t*dt*60 is actualtimeinsecs
 
 
 time_vec_2 = 0:dt:TotalTime-dt;
 
-n_dls = length(dorsalVals)-1;
+n_dls = length(dorsalVals);
 
-fraction_onset = nan(length(dorsalVals)-1, 2);
+fraction_onset = nan(length(dorsalVals), 2);
 
 
 %% Do the calculation now
 for d = 1:n_dls %loop over dorsal bins
     
-    dorsalFluo = dorsalVals(d);
-    [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalFluo));
+    [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
     dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
     
     for t = time_vec % loop over time steps
         
         %[t sum(M(t-1,:))]
-        assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')
-    
-        dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace      
-        dls = dorsalFluo + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal
+        %         assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')
         
-        k = (c*(dls./kd) ./ (1 + dls./kd));
-        kdt_off = k*dt; % transition rate between off states
-        kdt_inac = pi_entry*dt;% transition rate between inactive states and from inactive to off states
-               
+        dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
+        %         dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal
+        
+        kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
+        
         %Calculate the first state
-        if NInactiveStates % if the first state is an inactive one
+        if NInactiveStates ~= 0 % if the first state is an inactive one
+            
             M(t,1) = (1-kdt_inac)*M(t-1,1); % it transitions with a rate of kdt_inac
+            
+            %Calculate the evolution of all states minus the ones at the edges
+            % loop over inactive states
+            for s = 2:NInactiveStates
+                M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); % (stay-leave) + enter
+            end
+            
+            % do the off state that comes immediatly after the last inactive state
+            M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates);
+        
         else % if the first state is an off one
             M(t,1) = (1-kdt_off)*M(t-1,1); % it transitions with a rate of kdt_off
         end
-            
-        %Calculate the evolution of all states minus the ones at the edges
-               
-        % loop over inactive states 
-        for s = 2:NInactiveStates           
-            M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); % (stay-leave) + enter 
+        
+        % loop over the rest of the off states
+        for s = NInactiveStatesPlus2:NLinStates
+            M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1);
         end
         
-        % do the off state that comes immediatly after the last inactive state
-        if NInactiveStates
-            M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates); 
-        end
-        
-        % loop over the rest of the off states 
-        for s = (NInactiveStates+2):(NInactiveStates+NOffStates)
-            M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1); 
-        end
-            
         %Calculate the last box
         M(t,end) = M(t-1,end) + kdt_off*M(t-1,end-1);
     end
