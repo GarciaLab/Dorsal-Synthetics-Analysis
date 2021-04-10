@@ -3,6 +3,8 @@ function exploreBasicModel(c,nInactive,nOff,piEntry,tCycle,KDs)
 % exploreBasicModel(1.5,0,5,0,8,logspace(3.2,5,8))
 fiveOffSteps(linspace(0,3800,18),1.5,KDs(1),nInactive,nOff,piEntry,[],tCycle,[])
 
+% theta = [c,kd,nInactive,nOff,piEntry,piExit,tcycle]
+
 
 
 

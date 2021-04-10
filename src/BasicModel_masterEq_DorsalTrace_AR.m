@@ -47,13 +47,16 @@ end
 
 %% Simulation paramaters
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
-TotalTime =  theta(7);   % end of the simulation
+TotalTime =  12;% minutes, end of the simulation
+transcriptionStart = 1; %minutes, start of the transcriptional window
+tCylce = theta(7); %minutes, end of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
+transcriptionEnds = (transcriptionStart+tCylce);
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
 NInactiveStatesPlus2 = NInactiveStates+2;
-errorTolerance = 0.0001;
+%errorTolerance = 0.0001;
 
 % min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
 
@@ -62,26 +65,27 @@ c = theta(1);
 kd = theta(2);
 pi_entry = theta(5);
 % pi_exit = theta(6);
-
 if NInactiveStates
-    kdt_inac = pi_entry*dt;% transition rate between inactive states and from inactive to off states
+    kdt_inac = pi_entry*dt; %transition rate between inactive states and from inactive to off states
 end
-%Create the matrix to store the results
-M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize to zero everywhere
 
+%Create the matrix to store the results
+M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize it to zero everywhere
+transcriptionEndsRow = ceil(transcriptionEnds/dt); %this is the row of M when we want transcription to stop
 
 %Initial conditions:
-M(1,1)=numCells;    %everyone is at the first state initially
+M(1,1)=numCells; % everyone is at the first state at the first dt
 
-time_vec = 2:TotalTime/dt;
-[~, idx] = min(abs(repmat(modelOpts.TimeVariantAbsoluteTimes, length(time_vec), 1)'- time_vec*dt*60 )); %t*dt*60 is actualtimeinsecs
+time_vec = 2:TotalTime/dt; % just a vector to loop over
 
+%this is to find the dorsal time trace that corresponds to each dorsal bin
+[~, idx] = min(abs(repmat(modelOpts.TimeVariantAbsoluteTimes, length(time_vec), 1)'- time_vec*dt*60 )); %t*dt*60 is actual time in sec
 
-time_vec_2 = 0:dt:TotalTime-dt;
+time_vec_2 = 0:dt:TotalTime-dt; %time vector 
 
 n_dls = length(dorsalVals);
 
-fraction_onset = nan(length(dorsalVals), 2);
+fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 
 %% Do the calculation now
@@ -90,19 +94,14 @@ for d = 1:n_dls %loop over dorsal bins
     [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
     dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
     
-    for t = time_vec % loop over time steps
-        
-        %[t sum(M(t-1,:))]
-        %         assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')
-        
+    for t = time_vec % loop over time steps        
+        %assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')        
         dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
-        %         dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal
-        
+        %dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal       
         kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
         
         %Calculate the first state
-        if NInactiveStates ~= 0 % if the first state is an inactive one
-            
+        if NInactiveStates ~= 0 % if the first state is an inactive one          
             M(t,1) = (1-kdt_inac)*M(t-1,1); % it transitions with a rate of kdt_inac
             
             %Calculate the evolution of all states minus the ones at the edges
@@ -112,7 +111,7 @@ for d = 1:n_dls %loop over dorsal bins
             end
             
             % do the off state that comes immediatly after the last inactive state
-            M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates);
+            M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates);       
         
         else % if the first state is an off one
             M(t,1) = (1-kdt_off)*M(t-1,1); % it transitions with a rate of kdt_off
@@ -123,13 +122,14 @@ for d = 1:n_dls %loop over dorsal bins
             M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1);
         end
         
-        %Calculate the last box
+        %Calculate the last state
         M(t,end) = M(t-1,end) + kdt_off*M(t-1,end-1);
+        
     end
     
-    fraction_onset(d,1) = M(end,end)/numCells;
-    yEnd = M(:,end); %number of nuclei in the last state as a function of time
-    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
+    fraction_onset(d,1) = M(transcriptionEndsRow,end)/numCells;
+    yEnd = M(1:transcriptionEndsRow,end); %number of nuclei in the last state as a function of time
+    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:transcriptionEndsRow-1)')/sum(diff(yEnd)); %expected value
 end
 
 
