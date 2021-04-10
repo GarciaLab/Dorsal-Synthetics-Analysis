@@ -47,16 +47,14 @@ end
 
 %% Simulation paramaters
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
-TotalTime =  12;% minutes, end of the simulation
-transcriptionStart = 1; %minutes, start of the transcriptional window
-tCylce = theta(7); %minutes, end of the transcriptional window
+TotalTime =  theta(7);% minutes, end of the simulation
+transcriptionStart = 1; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
-transcriptionEnds = (transcriptionStart+tCylce);
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
 NInactiveStatesPlus2 = NInactiveStates+2;
-errorTolerance = 0.0001;
+%errorTolerance = 0.0001;
 
 % min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
 
@@ -71,10 +69,10 @@ end
 
 %Create the matrix to store the results
 M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize it to zero everywhere
-transcriptionEndsRow = transcriptionEnds/dt; %this is the row of M when we want transcription to stop
+transcriptionStartRow = ceil(transcriptionStart/dt); %this is the row of M when we want transcription to stop
 
 %Initial conditions:
-M(1,1)=numCells; % everyone is at the first state at the first dt
+M(transcriptionStartRow,1)=numCells; % everyone is at the first state at the first dt
 
 time_vec = 2:TotalTime/dt; % just a vector to loop over
 
@@ -129,7 +127,7 @@ for d = 1:n_dls %loop over dorsal bins
     
     fraction_onset(d,1) = M(transcriptionEndsRow,end)/numCells;
     yEnd = M(1:transcriptionEndsRow,end); %number of nuclei in the last state as a function of time
-    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
+    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:transcriptionEndsRow-1)')/sum(diff(yEnd)); %expected value
 end
 
 

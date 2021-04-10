@@ -47,11 +47,9 @@ end
 
 %% Simulation paramaters
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
-TotalTime =  12;% minutes, end of the simulation
-transcriptionStart = 1; %minutes, start of the transcriptional window
-tCylce = theta(7); %minutes, end of the transcriptional window
+TotalTime =  theta(7);% minutes, end of the simulation
+transcriptionStart = 1; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
-transcriptionEnds = (transcriptionStart+tCylce);
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
@@ -71,10 +69,11 @@ end
 
 %Create the matrix to store the results
 M(1:TotalTime/dt,1:(NLinStates+1)) = 0; %initialize it to zero everywhere
-transcriptionEndsRow = ceil(transcriptionEnds/dt); %this is the row of M when we want transcription to stop
+transcriptionStartRow = ceil(transcriptionStart/dt); %this is the row of M when we want transcription to stop
 
-%Initial conditions:
-M(1,1)=numCells; % everyone is at the first state at the first dt
+%Initial conditions: everyone is at the first state at the first dt.
+%note that the system enters state one with a delay specified by "transcriptionStart"
+M(transcriptionStartRow,1)=numCells; % 
 
 time_vec = 2:TotalTime/dt; % just a vector to loop over
 
@@ -94,7 +93,7 @@ for d = 1:n_dls %loop over dorsal bins
     [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
     dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
     
-    for t = time_vec % loop over time steps        
+    for t = time_vec(transcriptionStartRow:end) % loop over time steps        
         %assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')        
         dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
         %dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal       
@@ -127,9 +126,9 @@ for d = 1:n_dls %loop over dorsal bins
         
     end
     
-    fraction_onset(d,1) = M(transcriptionEndsRow,end)/numCells;
-    yEnd = M(1:transcriptionEndsRow,end); %number of nuclei in the last state as a function of time
-    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:transcriptionEndsRow-1)')/sum(diff(yEnd)); %expected value
+    fraction_onset(d,1) = M(end,end)/numCells;
+    yEnd = M(:,end); %number of nuclei in the last state as a function of time
+    fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
 end
 
 
