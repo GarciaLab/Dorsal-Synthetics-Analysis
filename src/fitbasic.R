@@ -93,7 +93,7 @@ predicted_df <- data.frame(
 
 z = binned$binMidValues
 yy = mean(fraction)
-zz = getFrac(z, 3.50, 595.06, 8.36)
+zz = getFrac(z, 1, 595.06, 8.36)
 plot(z, zz)
 lines(z, binned$frac_mean)
 

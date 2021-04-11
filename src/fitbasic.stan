@@ -55,12 +55,12 @@ parameters {
 
 model{
   //priors
-  c ~ normal(p0[1], ub[1]/2);
-  kd ~ normal(p0[2], ub[2]/2);
-  tcycle ~ normal(p0[3], lb[3]);
+  c ~ normal(p0[1], ub[1]);
+  kd ~ normal(p0[2], ub[2]);
+  tcycle ~ normal(p0[3], ub[3]);
 
- // sigma_fraction ~ cauchy(0, 1);
- // sigma_onset ~ cauchy(0, 1);
+// sigma_fraction ~ cauchy(0, 1);
+// sigma_onset ~ cauchy(0, 1);
 
   //likelihoods
   fraction ~ normal(fraction_fun(x, c, kd, tcycle), sigma_fraction);
@@ -79,9 +79,6 @@ generated quantities{
   onset_mean = onset_fun(x, c, kd, tcycle);
   
   for(i in 1:N){ 
-  // Posterior parameter distribution of the mean 
-  //Y_mean[i] = R*(((x[i]/KD)*w) /(1+ (x[i] /KD) + ((x[i] /KD) *w)));
-  // Posterior predictive distribution 
   fraction_pred[i] = normal_rng(fraction_mean[i], sigma_fraction); 
   onset_pred[i] = normal_rng(onset_mean[i], sigma_onset); 
   }

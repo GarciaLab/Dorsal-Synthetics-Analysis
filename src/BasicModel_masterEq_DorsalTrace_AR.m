@@ -48,7 +48,7 @@ end
 %% Simulation paramaters
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
 TotalTime =  theta(7);% minutes, end of the simulation
-transcriptionStart = 1; %minutes, delayed start of the transcriptional window
+transcriptionStart = 0.01; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
@@ -129,6 +129,7 @@ for d = 1:n_dls %loop over dorsal bins
     fraction_onset(d,1) = M(end,end)/numCells;
     yEnd = M(:,end); %number of nuclei in the last state as a function of time
     fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
+    
 end
 
 

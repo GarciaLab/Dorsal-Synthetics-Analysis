@@ -14,6 +14,7 @@ fixKD = false;
 batchedAffinities = false;
 fixTCycle = false;
 preRun = false;
+bin = false;
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -43,17 +44,24 @@ if batchedAffinities
     
     
     for k = 1:numel(enhancers)
+        
+        
         %needs to be nobs x ny
         FractionsPerEmbryo = FractionsPerEmbryoAll{k};
         OnsetsPerEmbryo = OnsetsPerEmbryoAll{k};
         
-        
-        X = repmat(binMidValues, 1, max(size(FractionsPerEmbryo)));
-        F = FractionsPerEmbryo(:)';
-        T = OnsetsPerEmbryo(:)';
-        X(isnan(F)) = [];
-        T(isnan(F)) = [];
-        F(isnan(F)) = [];
+        if bin
+            X = binMidValues;
+            F = nanmean(FractionsPerEmbryo, 1);
+            T =  nanmean(OnsetsPerEmbryo, 1);
+        else
+            X = repmat(binMidValues, 1, max(size(FractionsPerEmbryo)));
+            F = FractionsPerEmbryo(:)';
+            T = OnsetsPerEmbryo(:)';
+            X(isnan(F)) = [];
+            T(isnan(F)) = [];
+            F(isnan(F)) = [];
+        end
         data{k}.ydata = [X; F; T]';
     end
     
@@ -97,7 +105,7 @@ options.updatesigma = 1; %honestly don't know what this does
 names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
 if modelType == "entryexit"
     if ~batchedAffinities
-        p0 = [10, 1E3, 5, 5, 1, 1, 8];
+        p0 = [10, 1E3, 5, 5, 1, 1, 6.8];
         lb = [1E-1, 1E2, 0, 1, 1E-1, 1E-2, 5];
         ub = [1E2, 1E6, 12, 12, 1E3, 1E1, 10];
     else
@@ -110,7 +118,7 @@ elseif modelType == "entry"
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
     ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
-    p0 = [1, 1E3, 0, 5, 1E10, 0, 8];
+    p0 = [1, 1E3, 0, 4, 1E10, 0, 7.1];
     lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
     ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
 end
@@ -259,6 +267,81 @@ end
 %
 % figure;
 % out = mcmcpred(results,chain,[],data, mdl);
+
+
+%%
+lims = [0.005,0.025,0.05,0.25,0.5,0.75,0.95,0.975,0.995];
+figure;
+for k = 1:length(out.predlims)
+    nn = (size(out.predlims{k}{1},1) + 1) / 2;
+    plimi = out.predlims{k};
+    x{k} = data{k}.ydata(:, 1);
+    
+    nexttile;
+    for j = 1:length(plimi)
+        
+        %         y_lower{k, j} = plimi{j}(1,:);
+        y_lower{k, j} = plimi{j}(4,:);
+        %  y_upper{k, j}  = plimi{j}(2*nn-1,:);
+        y_upper{k, j}  = plimi{j}(6,:);
+        
+        y_median{k, j} = plimi{j}(nn,:);
+        
+        yl{k, j} = nan(1, length(binMidValues));
+        yu{k, j} = nan(1, length(binMidValues));
+        ym{k, j} = nan(1, length(binMidValues));
+        
+        for i = 1:length(binMidValues)
+            yl{k, j}(i) = nanmedian(y_lower{k, j}(x{k}==binMidValues(i)));
+            yu{k, j}(i) = nanmedian(y_upper{k, j}(x{k}==binMidValues(i)));
+            ym{k, j}(i) = nanmedian(y_median{k, j}(x{k}==binMidValues(i)));
+            
+            temp_f = FractionsPerEmbryoAll{k}(:, i);
+            nFVals{k}(i) = sqrt(length(temp_f(~isnan(temp_f))));
+            temp_o = OnsetsPerEmbryoAll{k}(:, i);
+            nOVals{k}(i) = sqrt(length(temp_o(~isnan(temp_o))));
+        end
+        if j == 1
+            yyaxis left
+        elseif j ==2
+            yyaxis right
+        end
+        hold on
+        fillyy(binMidValues,yl{k, j},yu{k, j},[0.9 0.9 0.9]);
+        hold on
+        plot(binMidValues, ym{k, j})
+        hold on
+        if j ==1
+            hold on
+%             nFVals = sqrt(length(FractionsPerEmbryoAll{k}(~isnan(FractionsPerEmbryoAll{k}))));
+            nFVals{k}(nFVals{k}==0) = nan;
+
+            errorbar(binMidValues, nanmean(FractionsPerEmbryoAll{k}, 1), nanstd(FractionsPerEmbryoAll{k}./nFVals{k}, 1),...
+                'o', 'CapSize', 0)
+            ylabel('factive')
+            xlabel('dl')
+            ylim([0, 1.1])
+        elseif j == 2
+            hold on
+%             nOVals = sqrt(length(OnsetsPerEmbryoAll{k}(~isnan(OnsetsPerEmbryoAll{k}))));
+            nOVals{k}(nOVals{k}==0) = nan;
+
+            errorbar(binMidValues, nanmean(OnsetsPerEmbryoAll{k}, 1), nanstd(OnsetsPerEmbryoAll{k}, 1)./nOVals{k},...
+                'o', 'CapSize', 0)
+            ylabel('onset')
+            xlabel('dl')
+            ylim([0, 8.5])
+            title(enhancers{k})
+
+        end
+    end
+    
+end
+%%
+
+
+
+
 % mcmcpredplot(out);
 
 %%
@@ -317,17 +400,18 @@ else
     tiledlayout('flow')
     for k = 1:length(yy)
         nexttile;
+        yyaxis left
         nFVals = sqrt(length(FractionsPerEmbryoAll{k}(~isnan(FractionsPerEmbryoAll{k}))));
         errorbar(binMidValues, nanmean(FractionsPerEmbryoAll{k}, 1), nanstd(FractionsPerEmbryoAll{k}./nFVals, 1))
         hold on
         plot(binMidValues, yy{k}(:, 1))
         ylim([0, 1.1])
-       
+        
         ylabel('factive')
         xlabel('dl')
-%         legend('data', 'sim')
+        %         legend('data', 'sim')
         title(enhancers{k})
-        nexttile;
+        yyaxis right
         nOVals = sqrt(length(OnsetsPerEmbryoAll{k}(~isnan(OnsetsPerEmbryoAll{k}))));
         errorbar(binMidValues, nanmean(OnsetsPerEmbryoAll{k}, 1), nanstd(OnsetsPerEmbryoAll{k}, 1)./nOVals)
         
@@ -336,7 +420,7 @@ else
         
         ylabel('onset')
         xlabel('dl')
-%         legend('data', 'sim')
+        %         legend('data', 'sim')
         title(enhancers{k})
         
     end
@@ -352,17 +436,17 @@ end
 %     moffs = results.theta(4)*ones(n, 1);
 %     piexits = results.theta(6)*ones(n, 1);
 %     theta = horzcat(chain(:, 1), kd, nentries, moffs, chain(:, 2), piexits);
-%     
+%
 %     yyy = nan(length(binMidValues),length(results.mean),n);
 %     for k = 1:n
 %         yyy(:, :, k) = results.modelfun(binMidValues, theta(k, :));
 %     end
 % end
-% 
+%
 % nexttile;
 % yyy_f = squeeze(yyy(:, 1, :));
 % yyy_o = squeeze(yyy(:, 2, :));
-% 
+%
 % scatter(yyy_f(:), yyy_o(:));
 % xlim([0, 1.1])
 % ylim([0, 8.2])
@@ -372,6 +456,15 @@ end
 % xlim([0, 1.1])
 % ylim([0, 8.2])
 
+% %%
+% figure;
+% a = [];
+% for k = 1:length(OnsetsPerEmbryoAll)
+%     a = [a; OnsetsPerEmbryoAll{k}(:)];
+%     hold on
+% end
+% histogram(a(:));
+%
 
 save(dropboxfolder + "\simulations\" +modelType+fun+nSteps+"_"+datestr8601+".mat")
 

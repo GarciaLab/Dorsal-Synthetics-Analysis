@@ -16,7 +16,7 @@ y2 = y2(:)';
 n   = length(x);
 X = [ x(1),  x,  x(n),  fliplr(x)  ];
 Y = [ y1(1), y2, y1(n), fliplr(y1) ];
-h=fill(X,Y,col,'Linestyle','none');
+h=fill(X,Y,col,'Linestyle','none', 'FaceAlpha', 0.9, 'EdgeAlpha', 0.5);
 if nargout>0
   out=h;
 end
