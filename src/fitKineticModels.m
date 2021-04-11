@@ -266,7 +266,7 @@ try
 end
 %
 % figure;
-% out = mcmcpred(results,chain,[],data, mdl);
+out = mcmcpred(results,chain,[],data, mdl);
 
 
 %%

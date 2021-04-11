@@ -49,8 +49,8 @@ library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 fit <-
-  stan(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\src\\fitbasic.stan",
-       model_name = "fitbasic",
+  stan(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\src\\fitbasic_ode.stan",
+       model_name = "fitbasic_ode",
        data = dat)
 print(fit, c("c", "kd", "tcycle","sigma_fraction", "sigma_onset"))
 
