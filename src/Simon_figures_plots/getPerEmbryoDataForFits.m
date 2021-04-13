@@ -47,6 +47,7 @@ maxMaxFluo = 1500; %brightest considered spots
 
 FractionsPerEmbryo = nan(50,length(dorsalVals)-1);
 TimeOnsPerEmbryo = nan(50,length(dorsalVals)-1);
+MaxFluoPerEmbryo = nan(50,length(dorsalVals)-1);
 
 % now make one struct per bin
 for b = 1:length(dorsalVals)-1
