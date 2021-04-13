@@ -40,6 +40,10 @@ for i=1:nbatch
   
   datai = data{i};
   
+      if i~=1 && size(datai.ydata, 1) ~= numel(time)
+        datai.ydata(end:numel(time), :) = nan;
+    end
+  
   if isnumeric(datai)
     time = datai(:,1); % time is the first columd of data
   elseif isfield(datai,'ydata')

@@ -49,8 +49,8 @@ library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 fit <-
-  stan(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\src\\fitbasic.stan",
-       model_name = "fitbasic",
+  stan(file = "C:\\Users\\owner\\Documents\\Dorsal-Synthetics-Analysis\\src\\fitbasic_ode.stan",
+       model_name = "fitbasic_ode",
        data = dat)
 print(fit, c("c", "kd", "tcycle","sigma_fraction", "sigma_onset"))
 
@@ -93,7 +93,7 @@ predicted_df <- data.frame(
 
 z = binned$binMidValues
 yy = mean(fraction)
-zz = getFrac(z, 3.50, 595.06, 8.36)
+zz = getFrac(z, 1, 595.06, 8.36)
 plot(z, zz)
 lines(z, binned$frac_mean)
 

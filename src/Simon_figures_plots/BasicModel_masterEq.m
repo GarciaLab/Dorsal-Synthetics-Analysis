@@ -28,9 +28,6 @@ NOffStates = round(theta(4));   %number of states
 
 c = theta(1);
 kd = theta(2);
-nEntryStates = round(theta(3));
-pi_entry = theta(5);
-pi_exit = theta(6);
 
 %Create the matrix to store the results
 M(1:TotalTime/dt,1:NOffStates+1) = 0; %initialize to zero everywhenre
