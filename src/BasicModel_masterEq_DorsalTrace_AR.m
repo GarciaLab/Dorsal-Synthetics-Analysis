@@ -48,7 +48,7 @@ end
 %% Simulation paramaters
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
 TotalTime =  theta(7);% minutes, end of the simulation
-transcriptionStart = 1; %minutes, delayed start of the transcriptional window
+transcriptionStart = 0.01; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
 NOffStates = round(theta(4));   %number of off states
 NInactiveStates = round(theta(3)); %number of inactive states
@@ -88,6 +88,10 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 
 %% Do the calculation now
+% figure
+% hold on
+% Palette = cbrewer('seq', 'Reds', length(1:n_dls));
+% actualAbsTime = linspace(0,TotalTime,size(M,1)); %just for plotting
 for d = 1:n_dls %loop over dorsal bins
     
     [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
@@ -129,12 +133,15 @@ for d = 1:n_dls %loop over dorsal bins
     fraction_onset(d,1) = M(end,end)/numCells;
     yEnd = M(:,end); %number of nuclei in the last state as a function of time
     fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
-    end
     
+%     plot(actualAbsTime,yEnd,'Color',Palette(d,:),'LineWidth',1)
+%     plot([fraction_onset(d,2) fraction_onset(d,2)],[0 0.5],'-','Color',Palette(d,:))
+%     %title(['Dorsal bin ' num2str(d)])
+end
+hold off
 
 
 
-%plot(linspace(1,TotalTime,size(M,1)),M,'LineWidth',2)
 
 % %% Make a movie
 % MVector=0:NumStates;     %This is the vector of bins for the histogram
