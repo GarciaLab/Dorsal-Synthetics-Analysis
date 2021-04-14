@@ -38,7 +38,7 @@ for k = 1:length(prefix1s)
 end
 
 
-%%
+%% gather the data and add an offset
 New_ParB_1Dg_max_trans = [max_intensities_transcription{:}];
 New_ParB_1Dg_max_trans_50 = log(New_ParB_1Dg_max_trans + 50);
 

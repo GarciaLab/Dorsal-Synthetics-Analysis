@@ -26,6 +26,7 @@
 function [max_intensities_non,max_intensities_transcription,mean_intensities_non, ...
     mean_intensities_transcription] = MeanMax2Channel(prefix1,prefix2)
 
+minDist = 6;
 
 % get experimental info for each dataset
     liveExperiment1 = LiveExperiment(prefix1);
@@ -47,9 +48,6 @@ function [max_intensities_non,max_intensities_transcription,mean_intensities_non
     end
     
     %these are the not disapproved parB particles
-
-    approved_parts2 = find([Particles2{2}.Approved] ~= -1);
-
     if isfield(Particles1{2}, 'Approved')
         approved_parts1 = find([Particles1{2}.Approved] ~= -1);
     else
@@ -59,17 +57,20 @@ function [max_intensities_non,max_intensities_transcription,mean_intensities_non
 % create array of all spot positions in transcription channel of the
 % transcriptional-channel-segmented dataset
     ch2_spot_positions = [];
-
-    for i = 1:length(approved_parts2);
-
-        par_num2 = approved_parts2(i);
-
-        for j = 1:length(Particles2{1,2}(par_num2).Frame);
-
-            pos = [ Particles2{1,2}(par_num2).xPos(j),Particles2{1,2}(par_num2).yPos(j), Particles2{1,2}(par_num2).zPos(j)];
-
-            ch2_spot_positions = [ch2_spot_positions; pos];
-
+    %loop over MS2 particles
+    for i = 1:length(approved_parts2)       
+        par_num2 = approved_parts2(i);        
+        %loop over frames of this MS2 particle
+        if iscell(Particles2) %for some reason sometimes it is not
+            for j = 1:length(Particles2{1,2}(par_num2).Frame)
+                pos = [ Particles2{1,2}(par_num2).xPos(j),Particles2{1,2}(par_num2).yPos(j), Particles2{1,2}(par_num2).zPos(j)];
+                ch2_spot_positions = [ch2_spot_positions; pos];
+            end
+        else
+            for j = 1:length(Particles2(par_num2).Frame)
+                pos = [ Particles2(par_num2).xPos(j),Particles2(par_num2).yPos(j), Particles2(par_num2).zPos(j)];
+                ch2_spot_positions = [ch2_spot_positions; pos];
+            end
         end
     end
 
@@ -119,13 +120,13 @@ function [max_intensities_non,max_intensities_transcription,mean_intensities_non
  % particle will be classified as non-transcriptional. If not, the particle
  % will be classified as transcriptional. 
  
-            for p = 1:length(ch2_spot_positions);
+            for p = 1:length(ch2_spot_positions)
 
                spot2_pos = ch2_spot_positions(p,:,:);
 
                dist  = sqrt(sum((ch1_filt_pos - spot2_pos).^2));
 
-               if dist < 2;
+               if dist < minDist
 
                    transcription_or_not = [transcription_or_not,1];
 
