@@ -50,7 +50,7 @@ all_spots = [New_ParB_1Dg_max_non_50, New_ParB_1Dg_max_trans_50];
 
 
 
-%%
+% plot results
 figure;
 % yyaxis left
 h1 = histogram( New_ParB_1Dg_max_trans_50,'EdgeColor','none','FaceColor','b','FaceAlpha',0.7, 'BinWidth', .07, 'Normalization', 'probability');
@@ -64,8 +64,8 @@ xlim([4.07, 6.7])
 
 % h1.BinWidth = 40;
 
+%
 hold on
-
 h2 = histogram(New_ParB_1Dg_max_non_50,'FaceColor','#FB9D2D','EdgeColor','none','FaceAlpha',0.7, 'BinWidth', .07, 'Normalization', 'probability');
 % h2 = histogram( New_ParB_1Dg_max_non_50,'FaceColor','none','EdgeColor','#FB9D2D', 'LineWidth', 3, 'DisplayStyle', 'stairs', 'BinWidth', .07);
 
