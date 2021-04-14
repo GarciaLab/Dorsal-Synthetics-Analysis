@@ -38,7 +38,7 @@ function [max_intensities_non,max_intensities_transcription,mean_intensities_non
     Particles2 = getParticles(liveExperiment2);
 
  % find approved particles for both datasets
- 
+
     %these are the not disapproved MS2 particles
     if iscell(Particles2)
         approved_parts2 = find([Particles2{2}.Approved] ~= -1);
@@ -47,6 +47,9 @@ function [max_intensities_non,max_intensities_transcription,mean_intensities_non
     end
     
     %these are the not disapproved parB particles
+
+    approved_parts2 = find([Particles2{2}.Approved] ~= -1);
+
     if isfield(Particles1{2}, 'Approved')
         approved_parts1 = find([Particles1{2}.Approved] ~= -1);
     else
