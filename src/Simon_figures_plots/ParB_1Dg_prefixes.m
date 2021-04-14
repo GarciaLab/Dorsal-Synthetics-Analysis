@@ -10,9 +10,11 @@ Ch02Prefixes = {'2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_1ch2filt',...
 '2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_28ch2filt','2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_29ch2filt',...
  '2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_30ch2filt'};
 
-for p = 20:length(Ch02Prefixes)
+for p = 18
     Prefix = Ch02Prefixes{p};
     CheckParticleTracking(Prefix,'multiview', 'preLoadMovie')
+    %chooseAnaphaseFrames(Prefix)
+    %segmentSpots(Prefix,5700, 'nWorkers', 8, 'Shadows', 0)
 end
 
 %% now Ch01 
