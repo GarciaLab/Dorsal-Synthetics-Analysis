@@ -17,6 +17,14 @@ prefix1s ={ '2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_1','2020-11-03-2xInt
 '2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_27','2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_28',...
 '2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_29','2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_30'};
 
+badprefixes = {'2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_1','2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_2',...
+'2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_3',...
+'2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_27',...
+'2020-12-07-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_28'};
+    
+prefix1s(17:18) = [];
+prefix1s = prefix1s(4:end);
+
 % create arrays to store stuff
 N = length(prefix1s);
 max_intensities_non = cell(N, 1); % for the undetected spots
@@ -29,7 +37,9 @@ mean_intensities_transcription = cell(N, 1);
 for k = 1:length(prefix1s)
     
     prefix1 = prefix1s{k};
-    % 'ch2filt' is the version of the movie segmented using MCP-mCherry
+    
+    addSpot2(prefix1);
+%     'ch2filt' is the version of the movie segmented using MCP-mCherry
     prefix2 = strcat(prefix1, 'ch2filt');
     
     [max_intensities_non{k},max_intensities_transcription{k},mean_intensities_non{k}, ...
@@ -42,32 +52,41 @@ end
 MoviesWithMS2 = find(~cellfun(@isempty,max_intensities_transcription));
 max_intensities_transcription2 = max_intensities_transcription(MoviesWithMS2);
 New_ParB_1Dg_max_trans = [max_intensities_transcription2{:}];
-New_ParB_1Dg_max_trans_50 = log(New_ParB_1Dg_max_trans + 50);
+New_ParB_1Dg_max_trans_50 = log(New_ParB_1Dg_max_trans + 200);
 
 max_intensities_non2 = max_intensities_non(MoviesWithMS2);
-% randomly pick undetected intensities to have the same number as detected ones
-Ndetected = length(New_ParB_1Dg_max_trans_50);
-NpickPerMovie = floor(Ndetected/length(max_intensities_non2));
-for i = 1:length(max_intensities_non2)
-    thisMovieValues = max_intensities_non2{i};
-    pickedValues = randsample(thisMovieValues,NpickPerMovie);
-    max_intensities_non3{i}=pickedValues;
-end
+% max_intensities_non = max_intensities_non(MoviesWithMS2);
+% % randomly pick undetected intensities to have the same number as detected ones
+% Ndetected = length(New_ParB_1Dg_max_trans_50);
+% NpickPerMovie = floor(Ndetected/length(max_intensities_non2));
+% for i = 1:length(max_intensities_non2)
+%     thisMovieValues = max_intensities_non2{i};
+%     pickedValues = randsample(thisMovieValues,NpickPerMovie);
+%     max_intensities_non3{i}=pickedValues;
+% end
+
+max_intensities_non3 = max_intensities_non2;
 
 New_ParB_1Dg_max_non = [max_intensities_non3{:}]; 
-New_ParB_1Dg_max_non_50 = log(New_ParB_1Dg_max_non + 50);
+New_ParB_1Dg_max_non_50 = log(New_ParB_1Dg_max_non + 200);
 
 all_spots = [New_ParB_1Dg_max_non_50, New_ParB_1Dg_max_trans_50];
 
+
+figure;
+histogram(all_spots, 'BinWidth', .07)
+set(gca, 'YScale', 'log')
+
+%%
 % randomly pick undetected intensities to have the same number as detected
 % ones
-Ndetected = length(New_ParB_1Dg_max_trans_50);
-NpickPerMovie = ceil(Ndetected/length(max_intensities_non2));
-for i = 1:length(max_intensities_non2)
-    thisMovieValues = max_intensities_non2{i};
-    pickedValues = randsample(thisMovieValues,NpickPerMovie);
-    max_intensities_non3{i}=pickedValues;
-end
+% Ndetected = length(New_ParB_1Dg_max_trans_50);
+% NpickPerMovie = ceil(Ndetected/length(max_intensities_non2));
+% for i = 1:length(max_intensities_non2)
+%     thisMovieValues = max_intensities_non2{i};
+%     pickedValues = randsample(thisMovieValues,NpickPerMovie);
+%     max_intensities_non3{i}=pickedValues;
+% end
 
     
     
