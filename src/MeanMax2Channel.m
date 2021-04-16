@@ -44,6 +44,7 @@ NC12End_1 = Anaphases1(5)-1;
 Anaphases2 = liveExperiment2.anaphaseFrames;
 NC12Start_2 = Anaphases2(4);
 NC12End_2 = Anaphases2(5)-1;
+K = 0; %frames after NC12 that we start counting
 
 % keep only NC12 particles
 
@@ -73,12 +74,20 @@ for i = 1:length(approved_parts2)
     
     %loop over frames of this MS2 particle
     if iscell(Particles2) %for some reason sometimes it is not
-        for j = 1:length(Particles2{1,2}(par_num2).Frame)
+        particleFrames = Particles2{1,2}(par_num2).Frame;
+        firstNC12Frame = find(particleFrames>=NC12Start_1,1);
+        lastNC12Frame = find(particleFrames<=nanmin([particleFrames(end) NC12End_1]),1,'last');
+        particleNC12Frames = particleFrames(firstNC12Frame:lastNC12Frame); % NC12 ONLY!
+        for j = firstNC12Frame:lastNC12Frame%1:length(Particles2{1,2}(par_num2).Frame)
             pos = [ Particles2{1,2}(par_num2).xPos(j),Particles2{1,2}(par_num2).yPos(j), Particles2{1,2}(par_num2).zPos(j)];
             ch2_spot_positions = [ch2_spot_positions; pos];
         end
     else
-        for j = 1:length(Particles2(par_num2).Frame)
+        particleFrames = Particles2(par_num2).Frame;
+        firstNC12Frame = find(particleFrames>=NC12Start_1,1);
+        lastNC12Frame = find(particleFrames<=nanmin([particleFrames(end) NC12End_1]),1,'last');
+        particleNC12Frames = particleFrames(firstNC12Frame:lastNC12Frame); % NC12 ONLY!       
+        for j = firstNC12Frame:lastNC12Frame
             pos = [ Particles2(par_num2).xPos(j),Particles2(par_num2).yPos(j), Particles2(par_num2).zPos(j)];
             ch2_spot_positions = [ch2_spot_positions; pos];
         end
@@ -101,16 +110,16 @@ non_spot_particle_nums = [];
     par1_num = approved_parts1(k);
     frames = Particles1{1,2}(par1_num).Frame;
     %we only want to look at NC12 frames
-    firstNC12Frame = find(frames>=NC12Start_1,1);
+    firstNC12Frame = find(frames>=NC12Start_1+K,1);
     lastNC12Frame = find(frames<=nanmin([frames(end) NC12End_1]),1,'last');
-    frames = frames(firstNC12Frame:lastNC12Frame); % NC12 ONLY!
+    frames2 = frames(firstNC12Frame:lastNC12Frame); % NC12 ONLY!
     indices = Particles1{1,2}(par1_num).Index;
     transcription_or_not = [];
     particle_intensities = [];
 
     % iterate through all frames of each approved particle in the
     % DNA-label-segmented dataset
-    for h = 1:length(frames)
+    for h = 1:length(frames2)
         ch1_filt_XYZpos = [Particles1{1,2}(par1_num).xPos(h),Particles1{1,2}(par1_num).yPos(h), Particles1{1,2}(par1_num).zPos(h)];
         particle_intensities = [particle_intensities, Spots1{1,2}(frames(h)).Fits(indices(h)).FixedAreaIntensity3];
 
