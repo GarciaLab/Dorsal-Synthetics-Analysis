@@ -13,16 +13,16 @@ Ch02Prefixes = {
 % '2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_1ch2filt',...
 %  '2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_2ch2filt', '2020-11-03-2xIntB2-1Dg456_parB2GFP-2xnosMCPmCh_3ch2filt',...
 
-for p = 1:length(Prefixes)
-    Prefix = Ch02Prefixes{p};
-    
-    %CheckNucleiSegmentation(Prefix,'preLoadMovie')
-    %chooseAnaphaseFrames(Prefix)
-    %segmentSpots(Prefix,5700, 'nWorkers', 8, 'Shadows', 0)
-end
+% for p = 1:length(Prefixes)
+%     Prefix = Ch02Prefixes{p};
+%     
+%     %CheckNucleiSegmentation(Prefix,'preLoadMovie')
+%     %chooseAnaphaseFrames(Prefix)
+%     %segmentSpots(Prefix,5700, 'nWorkers', 8, 'Shadows', 0)
+% end
 
 %% now Ch01 
-ResultsFolder = 'S:\Simon\Dropbox\DorsalSyntheticsDropbox\';
+%ResultsFolder = 'S:\Simon\Dropbox\DorsalSyntheticsDropbox\';
 
 for p = 4:length(Ch02Prefixes)
     Prefix = Ch02Prefixes{p};
