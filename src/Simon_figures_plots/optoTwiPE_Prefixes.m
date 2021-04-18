@@ -40,7 +40,9 @@ NewPrefixes = {'2021-03-30-JB3LEXY-2xDl-TwiPE_exportfirst4min_21','2021-03-30-JB
 for p = 1:length(NewPrefixes)
     p
     Prefix = NewPrefixes{p};
-    segmentSpots(Prefix,5000, 'nWorkers', 8, 'Shadows', 0)
+    %segmentSpots(Prefix,5000, 'nWorkers', 8, 'Shadows', 0)
+    %CheckNucleiSegmentation(Prefix,'preLoadMovie'
+    chooseAnaphaseFrames(Prefix)
 end
 
 
