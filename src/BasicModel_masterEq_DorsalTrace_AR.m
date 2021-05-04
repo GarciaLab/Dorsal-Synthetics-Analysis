@@ -46,23 +46,25 @@ if isstruct(dorsalVals)
 end
 
 %% Simulation paramaters
+modelOpts.piForm = "cdl";
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
-TotalTime =  theta(7);% minutes, end of the simulation
+TotalTime =  theta(end);% minutes, end of the simulation
 transcriptionStart = 0.01; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
-NOffStates = round(theta(4));   %number of off states
-NInactiveStates = round(theta(3)); %number of inactive states
+NOffStates = round(theta(end-3));   %number of off states
+NInactiveStates = round(theta(end-4)); %number of inactive states
 NLinStates = NOffStates+NInactiveStates;
 NInactiveStatesPlus2 = NInactiveStates+2;
 %errorTolerance = 0.0001;
-
 % min(abs(modelOpts.TimeVariantAbsoluteTimes- (t*dt*60) ))
 
 
 c = theta(1);
-kd = theta(2);
-pi_entry = theta(5);
-% pi_exit = theta(6);
+if numel(theta) == 7
+    kd = theta(2);
+end
+pi_entry = theta(end-2);
+% pi_exit = theta(end-1);
 if NInactiveStates
     kdt_inac = pi_entry*dt; %transition rate between inactive states and from inactive to off states
 end
@@ -97,7 +99,11 @@ for d = 1:n_dls %loop over dorsal bins
         %assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')        
         dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
         %dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal       
-        kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
+        if modelOpts.piForm == "cdl"
+            kdt_off = c*dls; % transition rate between off states
+        else
+            kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
+        end
         
         %Calculate the first state
         if NInactiveStates ~= 0 % if the first state is an inactive one          
