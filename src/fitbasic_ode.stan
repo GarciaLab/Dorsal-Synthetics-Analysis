@@ -13,7 +13,7 @@ functions {
   }
   
   
-  matrix getFraction_Onset(vector dorsalVals, real c, real kd, real tcycle) {
+  matrix getFraction_Onset(vector dorsalVals, real c, real kd,  real tcycle) {
     
     int numCells = 100;   // the total number of nuclei in the simulation
     real transcriptionStart = 0.01; //minutes, delayed start of the transcriptional window

@@ -1,10 +1,10 @@
-function full_theta = getAllThetas(full_names, results)
+function full_theta = getAllThetas(full_names, results, chain)
 
 %Get the mean values for the optimized parameters (from results.mean) and the default 
 %values for the unoptimized parameters (from results.theta, the values from
 %the very last mcmc step)
 
-
+chain_mean = mean(chain, 1);
 %full_names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
 chain_names = string(results.names);
 batched_indices = find(contains(chain_names, '['));
@@ -16,7 +16,8 @@ if ~isempty(batched_indices)
     full_theta = cell(1, n_batches);
     for j = 1:n_batches
         full_theta{j} = nan(1, length(full_names));
-        full_theta{j}(batched_full_index) = results.mean(batched_indices(j));
+%         full_theta{j}(batched_full_index) = results.mean(batched_indices(j));
+        full_theta{j}(batched_full_index) = chain_mean(batched_indices(j));
     end
 else
     n_batches = 1;
@@ -31,7 +32,8 @@ for k = 1:length(full_names)
         chain_ind = find(full_names(k) == chain_names);
         if ~isempty(chain_ind)
             for j = 1:length(full_theta)
-                full_theta{j}(k) = results.mean(chain_ind);
+%                 full_theta{j}(k) = results.mean(chain_ind);
+                full_theta{j}(k) = chain_mean(chain_ind);
             end
         else
             for j = 1:length(full_theta)
