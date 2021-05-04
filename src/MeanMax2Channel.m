@@ -24,7 +24,8 @@
 % for transcriptional events
 
 function [max_intensities_non,max_intensities_transcription,mean_intensities_non, ...
-    mean_intensities_transcription] = MeanMax2Channel(prefix1,prefix2)
+    mean_intensities_transcription, non_traces, trans_traces] =...
+    MeanMax2Channel(prefix1,prefix2)
 
 minDist = 5;
 
@@ -45,6 +46,9 @@ Anaphases2 = liveExperiment2.anaphaseFrames;
 NC12Start_2 = Anaphases2(4);
 NC12End_2 = Anaphases2(5)-1;
 K = 0; %frames after NC12 that we start counting
+
+non_traces = {};
+trans_traces = {};
 
 % keep only NC12 particles
 
@@ -149,10 +153,12 @@ non_spot_particle_nums = [];
        non_spot_particle_nums = [non_spot_particle_nums, par1_num];
        max_intensities_non = [max_intensities_non, particle_intensities(particle_intensities >= prctile(particle_intensities,95))];
        mean_intensities_non = [mean_intensities_non, mean(particle_intensities)];
+       non_traces = [non_traces, particle_intensities];
    else %in at least one frame there was a nearby spot
        spot_particle_nums = [spot_particle_nums, par1_num];
        max_intensities_transcription = [max_intensities_transcription, particle_intensities(particle_intensities >= prctile(particle_intensities,95))];
        mean_intensities_transcription = [mean_intensities_transcription, mean(particle_intensities)]; 
+       trans_traces = [trans_traces, particle_intensities];
    end
 end
 
