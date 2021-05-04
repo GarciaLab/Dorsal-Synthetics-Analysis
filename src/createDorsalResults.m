@@ -174,15 +174,15 @@ for nc = 1
 end
 
 %% SA: look at the max 
-y = dorsalResults{nc}.meanAllMaxFluoEmbryo;
-y(isnan(y))=0;
-yE = dorsalResults{nc}. seAllMaxFluoEmbryo;
-yE(isnan(yE))=0;
-hold on
-errorbar(dlfluobins,y,yE,'-ko')
-x = linspace(min(dlfluobins),max(dlfluobins),length(dlfluobins));
-errorbar(x,y,yE,'-ro')
-hold off
+% y = dorsalResults{nc}.meanAllMaxFluoEmbryo;
+% y(isnan(y))=0;
+% yE = dorsalResults{nc}.seAllMaxFluoEmbryo;
+% yE(isnan(yE))=0;
+% hold on
+% errorbar(dlfluobins,y,yE,'-ko')
+% x = linspace(min(dlfluobins),max(dlfluobins),length(dlfluobins));
+% errorbar(x,y,yE,'-ro')
+% hold off
 %%
 % allmrnasnc12 = dorsalResults{nc}.allmrnasnomean{:};
 % lens = [];

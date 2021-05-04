@@ -15,14 +15,16 @@ excludeString = 'export';
 
 for i = 1:length(enhancerNames)
     dataType = enhancerNames{i};
-    [FractionsPerEmbryo,TimeOnsPerEmbryo] =  getPerEmbryoDataForFits(dataType,excludeString,dorsalVals);
+    [FractionsPerEmbryo,TimeOnsPerEmbryo,MaxFluoPerEmbryo] =  getPerEmbryoDataForFits(dataType,excludeString,dorsalVals);
     FractionsPerEmbryoAll{i} = FractionsPerEmbryo;
     OnsetsPerEmbryoAll{i} = TimeOnsPerEmbryo;
+    MaxFluosPerEmbryoAll{i} = MaxFluoPerEmbryo;
 end
 
 outputFolder = '/Users/simon_alamos/Dropbox/DorsalSyntheticsDropbox/manuscript/window/basic/dataForFitting/archive';
 
 save([outputFolder '/FractionsPerEmbryoAll.mat'],'FractionsPerEmbryoAll')   % save variable in the output.mat file
 save([outputFolder '/OnsetsPerEmbryoAll.mat'],'OnsetsPerEmbryoAll')   % save variable in the output.mat file
+save([outputFolder '/MaxFluoPerEmbryoAll.mat'],'MaxFluosPerEmbryoAll')   % save variable in the output.mat file
 save([outputFolder '/enhancerNames.mat'],'enhancerNames')   % save variable in the output.mat file
 save([outputFolder '/binMidValues.mat'],'binMidValues')   % save variable in the output.mat file

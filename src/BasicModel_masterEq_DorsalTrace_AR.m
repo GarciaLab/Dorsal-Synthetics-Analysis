@@ -90,6 +90,10 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 
 %% Do the calculation now
+% figure
+% hold on
+% Palette = cbrewer('seq', 'Reds', length(1:n_dls));
+% actualAbsTime = linspace(0,TotalTime,size(M,1)); %just for plotting
 for d = 1:n_dls %loop over dorsal bins
     
     [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
@@ -136,10 +140,14 @@ for d = 1:n_dls %loop over dorsal bins
     yEnd = M(:,end); %number of nuclei in the last state as a function of time
     fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
     
+%     plot(actualAbsTime,yEnd,'Color',Palette(d,:),'LineWidth',1)
+%     plot([fraction_onset(d,2) fraction_onset(d,2)],[0 0.5],'-','Color',Palette(d,:))
+%     %title(['Dorsal bin ' num2str(d)])
 end
+hold off
 
 
-%plot(linspace(1,TotalTime,size(M,1)),M,'LineWidth',2)
+
 
 % %% Make a movie
 % MVector=0:NumStates;     %This is the vector of bins for the histogram

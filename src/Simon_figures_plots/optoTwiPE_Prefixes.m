@@ -26,3 +26,23 @@ for p = 1:length(Prefixes)%[2:11 13,14]
     CheckNucleiSegmentation(Prefix,'preLoadMovie')
     %segmentSpots(Prefix,5000,'nWorkers',8)
 end
+
+%% New Prefixes
+
+NewPrefixes = {'2021-03-30-JB3LEXY-2xDl-TwiPE_exportfirst4min_21','2021-03-30-JB3LEXY-2xDl-TwiPE_exportfirst4min_22',...
+'2021-03-30-JB3LEXY-2xDl-TwiPE_exportfirst4min_23','2021-03-31-JB3LEXY-2xDl-TwiPE_exportfirst4min_24','2021-03-31-JB3LEXY-2xDl-TwiPE_exportfirst4min_25',...
+'2021-03-31-JB3LEXY-2xDl-TwiPE_exportfirst4min_26','2021-03-31-JB3LEXY-2xDl-TwiPE_exportfirst4min_27',...
+'2021-03-31-JB3LEXY-2xDl-TwiPE_exportfirst4min_28','2021-03-30-JB3LEXY-2xDl-TwiPE_noExport_18',...
+'2021-03-30-JB3LEXY-2xDl-TwiPE_noExport_19','2021-03-30-JB3LEXY-2xDl-TwiPE_noExport_20','2021-03-30-JB3LEXY-2xDl-TwiPE_noExport_21',...
+'2021-03-31-JB3LEXY-2xDl-TwiPE_noExport_22','2021-03-31-JB3LEXY-2xDl-TwiPE_noExport_23','2021-03-31-JB3LEXY-2xDl-TwiPE_noExport_24'...
+'2021-03-31-JB3LEXY-2xDl-TwiPE_noExport_25','2021-03-31-JB3LEXY-2xDl-TwiPE_noExport_26'};
+
+for p = 1:length(NewPrefixes)
+    p
+    Prefix = NewPrefixes{p};
+    %segmentSpots(Prefix,5000, 'nWorkers', 8, 'Shadows', 0)
+    %CheckNucleiSegmentation(Prefix,'preLoadMovie'
+    chooseAnaphaseFrames(Prefix)
+end
+
+

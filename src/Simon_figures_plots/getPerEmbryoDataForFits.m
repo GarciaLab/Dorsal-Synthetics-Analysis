@@ -1,4 +1,4 @@
-function [FractionsPerEmbryo,TimeOnsPerEmbryo] =  getPerEmbryoDataForFits(includeString,excludeString,dorsalVals)
+function [FractionsPerEmbryo,TimeOnsPerEmbryo, MaxFluoPerEmbryo] =  getPerEmbryoDataForFits(includeString,excludeString,dorsalVals)
 % DataTypePattern shluld be a string corresponding to a tab in
 % dataStatus.xls
 
@@ -40,11 +40,14 @@ coveredBins = unique([enhancerStruct.dorsalFluoBin3]);
 % define some filters
 minEmbryosPerBin = 3;
 minNucleiPerEmbryoPerBin = 2;
-minOnset = 2; % (min) earliest possible spot detection time to be counted
-maxOnset = 8; %(min) latest possible spot detection time to be counted
+minOnset = 2; % earliest possible spot detection time to be counted
+maxOnset = 8; % latest possible spot detection time to be counted
+minMaxFluo = 0; % dimmest considered spots
+maxMaxFluo = 1500; %brightest considered spots
 
 FractionsPerEmbryo = nan(50,length(dorsalVals)-1);
 TimeOnsPerEmbryo = nan(50,length(dorsalVals)-1);
+MaxFluoPerEmbryo = nan(50,length(dorsalVals)-1);
 
 % now make one struct per bin
 for b = 1:length(dorsalVals)-1
@@ -63,6 +66,7 @@ for b = 1:length(dorsalVals)-1
         fraction_perEmbryo = []; 
         nuclei_perEmbryo = [];
         timeOn_perEmbryo = [];
+        maxfluo_perEmbryo = [];
 
         % and now make one struct per embryo per bin
         if numEmbryos >= minEmbryosPerBin     
@@ -76,20 +80,27 @@ for b = 1:length(dorsalVals)-1
                 perEmbryoTimeOns = perEmbryoTimeOns(perEmbryoTimeOns>minOnset);
                 perEmbryoTimeOns = perEmbryoTimeOns(perEmbryoTimeOns<maxOnset);
                 timeOn_perEmbryo(e) = nanmean(perEmbryoTimeOns);
+                %now do the max fluos and filter too
+                perEmbryoMaxFluos = [embryoStruct.particleFluo95];
+                perEmbryoMaxFluos = perEmbryoMaxFluos(perEmbryoMaxFluos>minMaxFluo);
+                perEmbryoMaxFluos = perEmbryoMaxFluos(perEmbryoMaxFluos<maxMaxFluo);
+                maxfluo_perEmbryo(e) = nanmean(perEmbryoMaxFluos);
             end
         end
     else % there weren't embryos in this bin
         fraction_perEmbryo = nan;
         timeOn_perEmbryo = nan;
+        maxfluo_perEmbryo = nan;
     end
     
-    mean_fraction_acrossEmbryos_perBin(b) = nanmean(fraction_perEmbryo);
-    se_fraction_acrossEmbryos_perBin(b) = std(fraction_perEmbryo)./sqrt(numEmbryos);
-    mean_timeOn_acrossEmbryos_perBin(b) = nanmean(timeOn_perEmbryo);
-    se_timeOn_acrossEmbryos_perBin(b) = nanstd(timeOn_perEmbryo)./sqrt(numEmbryos);
+%     mean_fraction_acrossEmbryos_perBin(b) = nanmean(fraction_perEmbryo);
+%     se_fraction_acrossEmbryos_perBin(b) = std(fraction_perEmbryo)./sqrt(numEmbryos);
+%     mean_timeOn_acrossEmbryos_perBin(b) = nanmean(timeOn_perEmbryo);
+%     se_timeOn_acrossEmbryos_perBin(b) = nanstd(timeOn_perEmbryo)./sqrt(numEmbryos);
 
     %save the single embryo datum for later use
     FractionsPerEmbryo(1:length(fraction_perEmbryo),b) = fraction_perEmbryo;
     TimeOnsPerEmbryo(1:length(timeOn_perEmbryo),b) = timeOn_perEmbryo;
+    MaxFluoPerEmbryo(1:length(maxfluo_perEmbryo),b) = maxfluo_perEmbryo;
      
 end
