@@ -171,7 +171,9 @@ try
 end
 %
 % figure;
-out = mcmcpred(results,chain,[],data, results.modelfun);
+out = mcmcpred(results,chain,[],data, results.modelfun); %parameter uncertainty
+
+% out = mcmcpred(results,chain,s2chain, data, results.modelfun); %predictive intervals for new observations
 
 
 %%
@@ -185,7 +187,8 @@ theta_mean = getAllThetas(names, results, chain);
 % theta_mean = mean(chain, 1);
 
 %xForPlot = binMidValues; %Predictions only on data
-xForPlot = 1:1E5;  %Predictions extrapolated past data
+% xForPlot = 1:1E5;  %Predictions extrapolated past data
+xForPlot = logspace(0, 5);
 % z = 1:1000:4000;
 % b =  [theta_mean{1}; theta_mean{2}];
 
@@ -209,7 +212,8 @@ else
 %                 a = a + mdl(xForPlot, chaink(j, :)); 
 %             end
 %             yy{k} = a/size(chaink, 1); 
-            yy{k} = mean(mdl_vec(single(xForPlot), single(chaink)));
+            yy{k} = double(gather(...
+                mean(mdl_vec(gpuArray(single(xForPlot)), gpuArray(single(chaink))))));
 %             yy{k} = mdl(xForPlot, theta_mean{k});
         end
     end
@@ -286,9 +290,15 @@ for k = 1:length(out.predlims) %%iterate over all enhancers
 %         x5 = binMidValues(~isnan(y5));
 %         y5 = y5(~isnan(y5));
 %         plot(x5, y5, '-')
+
+            %Plot only over data
+            y5 = ym{k, j};
+%             x5 = binMidValues(~isnan(y5));
+%             y5 = y5(~isnan(y5));
+            plot(xForPlot, y5, '-')
         
         %Extrapolate past data
-        plot(yy{k}, '-', 'LineWidth', 2)
+%         plot(xForPlot, yy{k}, '-', 'LineWidth', 2)
         set(gca, 'XScale', 'log')
         
         
