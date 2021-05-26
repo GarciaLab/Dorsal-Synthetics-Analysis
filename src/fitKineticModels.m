@@ -15,6 +15,9 @@ batchedAffinities = false;
 fixTCycle = false;
 preRun = false;
 bin = false;
+piForm = "cOcc"; %other option "cdl"
+stateNumber = 4;
+
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -95,7 +98,7 @@ if fun == "table"
 end
 %%
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
-% options.drscale = 2; % a high value (5) is important for multimodal parameter spaces.
+% options.drscale = 1; % a high value (5) is important for multimodal parameter spaces.
 options.drscale = 5;
 options.waitbar = wb; %the waitbar is rate limiting sometimes
 options.nsimu = nSteps; %should be between 1E3 and 1E6
@@ -118,7 +121,7 @@ elseif modelType == "entry"
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
     ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
-    p0 = [1, 1E3, 0, 4, 1E10, 0, 7.1];
+    p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
     lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
     ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
 end
@@ -214,6 +217,7 @@ elseif fun=="masterInhomo" && modelType == "basic"
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
     modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
+    modelOpts.piForm = piForm;
     mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);

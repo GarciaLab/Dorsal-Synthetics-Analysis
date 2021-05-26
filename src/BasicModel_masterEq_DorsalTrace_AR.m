@@ -38,6 +38,7 @@ if isempty(modelOpts)
     modelOpts.exitOnlyDuringOffStates = true;
     modelOpts.nSims = 1E3;
     modelOpts.modelType = 'entryexit';
+    modelOpts.piForm = "cOcc"; %other option "cdl"
 end
 
 %mcmcpred feeds in x as a struct. otherwise it's an array
@@ -46,7 +47,6 @@ if isstruct(dorsalVals)
 end
 
 %% Simulation paramaters
-modelOpts.piForm = "cdl";
 numCells = modelOpts.nSims;   % the total number of nuclei in the simulation
 TotalTime =  theta(end);% minutes, end of the simulation
 transcriptionStart = 0.01; %minutes, delayed start of the transcriptional window
@@ -105,7 +105,7 @@ for d = 1:n_dls %loop over dorsal bins
         %dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal       
         if modelOpts.piForm == "cdl"
             kdt_off = c*dls; % transition rate between off states
-        else
+        elseif modelOpts.piForm == "cOcc"
             kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
         end
         
@@ -144,7 +144,7 @@ for d = 1:n_dls %loop over dorsal bins
 %     plot([fraction_onset(d,2) fraction_onset(d,2)],[0 0.5],'-','Color',Palette(d,:))
 %     %title(['Dorsal bin ' num2str(d)])
 end
-hold off
+% hold off
 
 
 
