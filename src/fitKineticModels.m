@@ -96,7 +96,8 @@ end
 if fun == "table"
     sims = load(dropboxfolder +  "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
 end
-%%
+%% INITIALIZE PARAMETERS
+
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 % options.drscale = 1; % a high value (5) is important for multimodal parameter spaces.
 options.drscale = 5;
@@ -218,6 +219,7 @@ elseif fun=="masterInhomo" && modelType == "basic"
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
     modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
     modelOpts.piForm = piForm;
+    % *** HERE WE CALL THE OBJECTIVE FUNCTION ***
     mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
