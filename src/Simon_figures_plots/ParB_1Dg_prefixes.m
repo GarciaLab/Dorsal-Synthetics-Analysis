@@ -27,9 +27,8 @@ Ch02Prefixes = {
 for p = 4:length(Ch02Prefixes)
     Prefix = Ch02Prefixes{p};
     Ch01Prefix = Prefix(1:end-7);
-    %    CheckParticleTracking(Ch01Prefix,'multiview', 'preLoadMovie')
-
-    segmentSpots(Ch01Prefix,[5700, 5700],'nWorkers', 8,'segmentChannel',1, 'Shadows',0)
+    CheckParticleTracking(Ch01Prefix,'multiview', 'preLoadMovie')
+%    segmentSpots(Ch01Prefix,[5700, 5700],'nWorkers', 8,'segmentChannel',1, 'Shadows',0)
 %     PrefixResultsFolder = [ResultsFolder '\' Prefix];
 %     Ch01PrefixResultsFolder = [ResultsFolder '\' Ch01Prefix];
 %      load([Ch01PrefixResultsFolder '/Ellipses.mat'])
