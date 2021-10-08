@@ -84,7 +84,7 @@ for rep = 1:NReps
     
     APBinsCovered = ~isnan(nansum(MeanVectorAP));
     
-    DosageFactor = 1.5;
+    DosageFactor = 1%.5;
     MeanData(rep,APBinsCovered)= DosageFactor.*(MeanVectorAP(FiducialFrame,APBinsCovered)- VenusOffset);
     SDData(rep,APBinsCovered) = sqrt(DosageFactor).*(SDVectorAP(FiducialFrame,APBinsCovered));
     NData(rep,APBinsCovered) = NParticlesAP(FiducialFrame,APBinsCovered);

@@ -2,7 +2,8 @@ function plotDorsalDosage
 
 %% get the prefix names
 %this is where the data is
-load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat')
+%load('S:\Simon\Dropbox\DorsalSyntheticsDropbox\dorsalResultsDatabase.mat')
+load('/Users/simon_alamos/Dropbox/DorsalSyntheticsDropbox/dorsalResultsDatabase.mat')
 condIdx = contains({combinedCompiledProjects_allEnhancers.prefix},'1Dg11_2xDl') & [combinedCompiledProjects_allEnhancers.cycle]==12;
 
 combinedCompiledProjects_SomeEnhancers = combinedCompiledProjects_allEnhancers(condIdx);
@@ -148,7 +149,7 @@ NnucleiPerTime2X = sum(~isnan(AllNuclearTraces2X));
 %% Plots
 
 figure
-moleculesPerAU = 1/6;
+moleculesPerAU = 1/6; %???
 backgroundFluo = 50;
 yyaxis left
 hold on
@@ -165,7 +166,7 @@ legend('1X','2X')
 
 
 figure
-dosageFactor = 1.5;
+dosageFactor = 1%1.5;
 yyaxis left
 hold on
 errorbar(TimeSinceAnaphase,nanmean(MeanAllNuclearTraces1X)-backgroundFluo,nanstd(MeanAllNuclearTraces1X)./4,...
