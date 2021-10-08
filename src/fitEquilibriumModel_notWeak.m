@@ -171,9 +171,9 @@ try
 end
 %
 % figure;
-out = mcmcpred(results,chain,[],data, results.modelfun); %parameter uncertainty
+out = mcmcpred_eqmodel(results,chain,[],data, results.modelfun); %parameter uncertainty
 
-% out = mcmcpred(results,chain,s2chain, data, results.modelfun); %predictive intervals for new observations
+% out = mcmcpred_eqmodel(results,chain,s2chain, data, results.modelfun); %predictive intervals for new observations
 
 
 %%
