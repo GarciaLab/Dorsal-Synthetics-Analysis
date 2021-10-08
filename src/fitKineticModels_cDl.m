@@ -1,4 +1,4 @@
-function [results, chain, s2chain, data, modelOpts] = fitKineticModels(varargin)
+function [results, chain, s2chain, data, modelOpts] = fitKineticModels_cDl(varargin)
 
 % To do:
 
@@ -15,9 +15,7 @@ batchedAffinities = false;
 fixTCycle = false;
 preRun = false;
 bin = false;
-piForm = "cOcc"; %other option "cdl"
-stateNumber = 4;
-
+piForm = "cdl";
 
 %options must be specified as name, value pairs. unpredictable errors will
 %occur, otherwise.
@@ -98,32 +96,33 @@ if fun == "table"
 end
 %%
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
-% options.drscale = 1; % a high value (5) is important for multimodal parameter spaces.
+% options.drscale = 2; % a high value (5) is important for multimodal parameter spaces.
 options.drscale = 5;
 options.waitbar = wb; %the waitbar is rate limiting sometimes
 options.nsimu = nSteps; %should be between 1E3 and 1E6
 options.updatesigma = 1; %honestly don't know what this does
 % options.method = 'mh';
 %
-names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
+%names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
+names = ["c", "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
 if modelType == "entryexit"
     if ~batchedAffinities
-        p0 = [10, 1E3, 5, 5, 1, 1, 6.8];
-        lb = [1E-1, 1E2, 0, 1, 1E-1, 1E-2, 5];
-        ub = [1E2, 1E6, 12, 12, 1E3, 1E1, 10];
+        p0 = [10, 5, 5, 1, 1, 6.8];
+        lb = [1E-1,  0, 1, 1E-1, 1E-2, 5];
+        ub = [1E2,  12, 12, 1E3, 1E1, 10];
     else
-        p0 = [1, 1E3, 1, 1, 1, .01, 8];
-        lb = [1E-1, 1E1, 0, 1, 1E0, 1E-3, 7];
-        ub = [1E2, 1E4, 12, 12, 1E2, 1E-2, 9];
+        p0 = [1,  1, 1, 1, .01, 8];
+        lb = [1E-1, 0, 1, 1E0, 1E-3, 7];
+        ub = [1E2,  12, 12, 1E2, 1E-2, 9];
     end
 elseif modelType == "entry"
-    p0 = [10, 1E3, 5, 5, 1, 0, 8];
-    lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
-    ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
+    p0 = [10,  5, 5, 1, 0, 8];
+    lb = [1E-2,0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
+    ub = [1E2,  12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
-    p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
-    lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
-    ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
+    p0 = [.001, 0, 4, 1E10, 0, 7.1];
+    lb = [1E-5,  0, 1, 1E10, 0, 4];
+    ub = [1E1, 0, 12, 1E10, 0, 9];
 end
 
 if variableStateNumber
@@ -156,18 +155,14 @@ for k = 1:length(names)
             p0(k) = 0;
         end
     end
-    
-    if fixKD && names(k) == "kd"
-        targetflag = 0;
-    end
-    
+        
     if fixTCycle && names(k) == "tcycle"
         targetflag = 0;
     end
     
-    %we allow each enhancer to have a different kd but share every other
+    %we allow each enhancer to have a different c but share every other
     %param
-    if batchedAffinities && names(k) == "kd"
+    if batchedAffinities && names(k) == "c"
         localflag = 1;
     end
     
@@ -217,7 +212,9 @@ elseif fun=="masterInhomo" && modelType == "basic"
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
     modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
-    modelOpts.piForm = piForm;
+    if piForm == "cdl"
+        modelOpts.piForm = "cdl";
+    end
     mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
