@@ -72,7 +72,7 @@ RowCounterB=1;
 figure
 colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8],[.2 .8 .2],[.9 0.1 .1],[.1 0.9 .1]};
 hold on
-for p = Extreme1XPrefixes%(1,[2,6,9,10])
+for p = Extreme1XPrefixes(1,[2,6,9,10])
     RowCounterB
     %ThisPrefixName = Brightest1XPrefixes{p};
     ThisPrefixNuclearTraces = nan(40,length(TimeSinceAnaphase));
@@ -80,7 +80,8 @@ for p = Extreme1XPrefixes%(1,[2,6,9,10])
     for n = 1:length(combinedCompiledProjects_allEnhancers)
         nucleusPrefix = combinedCompiledProjects_allEnhancers(n).prefix; 
         nucleusNC = combinedCompiledProjects_allEnhancers(n).cycle;
-        if strcmpi(p,nucleusPrefix) && nucleusNC==12
+        nucleusFluo = combinedCompiledProjects_allEnhancers(n).dorsalFluoTimeTrace;
+        if strcmpi(p,nucleusPrefix) && nucleusNC==12 && ~isempty(nucleusFluo)
            FluoTimeTrace = combinedCompiledProjects_allEnhancers(n).dorsalFluoTimeTrace - VenusOffset;
            AbsTimeTrace = combinedCompiledProjects_allEnhancers(n).nuclearTimeSinceAnaphase;
            plot(AbsTimeTrace,FluoTimeTrace,'Color',colors{RowCounterB});
@@ -110,7 +111,7 @@ MeanAllNuclearTraces2X = nan(TopNumber,length(TimeSinceAnaphase));
 figure
 %colors = {'k','b','g','y','r','m','c',[.8 0.2 .8],[.5 .5 .5],[0.2 .8 .8]};
 hold on
-for p = Extreme2XPrefixes%(1,[2,3,7,8])
+for p = Extreme2XPrefixes(1,[2,3,7,8])
     RowCounterB
     ThisPrefixNuclearTraces = nan(40,length(TimeSinceAnaphase));
     RowCounterA = 1;
@@ -148,8 +149,8 @@ NnucleiPerTime2X = sum(~isnan(AllNuclearTraces2X));
 %% Plots
 
 figure
-moleculesPerAU = 1/6;
-backgroundFluo = 50;
+moleculesPerAU = 1/6; %this is from getVenusCalibrationSA([],[])
+backgroundFluo = 50; %this was measured in embryos lacking Dorsal-Venus but having mCherry
 yyaxis left
 hold on
 errorbar(TimeSinceAnaphase,nanmean(AllNuclearTraces1X)-backgroundFluo,nanstd(AllNuclearTraces1X)./NnucleiPerTime1X,'-r')
@@ -165,7 +166,7 @@ legend('1X','2X')
 
 
 figure
-dosageFactor = 1.5;
+dosageFactor = 1;%1.5;
 yyaxis left
 hold on
 errorbar(TimeSinceAnaphase,nanmean(MeanAllNuclearTraces1X)-backgroundFluo,nanstd(MeanAllNuclearTraces1X)./4,...
