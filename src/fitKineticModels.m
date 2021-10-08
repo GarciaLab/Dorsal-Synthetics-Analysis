@@ -8,7 +8,7 @@ nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 fo
 nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps).
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
 modelType = "entryexit"; %choices- entryexit, entry, exit, basic
-fun= "table"; %also 'sim', 'imhomo', 'master', 'masterInhomo'
+fun= "table"; %also 'sim', 'imhomo', 'master', 'masterInhomo', 'parallel'
 variableStateNumber = false;
 fixKD = false;
 batchedAffinities = false;
@@ -44,7 +44,7 @@ if batchedAffinities
     enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
     scores = [6.23, 5.81, 5.39, 5.13, 4.80, 4.73, 4.29]';
     data_batch = {};
-    
+        
     
     for k = 1:numel(enhancers)
         
@@ -122,6 +122,12 @@ elseif modelType == "entry"
     lb = [1E-2, 1E0, 0, 1, 1E-1, 0, 5];%pentry lower than .1 causes crash
     ub = [1E2, 1E6, 12, 12, 1E1, 0, 10];
 elseif modelType == "basic"
+    p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
+    lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
+    ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
+elseif modelType == "parallel"
+    names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
+    %params: [c,kd,nSwitches,DlIndependentK,tcycle]
     p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
     lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
     ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
@@ -212,15 +218,19 @@ elseif fun == "inhomo"
     mdl = @(x, p)  timesim_interp_alldl(x, p, modelOpts);
 elseif fun == "master" && modelType == "basic"
     mdl = @(x, p)  BasicModel_masterEq(x, p, modelOpts);
-elseif fun=="masterInhomo" && modelType == "basic"
+elseif fun=="masterInhomo"
     fullMatFileName = datPath + '/DorsalFluoTraces.mat';
     load(fullMatFileName);
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
     modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
     modelOpts.piForm = piForm;
-    % *** HERE WE CALL THE OBJECTIVE FUNCTION ***
-    mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+    % *** HERE WE DEFINE THE OBJECTIVE FUNCTION ***
+    if modelType == "basic"
+        mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+    elseif modelType == "parallel"
+        mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+    end
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun

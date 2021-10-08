@@ -81,7 +81,7 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 for d = 1:n_dls
     DlConc = dorsalVals(d);
-    SpedUpK = basalK*(c*(d./kd) ./ (1 + d./kd)); % rate of the switch controlled by Dorsal
+    SpedUpK = basalK*(c*(DlConc./kd) ./ (1 + DlConc./kd)); % rate of the switch controlled by Dorsal
     
     SwitchesStates = zeros(NSwitches,length(time_vec_2));
     
@@ -104,19 +104,19 @@ for d = 1:n_dls
     fraction_onset(d,2) = sum(diff(All3On).*time_vec_2(1:end-1)/sum(diff(All3On))); %expected value
     
 end
-
-figure
-subplot(1,2,1)
-plot(dorsalVals,fraction_onset(:,1),'r')
-xlabel('[Dl]')
-ylabel('fraction active')
-ylim([0 1.1])
-
-subplot(1,2,2)
-plot(dorsalVals,fraction_onset(:,2),'b')
-xlabel('[Dl]')
-ylabel('mean turn on time')
-ylim([0 8.1])
+% 
+% figure
+% subplot(1,2,1)
+% plot(dorsalVals,fraction_onset(:,1),'r')
+% xlabel('[Dl]')
+% ylabel('fraction active')
+% ylim([0 1.1])
+% 
+% subplot(1,2,2)
+% plot(dorsalVals,fraction_onset(:,2),'b')
+% xlabel('[Dl]')
+% ylabel('mean turn on time')
+% ylim([0 8.1])
 
 
 
