@@ -8,7 +8,7 @@ function fraction_onset = ParallelModel(dorsalVals,theta,modelOpts)
 % multiplies them to obtain the probability that the promoter is on.
 
 % theta specifies model parameters:
-% theta = [c,kd,nSwitches,DlIndependentK,tcycle]
+% theta = [c,kd,nSwitches,tcycle]
 
 % To compare with data, we generated per embryo fraction active and mean onset
 % times using generatePerEmbryoDataForFits(numBins) with numBins = 18. The
@@ -48,10 +48,10 @@ TotalTime =  theta(end);% minutes, end of the simulation
 transcriptionStart = 0.01; %minutes, delayed start of the transcriptional window
 dt = TotalTime/80; %this 80 seems sufficient for all purposes. sorry for hardcoding.
 
-NSwitches = round(theta(end-2));   % number of parallel switches 
+NSwitches = round(theta(end-1));   % number of parallel switches 
 c = theta(1); % scales the Dorsal occupancy
 kd = theta(2); % dorsal binding affinity
-basalK = theta(end-1); %the basal switching rate in the absence of Dl
+%basalK = theta(end-1); %the basal switching rate in the absence of Dl
 
 %Create the matrix to store the number of nuclei in the ON state 
 M(1:TotalTime/dt,1) = 0; %initialize it to zero everywhere
@@ -81,7 +81,7 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 for d = 1:n_dls
     DlConc = dorsalVals(d);
-    SpedUpK = basalK*(c*(d./kd) ./ (1 + d./kd)); % rate of the switch controlled by Dorsal
+    SpedUpK = c*(DlConc./kd) ./ (1 + DlConc./kd); % rate of the switch controlled by Dorsal
     
     SwitchesStates = zeros(NSwitches,length(time_vec_2));
     
@@ -90,6 +90,7 @@ for d = 1:n_dls
     
     % calculate the rest of the unregulated switches
     for n = 2:NSwitches
+        basalK = SpedUpK;
         SwitchesStates(n,:) = 1-exp(-basalK.*time_vec_2);
     end
     
@@ -103,89 +104,27 @@ for d = 1:n_dls
     fraction_onset(d,1) = All3On(end);  
     fraction_onset(d,2) = sum(diff(All3On).*time_vec_2(1:end-1)/sum(diff(All3On))); %expected value
     
+%     plot(time_vec_2,SwitchesStates(1,:),'r')
+%     plot(time_vec_2,SwitchesStates(2,:),'k')
+%     plot(time_vec_2,SwitchesStates(3,:),'b')
+%     plot(time_vec_2,All3On,'g')
 end
 
-figure
-subplot(1,2,1)
-plot(dorsalVals,fraction_onset(:,1),'r')
-xlabel('[Dl]')
-ylabel('fraction active')
-ylim([0 1.1])
-
-subplot(1,2,2)
-plot(dorsalVals,fraction_onset(:,2),'b')
-xlabel('[Dl]')
-ylabel('mean turn on time')
-ylim([0 8.1])
 
 
+%%
+
+% figure
+% subplot(1,2,1)
+% plot(dorsalVals,fraction_onset(:,1),'r')
+% xlabel('[Dl]')
+% ylabel('fraction active')
+% ylim([0 1.1])
+% 
+% subplot(1,2,2)
+% plot(dorsalVals,fraction_onset(:,2),'b')
+% xlabel('[Dl]')
+% ylabel('mean turn on time')
+% ylim([0 8.1])
 
 
-
-% 
-% 
-% 
-% 
-% for d = 1:n_dls %loop over dorsal concentration bins
-%     
-%     [~,nearestBin] = min(abs(modelOpts.middleBinValues - dorsalVals(d)));
-%     dorsalTraceFluo = modelOpts.TimeVariantDorsalValues(:,nearestBin);
-%     
-%     for t = time_vec(transcriptionStartRow:end) % loop over time steps        
-%         %assert(abs(sum(M(t-1,:))-M(1,1))<errorTolerance,'the total probability across states should always add up to the initial one')        
-%         dls = dorsalTraceFluo(idx(t-1)); % each dorsal bin has a corresponding concentration time trace
-%         %dls = dorsalVals(d) + diff(dorsalVals(1:2)); % this is in case we want constant Dorsal       
-%         if modelOpts.piForm == "cdl"
-%             kdt_off = c*dls; % transition rate between off states
-%         elseif modelOpts.piForm == "cOcc"
-%             kdt_off = (c*(dls./kd) ./ (1 + dls./kd))*dt; % transition rate between off states
-%         end
-%         
-%         %Calculate the first state
-%         if NInactiveStates ~= 0 % if the first state is an inactive one          
-%             M(t,1) = (1-kdt_inac)*M(t-1,1); % it transitions with a rate of kdt_inac
-%             
-%             %Calculate the evolution of all states minus the ones at the edges
-%             % loop over inactive states
-%             for s = 2:NInactiveStates
-%                 M(t,s) = (1-kdt_inac)*M(t-1,s) + kdt_inac*M(t-1,s-1); % (stay-leave) + enter
-%             end
-%             
-%             % do the off state that comes immediatly after the last inactive state
-%             M(t,NInactiveStates+1) = (1-kdt_off)*M(t-1,NInactiveStates+1) + kdt_inac*M(t-1,NInactiveStates);       
-%         
-%         else % if the first state is an off one
-%             M(t,1) = (1-kdt_off)*M(t-1,1); % it transitions with a rate of kdt_off
-%         end
-%         
-%         % loop over the rest of the off states
-%         for s = NInactiveStatesPlus2:NLinStates
-%             M(t,s) = (1-kdt_off)*M(t-1,s) + kdt_off*M(t-1,s-1);
-%         end
-%         
-%         %Calculate the last state
-%         M(t,end) = M(t-1,end) + kdt_off*M(t-1,end-1);
-%         
-%     end
-%     
-%     fraction_onset(d,1) = M(end,end)/numCells;
-%     yEnd = M(:,end); %number of nuclei in the last state as a function of time
-%     fraction_onset(d,2) = sum(diff(yEnd).*time_vec_2(1:end-1)')/sum(diff(yEnd)); %expected value
-%     
-% %     plot(actualAbsTime,yEnd,'Color',Palette(d,:),'LineWidth',1)
-% %     plot([fraction_onset(d,2) fraction_onset(d,2)],[0 0.5],'-','Color',Palette(d,:))
-% %     %title(['Dorsal bin ' num2str(d)])
-% end
-% % hold off
-% 
-% 
-% 
-% 
-% % %% Make a movie
-% % MVector=0:NumStates;     %This is the vector of bins for the histogram
-% % figure(1)
-% % for t=1:TotalTime/dt
-% %    bar(MVector,M(t,:))
-% %    ylim([0,100])
-% %    drawnow          %Force Matlab to draw the plot
-% % end
