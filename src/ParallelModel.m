@@ -81,7 +81,7 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 for d = 1:n_dls
     DlConc = dorsalVals(d);
-    SpedUpK = c*(DlConc./kd) ./ (1 + DlConc./kd); % rate of the switch controlled by Dorsal
+    SpedUpK = basalK*(c*(DlConc./kd) ./ (1 + DlConc./kd)); % rate of the switch controlled by Dorsal
     
     SwitchesStates = zeros(NSwitches,length(time_vec_2));
     
@@ -109,7 +109,6 @@ for d = 1:n_dls
 %     plot(time_vec_2,SwitchesStates(3,:),'b')
 %     plot(time_vec_2,All3On,'g')
 end
-
 
 
 %%
