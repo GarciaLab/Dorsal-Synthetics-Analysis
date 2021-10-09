@@ -7,8 +7,8 @@ wb = true;
 nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
 nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps).
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
-modelType = "entryexit"; %choices- entryexit, entry, exit, basic
-fun= "table"; %also 'sim', 'imhomo', 'master', 'masterInhomo', 'parallel'
+modelType = "basic"; %choices- entryexit, entry, exit, basic, parallel
+fun= "masterInhomo"; %also 'sim', 'imhomo', 'master', 'masterInhomo', 'parallel'
 variableStateNumber = false;
 fixKD = false;
 batchedAffinities = false;
@@ -17,6 +17,7 @@ preRun = false;
 bin = false;
 piForm = "cOcc"; %other option "cdl"
 stateNumber = 4;
+fixNSwitches = true;
 
 
 %options must be specified as name, value pairs. unpredictable errors will
@@ -126,11 +127,11 @@ elseif modelType == "basic"
     lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
     ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
 elseif modelType == "parallel"
-    names = ["c", "kd" , "nentrystates", "moffstates", "pentry", "pexit", "tcycle"];
+    names = ["c", "kd" , "nSwitches", "DlIndependentK", "tcycle"];
     %params: [c,kd,nSwitches,DlIndependentK,tcycle]
-    p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
-    lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
-    ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
+    p0 = [0.5, 1E3, 4, 1, 7.1];
+    lb = [1E-2, 1E2, 1, 1E-2, 4];
+    ub = [1E2, 1E5, 10, 1E2, 9];
 end
 
 if variableStateNumber
@@ -172,6 +173,9 @@ for k = 1:length(names)
         targetflag = 0;
     end
     
+    if fixNSwitches && names(k) == "nSwitches"
+        targetflag = 0;
+    end
     %we allow each enhancer to have a different kd but share every other
     %param
     if batchedAffinities && names(k) == "kd"
@@ -229,7 +233,7 @@ elseif fun=="masterInhomo"
     if modelType == "basic"
         mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
     elseif modelType == "parallel"
-        mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+        mdl = @(x, p)  ParallelModel(x, p, modelOpts);
     end
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
