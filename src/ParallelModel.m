@@ -81,17 +81,12 @@ fraction_onset = nan(length(dorsalVals), 2); %to store the output
 
 for d = 1:n_dls
     DlConc = dorsalVals(d);
-    SpedUpK = basalK*(c*(DlConc./kd) ./ (1 + DlConc./kd)); % rate of the switch controlled by Dorsal
+    SpedUpK = c*(DlConc./kd) ./ (1 + DlConc./kd); % rate of the switch controlled by Dorsal
     
     SwitchesStates = zeros(NSwitches,length(time_vec_2));
     
-    % calculate the Dorsal-regulated switch first
-    SwitchesStates(1,:) = 1-exp(-SpedUpK.*time_vec_2);
-    
-    % calculate the rest of the unregulated switches
-    for n = 2:NSwitches
-        basalK = SpedUpK;
-        SwitchesStates(n,:) = 1-exp(-basalK.*time_vec_2);
+    for n = 1:NSwitches
+        SwitchesStates(n,:) = 1-exp(-SpedUpK.*time_vec_2);
     end
     
     % the fraction of promoters in the on state is the multiplication of
