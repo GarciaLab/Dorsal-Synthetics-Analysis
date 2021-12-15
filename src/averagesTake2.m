@@ -115,7 +115,8 @@ for b = 1:(length(dorsalVals)-1)
         mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
         %filter spurious time ons due to errors
         particlesTimeOns = [binStruct.particleTimeOn];
-        AllTurnOnTimePerBin(1:length(particlesTimeOns),b) = particlesTimeOns;
+        % nuclei that do not turn on are assigned a turn on time of 30 min
+        AllTurnOnTimePerBin(1:length(particlesTimeOns)+inactiveNuc_Bin,b) = [particlesTimeOns ones(1,inactiveNuc_Bin).*30];
         particlesTimeOns = particlesTimeOns(particlesTimeOns>minOnset);
         particlesTimeOns = particlesTimeOns(particlesTimeOns<maxOnset);
         mean_timeOn_acrossNuclei_perBin(b) = nanmean(particlesTimeOns);
@@ -207,9 +208,61 @@ for b = 1:(length(dorsalVals)-1)
      
 end
 
+
+%% Onset time distributions
 % clean up the onset times: keep only values between 2 and 8 minutes
+AllTurnOnTimePerBin(AllTurnOnTimePerBin<2)=nan;
+AllTurnOnTimePerBin(AllTurnOnTimePerBin>8 & AllTurnOnTimePerBin<20)=nan;
+AllTurnOnTimePerBin(AllTurnOnTimePerBin>20)=nan;
+
+% figure
+% errorbar(nanmean(AllTurnOnTimePerBin),nanstd(AllTurnOnTimePerBin))
+% ylim([0 12])
+% ylabel('turn on time')
+% xlabel('Dorsal fluo bin')
+
+figure
+coveredBins = sum(isnan(AllTurnOnTimePerBin(:,:)),1) ~= 500;
+binsss = [1:size(AllTurnOnTimePerBin,2)];
+coveredBins = binsss(coveredBins);
+Palette = cbrewer('seq', 'YlGn', size(AllTurnOnTimePerBin,2));
+hold on
+for bin = coveredBins%1:size(AllTurnOnTimePerBin,2)
+    %if sum(~isnan(AllTurnOnTimePerBin(:,b)))
+        binColor = Palette(bin,:);
+        [h,~] = cdfplot(AllTurnOnTimePerBin(:,bin));
+        h.Color = binColor;
+        h.LineWidth = 2;
+end
+hold off
+legend(strsplit(num2str(binValues)))
+set(gca,'Color',[.9 .9 .87])
+ylabel({'cumulative probability','(active nuclei only)'})
+%ylabel('cumulative probability')
+xlabel('spot turn on time (min)')
+title(DataType)
 
 
+figure
+hold on
+for bin = coveredBins%1:size(AllTurnOnTimePerBin,2)
+    %if sum(~isnan(AllTurnOnTimePerBin(:,b)))
+    subplot(1,length(coveredBins),bin)
+    binColor = Palette(bin,:);
+    histogram(AllTurnOnTimePerBin(:,bin),'DisplayStyle','stairs',...
+        'EdgeColor',binColor,'LineWidth',2,'Normalization','probability');
+    xlim([0 12])
+    set(gca,'Color',[.9 .9 .87])
+%         h.Color = binColor;
+%         h.LineWidth = 2;
+end
+hold off
+legend(strsplit(num2str(binValues)))
+set(gca,'Color',[.9 .9 .87])
+ylabel({'probability','(active nuclei only)'})
+%ylabel('cumulative probability')
+xlabel('spot turn on time (min)')
+title(DataType)
 %% bootstrap the fraction active across nuclei
 cObsP = @(x) (sum(x)/length(x)); %bootstrapped function: fraction
 nSamples = 1000;

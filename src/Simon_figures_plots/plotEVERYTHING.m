@@ -7,7 +7,7 @@ allenhancers = {'1Dg-8D','1Dg11','1DgW','1Dg-5','1DgVW','1DgS2',...
 optoenhancers = {'1Dg11_noExport','1Dg11_Export_first4min','1Dg11_exportedAfter4min'};
 TwiPEOpto = {'TwiPE_ExportedAlltheTime','TwiPE_exportFirst4min','TwiPE_noExportControl'};
 
-affinity_enhancers =  {'1Dg11','1DgVVW'}% {'1Dg11','1DgS2','1DgW','1DgAW3','1DgSVW2','1DgVVW3','1DgVW'};
+affinity_enhancers =  {'1Dg11'}% {'1Dg11','1DgS2','1DgW','1DgAW3','1DgSVW2','1DgVVW3','1DgVW'};
 %Palette = brewermap(length(affinity_enhancers),'YlGnBu');
 %affinity_enhancers = {'1Dg11_2xDl_FFF'};%,'1DgS2','1DgW_2xDl_FFF','1DgAW3','1DgSVW2','1DgVVW3','1DG_VW_2xDl_FFF'};
 %affinity_enhancers = {'1Dg11_2xDl','1Dg11_FFF'};
