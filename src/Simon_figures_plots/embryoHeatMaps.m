@@ -47,7 +47,7 @@ for bi = coveredBins
     nucleiPerBin = sum([NC12Schnitzcells2.dorsalFluoBin2]==bi);
     binNucleiIdx = [NC12Schnitzcells2.originalSchnitzIdx];
     binNucleiIdx = binNucleiIdx(nucleiThisBin);
-    AllNucleiArray = zeros(numFrames,nucleiPerBin);
+    AllNucleiSpotArray = zeros(numFrames,nucleiPerBin);
     counter=1;
     for n = binNucleiIdx
         particleIdx = find([CompiledParticles.schnitz]==n);
@@ -55,47 +55,69 @@ for bi = coveredBins
             particleFluo = CompiledParticles(particleIdx).Fluo;
             particleFrames = CompiledParticles(particleIdx).Frame;
             particleFrames = particleFrames-NC12Start;
-            AllNucleiArray(particleFrames,counter) = particleFluo;
+            AllNucleiSpotArray(particleFrames,counter) = particleFluo;
         else
-            AllNucleiArray(:,counter) = 0;
+            AllNucleiSpotArray(:,counter) = 0;
         end
         counter = counter+1;
     end
-    imagesc(AllNucleiArray')
+    imagesc(AllNucleiSpotArray')
     title(['bin = ' num2str(bi)])
 end
 
 
-%% pool together all bins (all nucleaise)
+%% pool together all bins (all nucleaises)
 
-figure
+%figure
 %nucleiThisBin = find([NC12Schnitzcells2.dorsalFluoBin2]==bi);
 %nucleiPerBin = sum([NC12Schnitzcells2.dorsalFluoBin2]==bi);
 %binNucleiIdx = [NC12Schnitzcells2.originalSchnitzIdx];
 %binNucleiIdx = binNucleiIdx(nucleiThisBin);
-AllNucleiArray = zeros(length(NC12Schnitzcells2),numFrames);
+AllNucleiSpotArray = zeros(length(NC12Schnitzcells2),numFrames);
+AllNucleiDorsalFluoVec = zeros(length(NC12Schnitzcells2),1);
+
 for n = 1:length(NC12Schnitzcells2)
     SchnitzID = NC12Schnitzcells2(n).originalSchnitzIdx;
     particleIdx = find([CompiledParticles.schnitz]==SchnitzID);
+    AllNucleiDorsalFluoVec(n) = NC12Schnitzcells2(n).FluoFeature;
     if particleIdx
         particleFluo = CompiledParticles(particleIdx).Fluo;
         particleFrames = CompiledParticles(particleIdx).Frame;
         particleFrames = particleFrames-NC12Start;
-        AllNucleiArray(n,particleFrames) = particleFluo;
+        AllNucleiSpotArray(n,particleFrames) = particleFluo;
     else
-        AllNucleiArray(n,:) = 0;
+        AllNucleiSpotArray(n,:) = 0;
     end
 end
-AllNucleiArray(AllNucleiArray<0)=0;
+AllNucleiSpotArray(AllNucleiSpotArray<0)=0;
 
 %% sort nuclei by their particle fluorescence
-sumFluo = sum(AllNucleiArray,2);
-AllNucleiArray(:,end) = sumFluo;
-SortedAllNucleiArray = sortrows(AllNucleiArray,size(AllNucleiArray,2));
+%concatenate the Dorsal fluorescence to the particle fluo array
+AllNucleiSpotArray = [AllNucleiSpotArray AllNucleiDorsalFluoVec];
+% sume the fluo of each spot over time
+sumFluo = sum(AllNucleiSpotArray(:,1:end-1),2);
+% concatenate the sum spot fluo in the last column
+AllNucleiSpotArray = [AllNucleiSpotArray sumFluo];
+
+% sort array based on sum spot fluo
+SortedAllNucleiArray = sortrows(AllNucleiSpotArray,size(AllNucleiSpotArray,2));
 SortedAllNucleiArray(:,end)=0;
-imagesc(flip(SortedAllNucleiArray))
+figure
+%subplot(1,2,1)
+imagesc(flip(SortedAllNucleiArray(:,1:end-3)))
+colorbar
+colormap plasma
 title(['All nc12 nuclei from ' prefix])
 xlabel('time into nc12 (min)')
+ylabel('nuclei')
+
+figure
+%subplot(1,2,2)
+imagesc(flip(SortedAllNucleiArray(:,end-1)))
+colorbar
+palette = cbrewer('seq', 'YlGn', size(SortedAllNucleiArray,1));
+colormap(palette)
+title(['Dorsal fluo - all nc12 nuclei from ' prefix])
 ylabel('nuclei')
 %% deal with labels
 % timeLabels = 0:5:15;

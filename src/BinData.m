@@ -1,6 +1,6 @@
 function [binnedvector] = BinData(vector,binValues)
 % first argument = vector array to be binned, 
-% second arg = vector array containing the upper limit of the bins
+% second arg = vector array containing the upper limit of each of the bins
 %%
 
 %Range = Max-Min;

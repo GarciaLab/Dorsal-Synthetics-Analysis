@@ -1,4 +1,7 @@
-function [embryoRNA embryoRNAError embryoMetric embryoMetricError] = averagesTake2(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
+function [embryoRNA embryoRNAError embryoMetric embryoMetricError] = ...
+    averagesTake3(DataType,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax)
+% USES ABSOLUTE DV POSITION
+
 % metric can be 'maxfluo', 'accumulatedfluo' or 'fraction'
 % errorgroup is over what the error is taken, 'embryos' or 'nuclei'. For
 % fraction the error over nuclei is bootstraped.
@@ -6,6 +9,9 @@ function [embryoRNA embryoRNAError embryoMetric embryoMetricError] = averagesTak
 % load everything
 [~, resultsFolder] = getDorsalFolders;
 load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'])
+
+% add absolute DV
+combinedCompiledProjects_allEnhancers = mapFluoToDV(combinedCompiledProjects_allEnhancers);
 
 % we'll use the struct called 'combinedCompiledProjects_allEnhancers', wich
 % contains one entry per nucleus.
@@ -19,7 +25,12 @@ end
 
 % define rules for what data we'll consider in the analysis and plots
 dataTypeIncludeRule = contains({combinedCompiledProjects_allEnhancers.dataSet},DataType);
-dataTypeExcludeRule = ~contains(lower({combinedCompiledProjects_allEnhancers.dataSet}),lower(NotEnhancerName));
+dataTypeExcludeRule = ones(1,length(combinedCompiledProjects_allEnhancers));
+for i = 1:length(NotEnhancerName)
+    excludeString = NotEnhancerName{i};
+    Exclude = ~contains(lower({combinedCompiledProjects_allEnhancers.dataSet}),lower(excludeString));
+    dataTypeExcludeRule = dataTypeExcludeRule & Exclude;
+end
 dataTypeRule = dataTypeIncludeRule & dataTypeExcludeRule;
 
 % tempRule = ({combinedCompiledProjects_allEnhancers.dataSet} == "1Dg11_2xDl" |...
@@ -33,34 +44,26 @@ enhancerStruct = combinedCompiledProjects_allEnhancers(dataTypeRule &...
 
 % ****IMPORTANT!!!**** this line uses the standard dorsal fluorescence, not the
 % arbitrary one at a given 'fiducial time'
-if isempty(fiducialTime)
-    nucleiFluorescence = [enhancerStruct.dorsalFluoFeature];
-else
-    %this function calculates the Dorsal fluorescence at some arbitrary time
-    %in nc12 and adds it to the struct in a 'DorsalFluoArbitraryTime' field
-    enhancerStruct = DorsalFluoArbitraryTime(enhancerStruct,fiducialTime);
-    nucleiFluorescence = [enhancerStruct.DorsalFluoArbitraryTime];
-end
-
-binValues = linspace(0,3800,numBins);
-binnedNuclearFluo = BinData(nucleiFluorescence,binValues);
+nucleiPositions = [enhancerStruct.AbsDV];
+binValues = linspace(0,0.66,numBins);
+binnedNuclearDVPos = BinData(nucleiPositions,binValues);
 for n = 1:length(enhancerStruct)
-    enhancerStruct(n).dorsalFluoBin2 = binnedNuclearFluo(n);
+    enhancerStruct(n).DVpos = binnedNuclearDVPos(n);
 end
 
-coveredBins = unique([enhancerStruct.dorsalFluoBin2]);
+coveredBins = unique([enhancerStruct.DVpos]);
 binValues = binValues(coveredBins);
 
 %% bin nuclei in the same way we do in getEmbryoDataForFits
-dorsalVals = linspace(0,3800,numBins);
-binSize = diff(dorsalVals(1:2));
-for n = 1:length(enhancerStruct)
-    FluoFeature = enhancerStruct(n).dorsalFluoFeature;
-    bin = find(FluoFeature-dorsalVals<0,1,'first')-1;
-    enhancerStruct(n).dorsalFluoBin3 = bin;
-end
-coveredBins = unique([enhancerStruct.dorsalFluoBin3]);
-binValues = dorsalVals(1:end-1) + (binSize/2);
+dorsalVals = linspace(0,0.66,numBins);
+% binSize = diff(dorsalVals(1:2));
+% for n = 1:length(enhancerStruct)
+%     FluoFeature = enhancerStruct(n).dorsalFluoFeature;
+%     bin = find(FluoFeature-dorsalVals<0,1,'first')-1;
+%     enhancerStruct(n).dorsalFluoBin3 = bin;
+% end
+% coveredBins = unique([enhancerStruct.dorsalFluoBin3]);
+% binValues = dorsalVals(1:end-1) + (binSize/2);
 
 %% now make one struct per embryo per bin 
 % define some filters
@@ -90,14 +93,11 @@ fractionPerEmbryoPerBin_cellarray = {};
 
 OnNucleiPerBin = [];
 OffNucleiPerBin = [];
-numNucPerBin = 500; %just a really large number for prealocation
-AllTurnOnTimePerBin = nan(numNucPerBin,length(dorsalVals)-1);
-
-for b = 1:(length(dorsalVals)-1)
+for b = 1:length(coveredBins)
     
     %binID = coveredBins(b);
     %binStruct = enhancerStruct([enhancerStruct.dorsalFluoBin2]== binID);
-    binStruct = enhancerStruct([enhancerStruct.dorsalFluoBin2]== b);
+    binStruct = enhancerStruct([enhancerStruct.DVpos]== b);
 
     if ~isempty(binStruct)
     
@@ -115,7 +115,6 @@ for b = 1:(length(dorsalVals)-1)
         mean_fraction_acrossNuclei_perBin(b) = activeNuc_Bin/length(binStruct);
         %filter spurious time ons due to errors
         particlesTimeOns = [binStruct.particleTimeOn];
-        AllTurnOnTimePerBin(1:length(particlesTimeOns),b) = particlesTimeOns;
         particlesTimeOns = particlesTimeOns(particlesTimeOns>minOnset);
         particlesTimeOns = particlesTimeOns(particlesTimeOns<maxOnset);
         mean_timeOn_acrossNuclei_perBin(b) = nanmean(particlesTimeOns);
@@ -207,33 +206,6 @@ for b = 1:(length(dorsalVals)-1)
      
 end
 
-% clean up the onset times: keep only values between 2 and 8 minutes
-
-
-%% bootstrap the fraction active across nuclei
-cObsP = @(x) (sum(x)/length(x)); %bootstrapped function: fraction
-nSamples = 1000;
-btsrp_error_fraction_perBin = [];
-for b = 1:(length(dorsalVals)-1)
-    
-    if ~isnan(OnNucleiPerBin) %if this bin had any nuclei
-        NOnObs =  OnNucleiPerBin(b);
-        NOffObs = OffNucleiPerBin(b);
-        NOnSample = [ones(1,NOnObs) zeros(1,NOffObs)]; %this is the original sample
-        if NOnObs>1
-            [bootObsOn,~] = bootstrp(nSamples, cObsP,NOnSample); % this is the bootstrapped sample
-        elseif NOffObs ==0
-            bootObsOn = 1;
-        else
-            bootObsOn = 0;
-        end
-        btsrp_error_fraction_perBin(b) = std(bootObsOn);
-    else
-        btsrp_error_fraction_perBin(b) = nan;
-        bootObsOn = nan;
-    end
-end
-
 %% Integrate the mean total mRNA produced per nucleus (inactive and active ones) across dorsal fluo bins
 % to show the total mRNA produced per embryo
 
@@ -260,7 +232,7 @@ ylabel('maximum spot fluorescence')
 %set(gca,'XScale','log')
 % ylim([0 600])
 ylim([0,600])
-xlim([0 3800])
+xlim([0 0.66])
 %legend('across nuclei','across embryos')
 embryoMetric = nanmean(mean_maxFluo_acrossEmbryos_perBin);
 embryoMetricError = nanstd(mean_maxFluo_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_maxFluo_acrossEmbryos_perBin)));
@@ -277,7 +249,7 @@ elseif strcmpi(metric,'accumulatedfluo') || strcmpi(metric,'accfluo')
 xlabel('Dorsal concentration (AU)')
 ylabel('accumulated fluorescence')
 %set(gca,'XScale','log')
-xlim([0 3800])
+xlim([0 0.66])
 ylim([0 1200])
 embryoMetric = nanmean(mean_accFluo_acrossEmbryos_perBin);
 embryoMetricError = nanstd(mean_accFluo_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_accFluo_acrossEmbryos_perBin)));
@@ -300,7 +272,7 @@ xlabel('Dorsal concentration (AU)')
 ylabel('fraction of active nuclei')
 %set(gca,'XScale','log')
 ylim([0 1.1])
-xlim([0 4000])
+xlim([0 0.66])
 embryoMetric = nanmean(mean_fraction_acrossEmbryos_perBin);
 embryoMetricError = nanstd(mean_fraction_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_fraction_acrossEmbryos_perBin)));
 
@@ -318,7 +290,7 @@ xlabel('Dorsal concentration (AU)')
 ylabel('turn on time')
 %set(gca,'XScale','log')
 ylim([0 10])
-xlim([0 3800])
+xlim([0 0.66])
 embryoMetric = nanmean(mean_timeOn_acrossEmbryos_perBin);
 embryoMetricError = nanstd(mean_timeOn_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_timeOn_acrossEmbryos_perBin)));
 
@@ -335,7 +307,7 @@ elseif contains(lower(metric),'total')
 xlabel('Dorsal concentration (AU)')
 ylabel('total produced mRNA')
 %ylim([0 1800])
-xlim([0 3800])
+xlim([0 0.66])
 %set(gca,'YScale','log')
 embryoMetric = nanmean(mean_totalRNA_acrossEmbryos_perBin);
 embryoMetricError = nanstd(mean_totalRNA_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_totalRNA_acrossEmbryos_perBin)));
@@ -353,7 +325,7 @@ elseif contains(lower(metric),'duration')
 xlabel('Dorsal concentration (AU)')
 ylabel('spot duration (min)')
 ylim([0 6])
-xlim([0 3800])
+xlim([0 0.66])
 %set(gca,'YScale','log')
 embryoMetric = nanmean(mean_duration_acrossEmbryos_perBin);
 embryoMetricError = nanmean(mean_duration_acrossEmbryos_perBin)./sqrt(sum(~isnan(mean_duration_acrossEmbryos_perBin)));
