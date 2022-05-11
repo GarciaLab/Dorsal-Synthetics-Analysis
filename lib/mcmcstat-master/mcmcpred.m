@@ -52,17 +52,19 @@ for i=1:nbatch
 
   datai = data{i};
   
+  ysave = zeros(nsample, size(datai.ydata, 1), size(datai.ydata, 2)-1); %this works for 2 column data. i think the one below works for 1 column data
 %   ysave = zeros(nsample, size(datai.ydata, 1), size(datai.ydata, 2)-2); %AR 10/21/20 this preallocation might be wrong for some datasets. can be modified though. 
-    if i~=1 && size(datai.ydata, 1) ~= size(ysave, 2)
-        datai.ydata(end:size(ysave,2), :) = nan;
-    end
+ 
+  if i~=1 && size(datai.ydata, 1) ~= size(ysave, 2)
+    datai.ydata(end:size(ysave,2), :) = nan;
+  end
 
   for iisample = 1:nsample;
     theta(parind) = chain(isample(iisample),:)';
     th  = theta(local==0|local==i);
     y   = feval(modelfun,datai,th,varargin{:});
-%     ysave(iisample,:,:) = y(:, 1);
-    ysave(iisample,:,:) = y;
+%     ysave(iisample,:,:) = y(:, 1); %use this line for one column y-data 
+    ysave(iisample,:,:) = y; %use this for two column y-data
     if ~isempty(s2chain)
       if sstype==0
         osave(iisample,:,:) = ...

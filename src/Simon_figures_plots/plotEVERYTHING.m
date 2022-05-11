@@ -7,14 +7,14 @@ allenhancers = {'1Dg-8D','1Dg11','1DgW','1Dg-5','1DgVW','1DgS2',...
 optoenhancers = {'1Dg11_noExport','1Dg11_Export_first4min','1Dg11_exportedAfter4min'};
 TwiPEOpto = {'TwiPE_ExportedAlltheTime','TwiPE_exportFirst4min','TwiPE_noExportControl'};
 
-affinity_enhancers = {'1Dg11','1DgS2','1DgW_2x','1DgAW3','1DgSVW2','1DgVVW3','1DgVW'};
+affinity_enhancers =  {'1Dg11'}% {'1Dg11','1DgS2','1DgW','1DgAW3','1DgSVW2','1DgVVW3','1DgVW'};
 %Palette = brewermap(length(affinity_enhancers),'YlGnBu');
 %affinity_enhancers = {'1Dg11_2xDl_FFF'};%,'1DgS2','1DgW_2xDl_FFF','1DgAW3','1DgSVW2','1DgVVW3','1DG_VW_2xDl_FFF'};
 %affinity_enhancers = {'1Dg11_2xDl','1Dg11_FFF'};
 paperNames = {'6.23','5.81','5.39','5.13','4.8','4.73','4.29'};
 scores = [6.23,5.81,5.39,5.13,4.8,4.73,4.29];
 
-enhancers = {affinity_enhancers{1}};
+enhancers = affinity_enhancers;
 Palette = viridis(length(enhancers));
 scores = scores(1:length(enhancers));
 
@@ -22,7 +22,7 @@ scores = scores(1:length(enhancers));
 %% the traditional way, binning
 if contains(lower(method),'binning')
     
-    NotEnhancerName = 'export'; %this is a string that we want to exclude from the analysis
+    NotEnhancerName = {'xxxxx'}; %this is a string that we want to exclude from the analysis
     numBins = 20;
     embryoRNAs = [];
     embryoRNAErrors= [];
@@ -37,8 +37,11 @@ if contains(lower(method),'binning')
         Color = Palette(e,:);
         %ax = nexttile; %comment this out to plot everything in one graph
         enhancerName = enhancers{e};
+%         [embryoRNAs(e) embryoRNAErrors(e)  embryoMetric(e) embryoMetricError(e)] = ...
+%         averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
+
         [embryoRNAs(e) embryoRNAErrors(e)  embryoMetric(e) embryoMetricError(e)] = ...
-            averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
+        averagesTake2(enhancerName,NotEnhancerName,numBins,metric,fiducialTime,errorgroup,Color,ax);
     end
     hold off
     legend(enhancers,'Location','northwest','interpreter','none')

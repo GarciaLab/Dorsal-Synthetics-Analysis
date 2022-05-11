@@ -56,6 +56,7 @@ timeArray = 0:10:totalTime*60; % in seconds
 Palette = plasma(length(coveredBins));
 Palette = cbrewer('seq', 'YlGn', length(coveredBins));
 
+
 figure
 hold on
 for b = 1:length(coveredBins)

@@ -2,30 +2,35 @@ function grammPlotDorsalDatabase()
 
 close all;
 
+% 
+% dataTypes = {'1Dg-12_6_2xDl', 'TwiPEv5(7)_2xDl', '1Dg-20(11)_2xDl','1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
+%     '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl',...
+%     '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl'};
 
-dataTypes = {'1Dg-12_6_2xDl', 'TwiPEv5(7)_2xDl', '1Dg-20(11)_2xDl','1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
-    '1DgW_FFF', '1Dg-5_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl',...
-    '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl','1DgVW_2xDl'};
+
+dataTypes = {'1Dg-12_6_2xDl', '1Dg-20(11)_2xDl','1Dg-8D_2xDl' '1Dg11_2xDl', '1Dg-5_2xDl',...
+};
 
 affinitiesDataTypes = {'1Dg11_FFF', '1Dg11_2xDl',...'
     '1DgW_FFF', '1DgW_2x_Leica',...
     '1DgVW_FFF'};
 
 phaseDataTypes = {'1Dg11_FFF', '1Dg11_2xDl',...
-    '1Dg-5_FFF', '1Dg-8D_FFF',...
+    '1Dg-5_FFF', '1Dg-8D_FFF', '1Dg-12_6_2xDl', '1Dg-20(11)_2xDl',...
     };
 
 %
 % dataTypes = {'1Dg-8D_FFF', '1DgW_2x_Leica',...
 %     '1DgW_FFF'};
 
-try
-    [~, resultsFolder] = getDorsalFolders;
-    load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'dorsalResultsDatabase')
-catch
-    dorsalResultsDatabase = createDorsalResultsDatabase(dataTypes);
-end
 
+% try
+%     [~, resultsFolder] = getDorsalFolders;
+%     load([resultsFolder, filesep, 'dorsalResultsDatabase.mat'], 'dorsalResultsDatabase')
+% catch
+%     dorsalResultsDatabase = createDorsalResultsDatabase(dataTypes);
+% end
+ dorsalResultsDatabase = createDorsalResultsDatabase(dataTypes);
 
 %% fraction for all data sets, both 1x and 2x (different colors, not concatenated).
 
@@ -193,7 +198,7 @@ g=gramm('x',x,...
     'color', dorsalResultsDatabase.mother);
 
 % Subdivide the data in subplots horizontally by region of origin
-g.facet_grid(dorsalResultsDatabase.enhancer, [])
+% g.facet_grid(dorsalResultsDatabase.enhancer, [])
 % g.facet_wrap(dorsalResultsDatabase.enhancer, 'ncols', 2);
 % Plot raw data as points, then plot errorbars
 g.geom_point()

@@ -1,5 +1,7 @@
 function fraction_onset = BasicModel_masterEq(dorsalVals,theta,modelOpts)
 
+%theta = [c, kd, [], NOffStates, [],[], TotalTime]
+
 %Solve the master equation for state of promoter before transcription onset
 
 %% set up problem
@@ -10,7 +12,7 @@ function fraction_onset = BasicModel_masterEq(dorsalVals,theta,modelOpts)
 
 if isempty(modelOpts)
     modelOpts.exitOnlyDuringOffStates = true;
-    modelOpts.nSims = 1E3;
+    modelOpts.nSims = 30;%1E3;
     modelOpts.modelType = 'entryexit';
 end
 
@@ -39,6 +41,7 @@ time_vec_2 = 0:dt:TotalTime-dt;
 
 fraction_onset = nan(length(dorsalVals), 2);
 
+forCDF = zeros(size(M,1),length(dorsalVals));
 %% Do the calculation
 for d = 1:length(dorsalVals)
     dls = dorsalVals(d);
@@ -60,11 +63,70 @@ for d = 1:length(dorsalVals)
     end
 
     fraction_onset(d,1) = M(end,end)/numCells;
-    y6 = M(:,end); %number of nuclei in the last state as a function of time
-    fraction_onset(d,2) = sum(diff(y6).*time_vec_2(1:end-1)')/sum(diff(y6)); %expected value
+    yend = M(:,end); %fraction of nuclei in the last state as a function of time
+    forCDF(:,d) = yend;
+    fraction_onset(d,2) = sum(diff(yend).*time_vec_2(1:end-1)')/sum(diff(yend)); %expected value
     
     
 end
+
+
+%%
+figure(1)
+Palette = cbrewer('seq', 'YlGn', length(dorsalVals));
+t = time_vec_2;
+hold on
+for bin = 1:length(dorsalVals)
+    binColor = Palette(bin,:);
+    CDF = (forCDF(:,bin))./numCells;
+    plot(t,CDF,'Color',binColor,'LineWidth',2)
+end
+hold off
+legend(strsplit(num2str(floor(dorsalVals))))
+set(gca,'Color',[.9 .9 .87])
+ylabel({'cumulative probability'})
+%ylabel('cumulative probability')
+xlabel('spot turn on time (min)')
+
+
+figure(2)
+Palette = cbrewer('seq', 'YlGn', length(dorsalVals));
+t = time_vec_2;
+hold on
+for bin = 1:length(dorsalVals)
+    binColor = Palette(bin,:);
+    CDF = (forCDF(:,bin))./numCells;
+    diffCDF = diff(CDF);
+    plot(t(2:end),diffCDF,'Color',binColor,'LineWidth',2)
+end
+hold off
+legend(strsplit(num2str(floor(dorsalVals))))
+set(gca,'Color',[.9 .9 .87])
+ylabel({'frequency (across all nuclei)'})
+%ylabel('cumulative probability')
+xlabel('spot turn on time (min)')
+
+
+figure(3)
+Palette = cbrewer('seq', 'YlGn', length(dorsalVals));
+t = time_vec_2;
+hold on
+for bin = 1:length(dorsalVals)
+    binColor = Palette(bin,:);
+    CDF = (forCDF(:,bin))./numCells;
+    diffCDF = diff(CDF./CDF(end));
+    plot(t(2:end),diffCDF,'Color',binColor,'LineWidth',2)
+   % plot(,'Color',binColor) %plot mean turn on time.
+end
+hold off
+legend(strsplit(num2str(floor(dorsalVals))))
+set(gca,'Color',[.9 .9 .87])
+ylabel({'frequency (across active nuclei'})
+%ylabel('cumulative probability')
+xlabel('spot turn on time (min)')
+
+
+
 
 % %% Make a movie
 % MVector=0:NumStates;     %This is the vector of bins for the histogram

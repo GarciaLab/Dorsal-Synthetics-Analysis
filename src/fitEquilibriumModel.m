@@ -179,11 +179,11 @@ for k = 1:length(out.predlims)
     
     nexttile;
     for j = 1:length(plimi)
-        
-        y_lower{k, j} = plimi{j}(1,:);
-        %         y_lower{k, j} = plimi{j}(4,:);
-        y_upper{k, j}  = plimi{j}(2*nn-1,:);
-        %         y_upper{k, j}  = plimi{j}(6,:);
+     
+        %         y_lower{k, j} = plimi{j}(4,:); %for 25-75%
+%         y_upper{k, j}  = plimi{j}(6,:); %for 25-75 %
+        y_lower{k, j} = plimi{j}(1,:); %for 95%
+        y_upper{k, j}  = plimi{j}(2*nn-1,:); %for 95%
         
         y_median{k, j} = plimi{j}(nn,:);
         

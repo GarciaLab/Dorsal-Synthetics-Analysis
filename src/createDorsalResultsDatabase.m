@@ -3,11 +3,11 @@ function dorsalResultsDatabase =...
 
 
 if nargin<1
-    dataTypes = unique({'1Dg11_exportedAfter4min','1Dg11_noExport','1Dg11_Export_first4min','1Dg11_2xDl_FFF','1Dg-20(11)_2xDl','1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
+    dataTypes = unique({'1Dg11_2xDl_FFF','1Dg-20(11)_2xDl','1Dg-8D_FFF', '1Dg11_2xDl', '1DgW_2x_Leica',...
         '1DgW_FFF', '1DgVW_FFF', '1Dg11_FFF', '1Dg-5_2xDl','1Dg-5_FFF'...
         '1DgS2_2xDl', '1DgAW3_2xDl', '1DgVVW3_2xDl', '1Dg-8D_2xDl', '1DgSVW2_2xDl',...
         '1DgVW_2xDl','TwiPEv5(7)_2xDl','2Dgc_FFF','2Dgc_2xDl','1Dg-12_6_2xDl','1Dg11_2xDl_FFF',...
-        '1DgW_2xDl_FFF','1DG_VW_2xDl_FFF','TwiPE_ExportedAlltheTime','TwiPE_exportFirst4min','TwiPE_noExportControl'});
+        '1DgW_2xDl_FFF','1DG_VW_2xDl_FFF'});
 end
 
 
@@ -17,6 +17,7 @@ dorsalResultsDatabase = struct;
 combinedCompiledProjects_allEnhancers = [];
 
 for i = 1:length(dataTypes)
+    i/length(dataTypes)
     
     [~, resultsFolder] = getDorsalFolders;
     

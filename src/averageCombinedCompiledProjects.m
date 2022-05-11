@@ -46,6 +46,10 @@ for dlFluoBin = 1:nBins
     
     for k = 1:length(combinedCompiledProjects)
                     
+        if ~isfield(combinedCompiledProjects(k), 'trapezoidStatus')
+            combinedCompiledProjects(k).trapezoidStatus = '';
+        end
+        
         if ~isempty(combinedCompiledProjects(k).particleFrames) &&...
                 combinedCompiledProjects(k).dorsalFluoBin == dlFluoBin &&...
                 combinedCompiledProjects(k).cycle == 12 && ...
@@ -106,14 +110,21 @@ end
 save([resultsFolder,filesep,DataType,filesep,'averagedTimeTraces', saveSuffix, '.mat'], 'averagedTimeTraces', '-v6');
 
 figure;
-tiledlayout('flow')
+tl = tiledlayout('flow')
+subset = 1:length(dlfluobins);
+pallette = brewermap(length(averagedTimeTraces.dlfluobins(subset)), 'YlGn');
+n=0;
 for dv = 1:length(averagedTimeTraces.dlfluobins)
-    
+    n = n + 1;
     nexttile;
     errorbar(averagedTimeTraces.elapsedTime,...
         averagedTimeTraces.meanVectorDV(:,dv),...
-        averagedTimeTraces.sdVectorDV(:, dv), 'CapSize', 0);
-    
+        averagedTimeTraces.sdVectorDV(:, dv), 'CapSize', 0,...
+            'Color', pallette(n, :), 'LineWidth', 3);
+%     title(num2str(averagedTimeTraces.dlfluobins(dv)));
+    title(num2str(max(nParticlesDV(:, dv))));
+    xlim([0,9])
+    ylim([-50, 350])
 end
 
 saveas(gcf, [resultsFolder, filesep, DataType, filesep, 'trapezoidMontage',saveSuffix,'.fig']);
@@ -122,23 +133,29 @@ saveas(gcf, [resultsFolder, filesep, DataType, filesep, 'trapezoidMontage',saveS
 
 figure;
 avCopy = averagedTimeTraces;
-avCopy.meanVectorDV(avCopy.meanVectorDV<0) = nan;
-pallette = brewermap(length(averagedTimeTraces.dlfluobins(6:12)), 'YlGn');
+% avCopy.meanVectorDV(avCopy.meanVectorDV<0) = nan;
+% subset = 6:12;
+subset = 1:length(dlfluobins);
+pallette = brewermap(length(averagedTimeTraces.dlfluobins(subset)), 'YlGn');
 colormap(pallette);
 tickLabels = {};
 n = 0;
-for dv = 6:12
+for dv = subset
     n = n + 1;
-    plot(averagedTimeTraces.elapsedTime,...
-        avCopy.meanVectorDV(:,dv),...
-        'Color', pallette(n, :), 'LineWidth', 3);
+%     plot(averagedTimeTraces.elapsedTime,...
+%         avCopy.meanVectorDV(:,dv),...
+%         'Color', pallette(n, :), 'LineWidth', 3);
+    errorbar(averagedTimeTraces.elapsedTime,...
+        averagedTimeTraces.meanVectorDV(:,dv),...
+        averagedTimeTraces.sdVectorDV(:, dv), 'CapSize', 0,...
+    'Color', pallette(n, :), 'LineWidth', 3);
     hold on;
     tickLabels = [tickLabels, num2str(averagedTimeTraces.dlfluobins(dv))];
 end
 c = colorbar('TickLabels',tickLabels);
-c.Label.String = 'Dorsal concentration (AU)';
+c.Label.String = 'Dorsal concentration (a.u.)';
 xlabel('Time since anaphase (min)');
-ylabel('Average spot fluorescence (AU)');
+ylabel('Average spot fluorescence (a.u.)');
 title(DataType, 'Interpreter', 'none'); 
 
 

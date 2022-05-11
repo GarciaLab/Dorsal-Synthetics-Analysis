@@ -7,8 +7,8 @@ wb = true;
 nSteps = 1E3; %1E3 is bad for real stats but good for debugging. need 1E4-1E6 for good stats
 nSims = 1E3; %number of simulations for the kinetic barrier model (not the number of mcmc walker steps).
 exitOnlyDuringOffStates = true; %determines connectivity of the markov graph
-modelType = "entryexit"; %choices- entryexit, entry, exit, basic
-fun= "table"; %also 'sim', 'imhomo', 'master', 'masterInhomo'
+modelType = "basic"; %choices- entryexit, entry, exit, basic, parallel
+fun= "masterInhomo"; %also 'sim', 'imhomo', 'master', 'masterInhomo', 'parallel'
 variableStateNumber = false;
 fixKD = false;
 batchedAffinities = false;
@@ -17,6 +17,7 @@ preRun = false;
 bin = false;
 piForm = "cOcc"; %other option "cdl"
 stateNumber = 4;
+fixNSwitches = true;
 
 
 %options must be specified as name, value pairs. unpredictable errors will
@@ -44,7 +45,7 @@ if batchedAffinities
     enhancers =  {'1Dg11', '1DgS2', '1DgW', '1DgAW3', '1DgSVW2', '1DgVVW3', '1DgVW'};
     scores = [6.23, 5.81, 5.39, 5.13, 4.80, 4.73, 4.29]';
     data_batch = {};
-    
+        
     
     for k = 1:numel(enhancers)
         
@@ -96,7 +97,8 @@ end
 if fun == "table"
     sims = load(dropboxfolder +  "\simulations\" + "tf_paramsearch_"+saveStr+"_.mat", 'params', 'factive', 'mfpts');
 end
-%%
+%% INITIALIZE PARAMETERS
+
 rng(1, 'combRecursive') %matlab's fastest rng. ~2^200 period
 % options.drscale = 1; % a high value (5) is important for multimodal parameter spaces.
 options.drscale = 5;
@@ -124,6 +126,12 @@ elseif modelType == "basic"
     p0 = [.5, 1E3, 0, stateNumber, 1E10, 0, 7.1];
     lb = [1E-2, 1E2, 0, 1, 1E10, 0, 4];
     ub = [1E2, 1E5, 0, 12, 1E10, 0, 9];
+elseif modelType == "parallel"
+    names = ["c", "kd" , "nSwitches", "DlIndependentK", "tcycle"];
+    %params: [c,kd,nSwitches,DlIndependentK,tcycle]
+    p0 = [0.5, 1E3, 4, 1, 7.1];
+    lb = [1E-2, 1E2, 1, 1E-2, 4];
+    ub = [1E2, 1E5, 10, 1E2, 9];
 end
 
 if variableStateNumber
@@ -165,6 +173,9 @@ for k = 1:length(names)
         targetflag = 0;
     end
     
+    if fixNSwitches && names(k) == "nSwitches"
+        targetflag = 0;
+    end
     %we allow each enhancer to have a different kd but share every other
     %param
     if batchedAffinities && names(k) == "kd"
@@ -211,14 +222,19 @@ elseif fun == "inhomo"
     mdl = @(x, p)  timesim_interp_alldl(x, p, modelOpts);
 elseif fun == "master" && modelType == "basic"
     mdl = @(x, p)  BasicModel_masterEq(x, p, modelOpts);
-elseif fun=="masterInhomo" && modelType == "basic"
+elseif fun=="masterInhomo"
     fullMatFileName = datPath + '/DorsalFluoTraces.mat';
     load(fullMatFileName);
     modelOpts.TimeVariantDorsalValues = [DorsalFluoTraces.meanDorsalFluo];
     modelOpts.TimeVariantAbsoluteTimes = DorsalFluoTraces(1).absoluteTime; %in seconds
     modelOpts.middleBinValues = [DorsalFluoTraces.binValue];
     modelOpts.piForm = piForm;
-    mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+    % *** HERE WE DEFINE THE OBJECTIVE FUNCTION ***
+    if modelType == "basic"
+        mdl = @(x, p)  BasicModel_masterEq_DorsalTrace_AR(x, p, modelOpts);
+    elseif modelType == "parallel"
+        mdl = @(x, p)  ParallelModel(x, p, modelOpts);
+    end
 end
 % mdl = @(x, p) kineticFunForFits_sim(x, p, modelOpts);
 model.modelfun   = mdl;  %use mcmcrun generated ssfun
@@ -284,10 +300,10 @@ for k = 1:length(out.predlims)
     nexttile;
     for j = 1:length(plimi)
         
-        %         y_lower{k, j} = plimi{j}(1,:);
-        y_lower{k, j} = plimi{j}(4,:);
-        %  y_upper{k, j}  = plimi{j}(2*nn-1,:);
-        y_upper{k, j}  = plimi{j}(6,:);
+%         y_lower{k, j} = plimi{j}(4,:); %for 25-75%
+%         y_upper{k, j}  = plimi{j}(6,:); %for 25-75 %
+        y_lower{k, j} = plimi{j}(1,:); %for 95%
+        y_upper{k, j}  = plimi{j}(2*nn-1,:); %for 95%
         
         y_median{k, j} = plimi{j}(nn,:);
         
@@ -354,7 +370,7 @@ if isempty(results.mean)
     warning('Results mean was empty. Using chain mean.')
 end
 
-theta_mean = getAllThetas(names, results);
+theta_mean = getAllThetas(names, results, chain);
 
 
 if ~iscell(theta_mean)
