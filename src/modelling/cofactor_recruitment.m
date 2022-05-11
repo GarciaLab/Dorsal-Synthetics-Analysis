@@ -13,7 +13,7 @@ w2 = 10000;
 
 r = 1; % transcription rate when the promoter is active
 
-Num = ((P/Kp) + ((C/Kc)*(P/Kp)*w2) + (D./Kd)*(C/Kc)*(P/Kp)*w1*w2)
+Num = ((P/Kp) + ((C/Kc)*(P/Kp)*w2) + ((D./Kd)*(P/Kp)) + (D./Kd)*(C/Kc)*(P/Kp)*w1*w2)
 Den = Num + 1 + (D./Kd) + (C/Kc) + (D./Kd)*(C/Kc)*w1
 R = Num ./ Den;
 
